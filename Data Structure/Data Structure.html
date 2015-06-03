@@ -1,0 +1,2345 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Play Game</title></head><body><script id="code">
+	var GAME = {};
+	var d = {};
+	//change these to change the size of the window
+	GAME.windowHeight = 440;
+	GAME.windowWidth  = 440;
+	GAME.resizable = false;
+
+	GAME.FPS = 60;
+	GAME.windowName = "Data Structure"
+
+	//technical variable - do not change
+	GAME.hasBegun = false;
+
+	var TILE = {};
+
+	function Load()
+	{	
+		//Begin the game
+		GAME.hasBegun = true;
+
+		//create a canvas
+		document.write("<canvas style='position: absolute; top: 0px; left: 0px;' height="+GAME.windowHeight + " width=" + GAME.windowWidth + "></canvas><div id='picDiv' style='display: none;'></div>");
+		GAME.ctx = document.getElementsByTagName('canvas')[0].getContext('2d');
+
+		GAME.clearDraw = function(color)
+		{
+			GAME.drawRect(Vect2(0,0), Vect2(GAME.windowWidth,GAME.windowHeight), color);
+		}
+
+		GAME.drawRect = function(v1,v2,color)
+		{
+			var oldColor = GAME.ctx.fillStyle;
+			GAME.ctx.fillStyle = color;
+			GAME.ctx.fillRect(v1.x,v1.y,v2.x,v2.y);
+			GAME.ctx.fill();
+			GAME.ctx.fillStyle = oldColor;
+		}
+
+		GAME.drawSprite = function(img, v1)
+		{
+			var pic = document.getElementById(img);
+			if(pic == undefined)
+			{
+				//alert("adding picture");
+				pic = document.createElement('img');
+				pic.src = img;
+				pic.id = img;
+				document.getElementById('picDiv').appendChild(pic);
+			}
+
+			GAME.ctx.drawImage(pic, v1.x, v1.y);
+		}
+		GAME.drawSpriteRot = function(img, v1, angle)
+		{
+			var pic = document.getElementById(img);
+			if(pic == undefined)
+			{
+				//alert("adding picture");
+				pic = document.createElement('img');
+				pic.src = img;
+				pic.id = img;
+
+				var div = document.createElement("div");
+				div.appendChild(pic);
+				document.getElementById('picDiv').appendChild(div);
+			}
+			//console.log(pic);
+
+			GAME.ctx.rotate(angle);
+			var v2 = Vect2(v1.x, v1.y);
+
+			//v2.x -= pic.naturalWidth/2;
+			//v2.y -= pic.naturalHeight/2;
+			v3 = Vect2(v2.x*Math.cos(-angle) - v2.y*Math.sin(-angle) - pic.naturalWidth/2, v2.x*Math.sin(-angle) + v2.y*Math.cos(-angle) - pic.naturalHeight/2);
+			GAME.ctx.drawImage(pic, v3.x, v3.y);
+			GAME.ctx.rotate(-angle);
+		}
+		GAME.drawLine = function (v1, v2)
+		{
+			GAME.ctx.beginPath();
+			GAME.ctx.moveTo(v1.x,v1.y);
+			GAME.ctx.lineTo(v2.x,v2.y);
+			GAME.ctx.stroke();
+		}
+		GAME.drawTriangle = function(v1, v2, v3, color)
+		{
+			var old = GAME.ctx.fillStyle;
+			GAME.ctx.fillStyle = color;
+
+			GAME.ctx.beginPath();
+			GAME.ctx.moveTo(v1.x,v1.y);
+			GAME.ctx.lineTo(v2.x,v2.y);
+			GAME.ctx.lineTo(v3.x,v3.y);
+			GAME.ctx.lineTo(v1.x,v1.y);
+			GAME.ctx.fill();
+
+			Game.ctx.fillStyle = old;
+		}
+
+		//GAME.isKeyDown[keycode] - used to get real time input if a key is down
+		GAME.isKeyDown = [];
+		document.addEventListener("keydown", function(e){GAME.isKeyDown[e.keyCode] = true; });
+		document.addEventListener("keyup", function(e){GAME.isKeyDown[e.keyCode] = false;});
+
+		Initialize();
+		//To stop the game loop: clearInterval(GAME.loop);
+		GAME.loop = setInterval(function(){Update(); Draw();}, 1000/GAME.FPS);
+		//function Loop(){requestAnimationFrame(Loop); Update(); Draw();};Loop();
+	}
+	
+	var Random = {};
+
+	function Initialize()
+	{
+		//put your initial code here :)
+		var SaveFile = {};
+		SaveFile.exist = false;
+		try
+		{
+			SaveFile  = JSON.parse(localStorage.DataStructureSaveFile)
+
+			d.Visited = SaveFile.Visited.slice(0);
+			d.PenMarkings = SaveFile.PenMarkings.slice(0);
+
+
+			SaveFile.Visited.sort(function(a,b)
+			{
+				if(b < a)
+					return 1;
+				else 
+					return -1;
+			})
+			SaveFile.PenMarkings.sort(function(a,b)
+			{
+				if(b.id < a.id)
+					return 1;
+				else 
+					return -1;
+			})
+
+
+			SaveFile.exist = true;
+		}
+		catch(E){delete localStorage.DataStructureSaveFile}
+
+		Random.seed = function(val)
+		{
+			this.twister = new MersenneTwister(val);
+		}
+		
+		Random.get = function()
+		{
+			return this.twister.random();
+		}
+
+		if(SaveFile.exist)
+		{
+			Random.seed(SaveFile.seed);
+			console.log(SaveFile.seed);
+			d.seed = SaveFile.seed;
+		}
+		else
+		{
+			var j = new Date().getTime();
+			//j = 1432841256374
+			console.log(j);
+			Random.seed(j);
+			d.seed = j;
+		}
+
+		TILE.id = 0;
+		TILE.createTile = function(biome,item)
+		{
+			var n = {};
+			var blankTile = {};
+
+			blankTile.blank = true;
+
+			n.left  = blankTile;
+			n.right = blankTile;
+			n.up = blankTile;
+			n.down = blankTile;
+
+			n.blank = false;
+
+			n.id = TILE.id;
+			TILE.id++;
+
+			n.pen = 0;
+
+			n.lastDraw = 0;
+
+
+			if(biome == undefined)
+				biome = "grass";
+			if(biome == "cloud")
+				biome = biome + (Math.floor(Math.random()*3)+1);
+			n.drawTile = biome + ".png";
+			n.drawTimer = 0;
+
+			if(item != undefined)
+				n.item = item;
+			else
+				n.item = "";
+
+			if(SaveFile.exist)
+			{
+				if(SaveFile.Visited.length > 0)
+				{
+					if(n.id == SaveFile.Visited[0])
+					{
+						SaveFile.Visited.push(n);
+						SaveFile.Visited.shift();
+					}
+				}
+				if(SaveFile.PenMarkings.length > 0)
+				{
+					if(n.id == SaveFile.PenMarkings[0].id)
+					{
+						n.pen = SaveFile.PenMarkings.shift().pen;
+					}
+				}
+
+				if(n.id == SaveFile.Spawn)
+					SaveFile.Spawn = n;
+				if(n.id == SaveFile.Position)
+					SaveFile.Position = n;
+			}
+			
+			n.Draw = function(v)
+			{
+				GAME.drawSprite(this.drawTile, v);
+
+				if(n.pen != 0)
+				{
+					if(n.pen % 2 == 1)
+						GAME.drawSprite("line-u.png",v);
+					if(Math.floor(n.pen/2) % 2 == 1)
+						GAME.drawSprite("line-d.png",v);
+					if(Math.floor(n.pen/4) % 2 == 1)
+						GAME.drawSprite("line-l.png",v);
+					if(Math.floor(n.pen/8) % 2 == 1)
+						GAME.drawSprite("line-r.png",v);
+				}
+				
+				if(this.item != "")
+					GAME.drawSprite(this.item + ".png", v);
+				
+				var elapsedTime = new Date().getTime() - this.lastDraw;
+
+				if (elapsedTime > 14)
+				{
+					if(this.drawTile == "neo.png")
+					{
+						if(Math.random()*300 > 299)
+						{
+							this.drawTile = "neo-blue.png";
+							this.drawTimer = 60;
+						} 
+					}
+					else if(this.drawTile == "neo-red.png")
+					{
+						this.drawTimer--;
+						if(this.drawTimer % 10 == 1)
+						{
+							this.drawTile = "neo.png";
+
+							var spread = 20;
+							while(spread > 0)
+							{
+								var j = Math.floor(Math.random()*4);
+								if(j == 0 && !this.left.blank && this.left.drawTile == "neo.png")
+								{
+									spread = 0;
+									this.left.drawTile = "neo-red.png";
+									this.left.drawTimer = this.drawTimer;
+								}
+								if(j == 1 && !this.right.blank && this.right.drawTile == "neo.png" )
+								{
+									spread = 0;
+									this.right.drawTile = "neo-red.png";
+									this.right.drawTimer = this.drawTimer;
+								}
+								if( j == 2 && !this.up.blank && this.up.drawTile == "neo.png")
+								{
+									spread = 0;
+									this.up.drawTile = "neo-red.png";
+									this.up.drawTimer = this.drawTimer;
+								}
+								if(j == 3 && !this.down.blank &&  this.down.drawTile == "neo.png" )
+								{
+									spread = 0;
+									this.down.drawTile = "neo-red.png";
+									this.down.drawTimer = this.drawTimer;
+								}
+								spread--;
+							}
+						}
+						if(this.drawTimer <= 0)
+							this.drawTile = "neo.png";
+					}
+					else if(this.drawTile == "neo-blue.png")
+					{
+						this.drawTimer--;
+						if(this.drawTimer == 0)
+							this.drawTile = "neo.png";
+					}
+					else if (this.drawTile == "stone.png" || this.drawTile == "crack.png" )
+					{
+						if(this.item == "" && Math.random()*3000 > 2999)
+						{
+							this.drawTile = "crack.png";
+							this.drawTimer = 180;
+						}
+
+						if(this.drawTimer > 0)
+							this.drawTimer--;
+						if(this.drawTimer <=0)
+						{
+							this.drawTile = "stone.png";
+
+							if(this.item == "pink")
+								this.item = "";
+						}
+						if(this.drawTimer % 30 == 0)
+						{
+							if(this.drawTimer == 120) //60 90 120
+							{
+								this.item = "pink";
+							}
+							else if (this.drawTimer > 30 && this.drawTimer <  120)
+							{
+								if(!this.down.blank)
+								{
+									if(this.down.drawTile == "stone.png" && this.down.item == "")
+									{
+										this.down.item = "pink";
+										this.down.drawTimer = this.drawTimer;
+									}
+								}
+								if(!this.up.blank)
+								{
+									if(this.up.drawTile == "stone.png" && this.up.item == "")
+									{
+										this.up.item = "pink";
+										this.up.drawTimer = this.drawTimer;
+									}
+								}
+								if(!this.left.blank)
+								{
+									if(this.left.drawTile == "stone.png" && this.left.item == "")
+									{
+										this.left.item = "pink";
+										this.left.drawTimer = this.drawTimer;
+									}
+								}
+								if(!this.right.blank)
+								{
+									if(this.right.drawTile == "stone.png" && this.right.item == "")
+									{
+										this.right.item = "pink";
+										this.right.drawTimer = this.drawTimer;
+									}
+								}
+								this.drawTimer  = 30;
+							}
+						}
+					}
+					else if (this.drawTile == "cloud1.png" || this.drawTile == "cloud3.png" || this.drawTile == "cloud2.png" || this.drawTile == "cloud-m.png" || this.drawTile == "cloud-s.png")
+					{
+
+						if(this.drawTimer > 0)
+						{
+							this.drawTimer--;
+							var newImage = false;
+							if(this.drawTile == "cloud-s.png")
+							{
+								if(this.drawTimer < 40)
+									newImage = true;
+							}
+							else if (this.drawTile == "cloud-m.png")
+							{
+								if(this.drawTimer > 40 || this.drawTimer < 20)
+									newImage = true;
+							}
+							else
+							{
+								if(this.drawTimer > 20)
+									newImage = true;
+							}
+
+
+							if (newImage)
+							{
+								if(this.drawTimer < 20)
+									this.drawTile = "cloud" + (Math.floor(Math.random()*3)+1) + ".png";
+								else if (this.drawTimer < 40)
+									this.drawTile = "cloud-m.png";
+								else
+									this.drawTile = "cloud-s.png";
+							}
+						}
+					}
+					else if (this.drawTile == "lavastone.png")
+					{
+						if(this.drawTimer > 0 && this.item != "")
+						{
+							this.drawTimer++;
+							if(this.drawTimer == 20)
+							{
+								this.item = "lavastone3";
+							}
+							else if(this.drawTimer == 40)
+							{
+								this.item = "lavastone4";
+							}
+							else if(this.drawTimer == 60)
+							{
+								this.item = "lavastone5";
+							}
+							else if(this.drawTimer == 80)
+							{
+								this.item = "lavastone4";
+							}
+							else if(this.drawTimer == 100)
+							{
+								this.item = "lavastone3";
+							}
+							else if(this.drawTimer == 120)
+							{
+								this.item = "lavastone2";
+							}
+							else if (this.drawTimer == 140)
+							{
+								this.item = "";
+								this.drawTimer = 0;
+							}
+						}
+						else if(this.item == "" && Math.random()*300 > 299)
+						{
+							this.drawTimer = 1;
+							this.item = "lavastone2";
+						}
+					}
+				}
+
+				this.lastDraw += elapsedTime;
+			}
+
+			return n;
+		}
+
+		//***Biomes***
+		//grass
+		//stone
+		//cloud
+		//lavastone
+		//neo
+
+		TILE.Terrain = {};
+			//Generic Terrain
+			TILE.Terrain.StackedHall = function(biome)
+			{
+				var Entry1 = TILE.createTile(biome);
+				var Entry2 = TILE.createTile(biome);
+
+				Entry1.left = TILE.createTile(biome);
+				Entry1.left.right = Entry1;
+				Entry1.left.left = TILE.createTile(biome);
+				Entry1.left.left.right = Entry1.left;
+				Entry1.right = TILE.createTile(biome);
+				Entry1.right.left = Entry1;
+				Entry1.right.right = TILE.createTile(biome);
+				Entry1.right.right.left = Entry1.right;
+				Entry1.right.right.right = Entry2;
+				Entry1.left.left.left = Entry2;
+
+				Entry2.up = TILE.createTile(biome);
+				Entry2.up.down = Entry2;
+				Entry2.up.up = TILE.createTile(biome);
+				Entry2.up.up.down = Entry2.up;
+				Entry2.down = TILE.createTile(biome);
+				Entry2.down.up = Entry2;
+				Entry2.down.down = TILE.createTile(biome);
+				Entry2.down.down.up = Entry2.down;
+				Entry2.down.down.down = Entry1;
+				Entry2.up.up.up = Entry1;
+
+				if(Random.get() > .94)
+					Entry1.left.left.item = "coin";
+				if(Random.get() > .94)
+					Entry1.right.right.item = "coin";
+				if(Random.get() > .94)
+					Entry2.up.up.item = "coin";
+				if(Random.get() > .94)
+					Entry2.down.down.item = "coin";
+
+				return [[Entry1,"U"],[Entry1,"D"],[Entry2,"L"],[Entry2,"R"]];
+			}
+
+			TILE.Terrain.InfiniHall = function(biome)
+			{
+				var a = TILE.createTile(biome);
+				var Point = a;
+				var Point2 = TILE.createTile(biome);
+
+				Point.up = Point2;
+				Point2.down  = Point;
+
+				for (var i = 0; i < 7; i++) 
+				{
+					Point.right = TILE.createTile(biome);
+					Point2.right = TILE.createTile(biome);
+
+					Point.right.left = Point;
+					Point2.right.left = Point2;
+
+					Point = Point.right;
+					Point2 = Point2.right;
+
+					Point.up = Point2;
+					Point2.down  = Point;
+				};
+
+				Point.right = a;
+				Point2.right = a.up;
+				a.left = Point;
+				a.up.left = Point2;
+
+
+				if(Random.get() > .8)
+					a.up.item= "coin";
+
+				return [[a, "D"], [a.right.right.right.right, "D"], [a.right.right.up,"U"],[a.right.right.right.right.right.right.up,"U"]];
+			}
+			TILE.Terrain.MobuisSquare = function(biome)
+			{
+				var SideA = TILE.Terrain.Square(biome, 5);
+
+				var SideB = TILE.Terrain.Square(biome, 5);
+
+				var a = TILE.createTile(biome,"GrayTile");
+				var b = TILE.createTile(biome,"GrayTile");
+				var c = TILE.createTile(biome,"GrayTile");
+
+				a.down = b;
+				b.down = c;
+				c.up = b;
+				b.up = a;
+
+				SideA[1][0].up.right = a;
+				SideA[1][0].right = b;
+				SideA[1][0].down.right = c;
+
+				a.left = SideB[1][0].up;
+				b.left = SideB[1][0];
+				c.left = SideB[1][0].down;
+
+				a = TILE.createTile(biome,"GrayTile");
+				b = TILE.createTile(biome,"GrayTile");
+				c = TILE.createTile(biome,"GrayTile");
+
+				a.down = b;
+				b.down = c;
+				c.up = b;
+				b.up = a;
+
+				SideB[3][0].up.left = a;
+				SideB[3][0].left = b;
+				SideB[3][0].down.left = c;
+
+				a.right = SideA[3][0].up;
+				b.right = SideA[3][0];
+				c.right = SideA[3][0].down;
+
+				return [SideA[0],SideA[2],SideB[0],SideB[2]]
+			}
+			TILE.Terrain.DoubleLane = function(biome)
+			{
+				var a = TILE.createTile(biome);
+				var b = TILE.createTile(biome);
+				var sa = a;
+				var sb = b;
+
+				for (var i = 0; i < 6; i++) 
+				{
+					a.down = TILE.createTile(biome);
+					a = a.down;
+					b.up = TILE.createTile(biome);
+					b = b.up;
+				};
+
+				a.left = TILE.createTile(biome);
+				b.right = TILE.createTile(biome);
+
+				b.right.left = b;
+				a.left.right = a;
+
+				sa.left = b.right;
+				sa.left.right = sa;
+				sb.right = a.left;
+				sb.right.left = sb;
+
+				sa.down.left = sb.up.up.up.up.up;
+				sa.down.left.right = sa.down;
+				sa.down.down.left = sb.up.up.up.up;
+				sa.down.down.left.right = sa.down.down;
+				sa.down.down.down.left = sb.up.up.up;
+				sa.down.down.down.left.right = sa.down.down.down;
+				sa.down.down.down.down.left = sb.up.up;
+				sa.down.down.down.down.left.right = sa.down.down.down.down;
+				sa.down.down.down.down.down.left = sb.up;
+				sa.down.down.down.down.down.left.right = sa.down.down.down.down.down;
+
+
+				if(Random.get() > .8)
+					sa.down.down.item= "coin";
+				if(Random.get() > .8)
+					sb.up.up.item= "coin";
+
+				return [[sa.left,"U"], [a.left,"D"], [sa.down.down.down,"R"],[sb.up.up.up,"L"]];
+			}
+			TILE.Terrain.Square = function(biome,size)
+			{
+				var n = TILE.createTile(biome);
+				var spot1 = n;
+				var spot2 = n;
+				var spot3 = n;
+
+				if(size == undefined)
+					size = 5;
+				if(size % 2 == 0)
+					size++;
+
+				for (var i = 0; i < size; i++)
+				{
+					for (var j = 0; j < size; j++)
+					{
+						if(i == 0)
+						{
+							if(j != 0)
+							{
+								spot2.right = TILE.createTile(biome);
+								spot2.right.left = spot2;
+
+								spot2 = spot2.right;
+							}
+						}
+						else
+						{
+							if(j == 0)
+							{
+								spot1.down = TILE.createTile(biome);
+								spot1.down.up = spot1;
+
+								spot1 = spot1.down;
+
+								spot2 = spot1;
+								spot3 = spot1.up.right;
+							}
+							else
+							{
+								spot2.right = TILE.createTile(biome);
+								spot2.right.left = spot2;
+
+								spot2.right.up = spot3;
+								spot3.down = spot2.right;
+
+								spot2 = spot2.right;
+								if(!spot3.right.blank)
+									spot3 = spot3.right;
+							}
+						}
+					};
+				};
+
+				var entryPoints = [];
+
+				var counter = 0;
+				while(!n.right.blank)
+				{
+					n = n.right;
+					counter++;
+					if(counter == Math.floor(size/2))
+					{
+						entryPoints.push([n,"U"]);
+					}
+				}
+
+				//coin
+				if(Random.get() > .8 && biome != "wood" && biome !="antispawn")
+				{
+					n.down.down.left.left.item = "coin";
+				}
+
+				counter = 0;
+				while(!n.down.blank)
+				{
+					n = n.down;
+					counter++;
+					if(counter == Math.floor(size/2))
+					{
+						entryPoints.push([n,"R"]);
+					}
+				}
+				counter = 0;
+				while(!n.left.blank)
+				{
+					n = n.left;
+					counter++;
+					if(counter == Math.floor(size/2))
+					{
+						entryPoints.push([n,'D']);
+					}
+				}
+				counter = 0;
+				while(!n.up.blank)
+				{
+					n = n.up;
+					counter++;
+					if(counter == Math.floor(size/2))
+					{
+						entryPoints.push([n,"L"]);
+					}
+				}
+
+				return entryPoints;
+			}
+			TILE.Terrain.Diamond = function(biome, size)
+			{
+				if(size ==undefined)
+					size = 4;
+				if(biome == undefined)
+					biome = "grass";
+
+				var u = TILE.createTile(biome);
+				var l;
+				var r;
+				var Points = [u];
+				for (var j = 0; j < size; j++)
+				{
+					for (var i = 0; i < Points.length; i++)
+					{
+						Points[i].down = TILE.createTile(biome);
+						Points[i].down.up = Points[i];
+						Points[i] = Points[i].down;
+					};
+					for (var i = 0; i < Points.length-1; i++)
+					{
+						Points[i].right = Points[i+1];
+						Points[i].right.left = Points[i];
+					};
+
+					
+					Points[0].left = TILE.createTile(biome);
+					Points[0].left.right = Points[0];
+					Points.splice(0,0,Points[0].left);
+					
+					Points[Points.length-1].right = TILE.createTile(biome);
+					Points[Points.length-1].right.left = Points[Points.length-1];
+					Points.push(Points[Points.length-1].right);
+
+					if(j+1 == size)
+					{
+						l = Points[0];
+						r = Points[Points.length-1];
+					}
+				}
+
+				if(Random.get() > .8)
+				{
+					var index = (Points.length-1)/2;
+					Points[index].item = "coin";
+				}
+
+				while(Points.length >1)
+				{
+					Points.pop();
+					Points = removeIndex(0,Points);
+
+					for (var i = 0; i < Points.length; i++)
+					{
+						Points[i].down = TILE.createTile(biome);
+						Points[i].down.up = Points[i];
+						Points[i] = Points[i].down;
+					};
+					for (var i = 0; i < Points.length-1; i++)
+					{
+						Points[i].right = Points[i+1];
+						Points[i].right.left = Points[i];
+					};
+				}
+				var d = Points[0];
+
+				return [[u,"U"],[d,"D"],[l,"L"],[r,"R"]];
+			}
+			TILE.Terrain.Row = function(biome,size)
+			{
+				var n = TILE.createTile(biome);
+				var n1 = n;
+
+				if(size == undefined)
+					size = 5
+				for (var i = 0; i < size; i++)
+				{
+					n.right = TILE.createTile(biome);
+					n.right.left = n;
+
+					if(i == Math.floor(size/2) && Random.get() > .8)
+						n.item = "coin";
+
+					n = n.right;
+				};
+
+				return [[n1,"L"],[n,"R"]];
+			}
+			TILE.Terrain.Column = function(biome,size)
+			{
+				var n = TILE.createTile(biome);
+				var n1 = n;
+
+				if(size == undefined)
+					size = 5;
+				for (var i = 0; i < size; i++)
+				{
+					n.down = TILE.createTile(biome);
+					n.down.up = n;
+
+					if(i == Math.floor(size/2) && Random.get() > .8)
+						n.item = "coin";
+
+					n = n.down;
+				};
+
+				return [[n1,"U"],[n,"D"]];
+			}
+			
+			TILE.Terrain.Ring = function(biome)
+			{
+				var a = TILE.createTile(biome,"GrayTile");
+				var a2 = TILE.createTile(biome,"GrayTile");
+
+				var b = TILE.createTile(biome,"GrayTile");
+				var b2 = TILE.createTile(biome,"GrayTile");
+
+				var c = TILE.createTile(biome,"GrayTile");
+				var c2 = TILE.createTile(biome,"GrayTile");
+
+				var d = TILE.createTile(biome,"GrayTile");
+				var d2 = TILE.createTile(biome,"GrayTile");
+
+				a.right = a2;
+				a2.left = a;
+				b.down = b2;
+				b2.up = b;
+				c.left = c2;
+				c2.right = c;
+				d.up = d2;
+				d2.down = d;
+
+				for (var i = 0; i < 4; i++)
+				{
+					a.down = TILE.createTile(biome,"GrayTile");
+					a2.down = TILE.createTile(biome,"GrayTile");
+					a.down.up = a;
+					a2.down.up = a2;
+					a = a.down;
+					a2 = a2.down;
+
+					b.left = TILE.createTile(biome,"GrayTile");
+					b2.left = TILE.createTile(biome,"GrayTile");
+					b.left.right = b;
+					b2.left.right = b2;
+					b = b.left;
+					b2 = b2.left;
+
+					c.up = TILE.createTile(biome,"GrayTile");
+					c2.up = TILE.createTile(biome,"GrayTile");
+					c.up.down = c;
+					c2.up.down = c2;
+					c = c.up;
+					c2 = c2.up;
+
+					d.right = TILE.createTile(biome,"GrayTile");
+					d2.right = TILE.createTile(biome,"GrayTile");
+					d.right.left = d;
+					d2.right.left = d2;
+					d = d.right;
+					d2 = d2.right;
+
+					a.right = a2;
+					a2.left = a;
+					b.down = b2;
+					b2.up = b;
+					c.left = c2;
+					c2.right = c;
+					d.up = d2;
+					d2.down = d;
+				};
+
+				a.down = d2.left.left.left.left;
+				a2.down = d2.left.left.left;
+				a.down.up = a;
+				a2.down.up = a2;
+
+				b.left = a2.up.up.up.up;
+				b2.left = a2.up.up.up;
+				b.left.right = b;
+				b2.left.right = b2;
+
+				c.up = b2.right.right.right.right;
+				c2.up = b2.right.right.right;
+				c.up.down = c;
+				c2.up.down = c2;
+
+				d.right = c2.down.down.down.down;
+				d2.right = c2.down.down.down;
+				d.right.left = d;
+				d2.right.left = d2;	
+
+				return [[b2.right,"D"],[c2.down,"L"],[d2.left,"U"],[a2.up,"R"]];
+			}
+
+			TILE.Terrain.OneWayRing = function(biome)
+			{
+				var a = TILE.createTile(biome);
+				var b = a;
+
+				a.left = TILE.createTile(biome);
+				a = a.left;
+				a.left = TILE.createTile(biome);
+				a = a.left;
+
+				if(Random.get() > .974)
+					a.item = "coin";
+
+				a.down = TILE.createTile(biome);
+				a = a.down;
+				a.down = TILE.createTile(biome);
+				a = a.down;
+				var c = a;
+				a.down = TILE.createTile(biome);
+				a = a.down;
+				a.down = TILE.createTile(biome);
+				a = a.down;
+
+				if(Random.get() > .974)
+					a.item = "coin";
+
+				a.right = TILE.createTile(biome);
+				a = a.right;
+				a.right = TILE.createTile(biome);
+				a = a.right;
+				var d = a;
+				a.right = TILE.createTile(biome);
+				a = a.right;
+				a.right = TILE.createTile(biome);
+				a = a.right;
+
+				if(Random.get() > .974)
+					a.item = "coin";
+
+				a.up = TILE.createTile(biome);
+				a = a.up;
+				a.up = TILE.createTile(biome);
+				a = a.up;
+				var e = a;
+				a.up = TILE.createTile(biome);
+				a = a.up;
+				a.up = TILE.createTile(biome);
+				a = a.up;
+
+				if(Random.get() > .974)
+					a.item = "coin";
+
+				a.left = TILE.createTile(biome);
+				a = a.left;
+				a.left = b;
+
+				return [[b,"U"],[c,"L"],[d,"D"],[e,"R"]];
+
+			}
+			TILE.Terrain.Rectangle = function(biome)
+			{
+				var Point = TILE.createTile(biome);
+				var Point2 = Point;
+				Point.up = TILE.createTile(biome);
+				Point.up.down = Point;
+				Point.down = TILE.createTile(biome);
+				Point.down.up = Point;
+
+				for (var i = 0; i < 6; i++)
+				{
+					Point.right = TILE.createTile(biome);
+					Point.right.left = Point;
+					Point = Point.right;
+
+					Point.up = TILE.createTile(biome);
+					Point.up.down = Point;
+					Point.down = TILE.createTile(biome);
+					Point.down.up = Point;
+
+					Point.up.left = Point.left.up;
+					Point.left.up.right = Point.up;
+					Point.down.left = Point.left.down;
+					Point.left.down.right = Point.down;
+				};
+
+				if(Random.get() > .8)
+					Point.left.left.left.item = "coin";
+
+				return [[Point.left.up, "U"], [Point.left.down,"D"], [Point2.right.up,"U"],[Point2.right.down,"D"]];
+			}
+			TILE.Terrain.VertRectangle = function(biome)
+			{
+				var Point = TILE.createTile(biome);
+				var Point2 = Point;
+				Point.left = TILE.createTile(biome);
+				Point.left.right = Point;
+				Point.right = TILE.createTile(biome);
+				Point.right.left = Point;
+
+				for (var i = 0; i < 6; i++)
+				{
+					Point.down = TILE.createTile(biome);
+					Point.down.up = Point;
+					Point = Point.down;
+
+					Point.right = TILE.createTile(biome);
+					Point.right.left = Point;
+					Point.left = TILE.createTile(biome);
+					Point.left.right = Point;
+
+					Point.right.up = Point.up.right;
+					Point.up.right.down = Point.right;
+					Point.left.up = Point.up.left;
+					Point.up.left.down = Point.left;
+				};
+
+				if(Random.get() > .8)
+					Point.up.up.up.item = "coin";
+
+				return [[Point.up.right,"R"],[Point.up.left,"L"],[Point2.down.right,"R"],[Point2.down.left,"L"]];
+			}
+
+			//Other terrain
+			TILE.Terrain.KeyTemple = function(biome)
+			{
+				var a = TILE.createTile(biome);
+				var b = TILE.createTile(biome);
+				var c = TILE.createTile(biome);
+
+				a.right = b;
+				b.left = a;
+				b.right = c;
+				c.left = b;
+
+				a.down = TILE.createTile(biome);
+				b.down = TILE.createTile(biome,"key");
+				c.down = TILE.createTile(biome);
+
+				a.down.up = a;
+				b.down.up = b;
+				c.down.up = c;
+
+				a = a.down;
+				b = b.down;
+				c = c.down;
+
+				a.right = b;
+				b.left = a;
+				b.right = c;
+				c.left = b;
+
+				a.down = TILE.createTile(biome);
+				b.down = TILE.createTile(biome);
+				c.down = TILE.createTile(biome);
+
+				a.down.up = a;
+				b.down.up = b;
+				c.down.up = c;
+
+				a = a.down;
+				b = b.down;
+				c = c.down;
+
+				a.right = b;
+				b.left = a;
+				b.right = c;
+				c.left = b;
+
+				return [[b,"D"],[a.up,"L"],[c.up,"R"],[b.up.up,"U"]];
+
+			}
+			TILE.Terrain.TreasureSpot = function(biome)
+			{
+				var a = TILE.createTile(biome);
+				var b = TILE.createTile(biome);
+				var c = TILE.createTile(biome);
+				var d = TILE.createTile(biome);
+				var e = TILE.createTile(biome);
+				var f = TILE.createTile(biome);
+				var g = TILE.createTile(biome);
+				var h = TILE.createTile(biome);
+
+				a.right = b;
+				b.left = a;
+				b.right = c;
+				c.left = b;
+				c.down = d;
+				d.up = c;
+				d.down = e;
+				e.up = d;
+				e.left = f;
+				f.right = e;
+				f.left = g;
+				g.right = f;
+				g.up = h;
+				h.down = g;
+				h.up = a;
+				a.down = h;
+
+				var Treasures = {};
+				Treasures["stone"] = "crystal";
+				Treasures["grass"] = "manual";
+				Treasures["cloud"] = "flash";
+				Treasures["lavastone"] = "core";
+				Treasures["neo"] = "NIC";
+
+				var key = TILE.createTile(biome,Treasures[biome]);
+
+				key.up = b;
+				b.down = key;
+				key.left = h;
+				h.right = key;
+				key.down = f;
+				f.up = key;
+				key.right = d;
+				d.left = key;
+
+
+				for (var i = 2; i <= 4; i++) 
+				{
+					b.up = TILE.createTile(biome);
+					b.up.down = b;
+					b = b.up;
+					d.right = TILE.createTile(biome);
+					d.right.left = d;
+					d = d.right;
+					f.down = TILE.createTile(biome);
+					f.down.up = f;
+					f = f.down;
+					h.left = TILE.createTile(biome);
+					h.left.right = h;
+					h = h.left;
+
+					var k1 = b;
+					var k2 = d;
+					var k3 = f;
+					var k4 = h;
+
+					for (var j = 0; j < i; j++) 
+					{
+						k1.left = TILE.createTile(biome);
+						k1.left.right = k1;
+						k1 = k1.left;
+
+						k2.up = TILE.createTile(biome);
+						k2.up.down = k2;
+						k2 = k2.up;
+
+						k3.right = TILE.createTile(biome);
+						k3.right.left = k3;
+						k3 = k3.right;
+
+						k4.down = TILE.createTile(biome);
+						k4.down.up = k4;
+						k4 = k4.down;
+					};
+
+					for (var j = 0; j < i-1; j++) 
+					{
+						k2.left = TILE.createTile(biome);
+						k2.left.right = k2;
+						k2 = k2.left;
+
+						k3.up = TILE.createTile(biome);
+						k3.up.down = k3;
+						k3 = k3.up;
+
+						k4.right = TILE.createTile(biome);
+						k4.right.left = k4;
+						k4 = k4.right;
+
+						k1.down = TILE.createTile(biome);
+						k1.down.up = k1;
+						k1 = k1.down;
+					};
+
+					k1.down = h;
+					h.up = k1;
+					k2.left = b;
+					b.right = k2;
+					k3.up = d;
+					d.down = k3;
+					k4.right = f;
+					f.left = k4;
+				};
+
+				return [[b,"U"],[d,"R"],[f,"D"],[h,"L"]];
+			}
+			TILE.Terrain.Biome = function(biome, size)
+			{
+				if(size == undefined)
+					size = 10;
+
+				var n = [];
+
+				size +=3;
+				for (var i = 0; i < size; i++)
+				{
+					var currentTerrain;
+					if(i < 3)
+					{
+						var Builds = [TILE.Terrain.Square,TILE.Terrain.Ring, TILE.Terrain.OneWayRing, TILE.Terrain.Diamond, TILE.Terrain.Rectangle, TILE.Terrain.VertRectangle,TILE.Terrain.InfiniHall,TILE.Terrain.DoubleLane,TILE.Terrain.MobuisSquare,TILE.Terrain.StackedHall];
+						var RandFunction = Math.floor(Builds.length * Random.get());
+						currentTerrain = Builds[RandFunction](biome);
+					}
+					else
+					{
+						var Builds = [TILE.Terrain.Row, TILE.Terrain.Column, TILE.Terrain.Square,TILE.Terrain.Ring, TILE.Terrain.OneWayRing, TILE.Terrain.Diamond, TILE.Terrain.Rectangle, TILE.Terrain.VertRectangle,TILE.Terrain.InfiniHall,TILE.Terrain.DoubleLane,TILE.Terrain.MobuisSquare,TILE.Terrain.StackedHall];
+						//var Builds = [TILE.Terrain.StackedHall, TILE.Terrain.Square];
+
+						var RandFunction = Math.floor(Builds.length * Random.get());
+						currentTerrain = Builds[RandFunction](biome);
+					}
+					
+
+					if(i >= size - 2)
+					{
+						currentTerrain = TILE.Terrain.KeyTemple(biome);
+						while (currentTerrain.length > 1)
+						{
+							var Z = Math.floor(currentTerrain.length*Random.get());
+							currentTerrain = removeIndex(Z , currentTerrain);
+						}
+					}
+					else if (i == size - 3)
+					{
+						currentTerrain = TILE.Terrain.TreasureSpot(biome);
+						while (currentTerrain.length > 1)
+						{
+							var Z = Math.floor(currentTerrain.length*Random.get());
+							currentTerrain = removeIndex(Z , currentTerrain);
+						}
+					}
+
+					if (n.length == 0)
+						n.push(TILE.Terrain.Square(biome));
+					else
+					{
+						var TerrainZ = Math.floor(Random.get()*n.length);
+						var RandConnection = Math.floor(Random.get()*n[TerrainZ].length);
+						var RandEntry = Math.floor(Random.get()*currentTerrain.length);
+
+						if(n[TerrainZ][RandConnection][1] == currentTerrain[RandEntry][1])
+						{
+							var strip = TILE.createTile(biome);
+							var direction = n[TerrainZ][RandConnection][1];
+
+							if(direction == "L")
+							{
+								n[TerrainZ][RandConnection][0].left = strip;
+								strip.right = currentTerrain[RandEntry][0];
+							}
+							else if(direction == "R")
+							{
+								n[TerrainZ][RandConnection][0].right = strip;
+								strip.left = currentTerrain[RandEntry][0];
+							}
+							else if(direction == "U")
+							{
+								n[TerrainZ][RandConnection][0].up = strip;
+								strip.down = currentTerrain[RandEntry][0];
+							}
+							else if(direction == "D")
+							{
+								n[TerrainZ][RandConnection][0].down = strip;
+								strip.up = currentTerrain[RandEntry][0];
+							}
+
+							var strip2 = TILE.createTile(biome);
+							direction = currentTerrain[RandEntry][1];
+
+							if(direction == "L")
+							{
+								currentTerrain[RandEntry][0].left = strip2;
+								strip2.right = n[TerrainZ][RandConnection][0];
+							}
+							else if(direction == "R")
+							{
+								currentTerrain[RandEntry][0].right = strip2;
+								strip2.left = n[TerrainZ][RandConnection][0];
+							}
+							else if(direction == "U")
+							{
+								currentTerrain[RandEntry][0].up = strip2;
+								strip2.down = n[TerrainZ][RandConnection][0];
+							}
+							else if(direction == "D")
+							{
+								currentTerrain[RandEntry][0].down = strip2;
+								strip2.up = n[TerrainZ][RandConnection][0];
+							}
+						}
+						else
+						{
+							var strip = TILE.createTile(biome);
+							var direction = n[TerrainZ][RandConnection][1];
+
+							if(direction == "L")
+							{
+								n[TerrainZ][RandConnection][0].left = strip;
+								strip.right = n[TerrainZ][RandConnection][0];
+							}
+							else if(direction == "R")
+							{
+								n[TerrainZ][RandConnection][0].right = strip;
+								strip.left = n[TerrainZ][RandConnection][0];
+							}
+							else if(direction == "U")
+							{
+								n[TerrainZ][RandConnection][0].up = strip;
+								strip.down = n[TerrainZ][RandConnection][0];
+							}
+							else if(direction == "D")
+							{
+								n[TerrainZ][RandConnection][0].down = strip;
+								strip.up = n[TerrainZ][RandConnection][0];
+							}
+
+							direction = currentTerrain[RandEntry][1];
+
+							if(direction == "L")
+							{
+								currentTerrain[RandEntry][0].left = strip;
+								strip.right = currentTerrain[RandEntry][0];
+							}
+							else if(direction == "R")
+							{
+								currentTerrain[RandEntry][0].right = strip;
+								strip.left = currentTerrain[RandEntry][0];
+							}
+							else if(direction == "U")
+							{
+								currentTerrain[RandEntry][0].up = strip;
+								strip.down = currentTerrain[RandEntry][0];
+							}
+							else if(direction == "D")
+							{
+								currentTerrain[RandEntry][0].down = strip;
+								strip.up = currentTerrain[RandEntry][0];
+							}
+						}
+						
+						n[TerrainZ] = removeIndex(RandConnection, n[TerrainZ]);
+						currentTerrain = removeIndex(RandEntry, currentTerrain);
+
+						if(n[TerrainZ].length == 0)
+							n = removeIndex(TerrainZ, n);
+						if(currentTerrain.length > 0)
+							n.push(currentTerrain);
+					}
+				};
+
+				//create one way passages
+				for (var i = 0; i < Math.floor(size/4); i++) 
+				{
+					if(n.length > 4)
+					{
+						var TerrainZ = Math.floor(Random.get()*n.length);
+						var CZ = Math.floor(Random.get()*n[TerrainZ].length);
+
+						var TerrainY = TerrainZ;
+						while (TerrainY == TerrainZ)
+							TerrainY = Math.floor(Random.get()*n.length);
+						var CY = Math.floor(Random.get()*n[TerrainY].length);
+						
+
+						var strip = TILE.createTile(biome);
+						var direction = n[TerrainZ][CZ][1];
+
+						if(direction == "L")
+						{
+							n[TerrainZ][CZ][0].left = strip;
+						}
+						else if(direction == "R")
+						{
+							n[TerrainZ][CZ][0].right = strip;
+						}
+						else if(direction == "U")
+						{
+							n[TerrainZ][CZ][0].up = strip;
+						}
+						else if(direction == "D")
+						{
+							n[TerrainZ][CZ][0].down = strip;
+						}
+
+						direction = n[TerrainY][CY][1];
+
+						if(direction == "L")
+						{
+							strip.right = n[TerrainY][CY][0];
+						}
+						else if(direction == "R")
+						{
+							strip.left = n[TerrainY][CY][0];
+						}
+						else if(direction == "U")
+						{
+							strip.down = n[TerrainY][CY][0];
+						}
+						else if(direction == "D")
+						{
+							strip.up = n[TerrainY][CY][0];
+						}
+
+
+						n[TerrainZ] = removeIndex(CZ, n[TerrainZ]);
+						n[TerrainY] = removeIndex(CY, n[TerrainY]);
+
+						
+						if(n[TerrainZ].length == 0)
+						{
+							n = removeIndex(TerrainZ, n);
+							if(TerrainY > TerrainZ)
+								TerrainY--;
+						}
+						if(n[TerrainY].length == 0)
+						{
+							n = removeIndex(TerrainY, n);
+						}
+					}
+				};
+
+				
+				var biomeGates = [];
+
+				while(biomeGates.length < 4 && n.length > 0)
+				{
+					var Z = Math.floor(Random.get()*n.length);
+					var ZZ = Math.floor(Random.get()*n[Z].length);
+
+					biomeGates.push(n[Z][ZZ]);
+
+					n = removeIndex(Z,n);
+				}
+				
+				return biomeGates;
+			}
+			TILE.Terrain.BiomeMesh = function()
+			{
+				var BiomesToMake = ["spawn","grass","neo","stone","cloud","lavastone","grass","neo","stone","cloud","lavastone"];
+				var mesh = [];
+
+				for (var i = 2; i < BiomesToMake.length; i++) 
+				{
+					var Z = Math.floor((BiomesToMake.length-2) * Random.get())+2;
+					var swap = BiomesToMake[i];
+					BiomesToMake[i] = BiomesToMake[Z];
+					BiomesToMake[Z] = swap;
+				};
+
+				BiomesToMake[0] = TILE.Terrain.Spawn("");
+				mesh.push(BiomesToMake[0]);
+
+
+				var pointOfEntry = BiomesToMake[0][0][0].down.down.left.left.left.left.left;
+
+
+				for (var i = 1; i < BiomesToMake.length; i++)
+				{
+					BiomesToMake[i] = TILE.Terrain.Biome(BiomesToMake[i], 10);
+					
+
+					var B1 = Math.floor(Random.get()*mesh.length);
+					var B1E = Math.floor(Random.get()*mesh[B1].length);
+					var B2E = Math.floor(Random.get()*BiomesToMake[i].length);
+
+					var strip = TILE.createTile("lock");
+
+					var direction = mesh[B1][B1E][1];
+
+					var strip2 = TILE.createTile("unlock");
+					var direction2 = BiomesToMake[i][B2E][1];
+
+					
+
+					if(direction == "L")
+					{
+						mesh[B1][B1E][0].left = strip;
+						strip2.right = mesh[B1][B1E][0];
+					}
+					else if(direction == "R")
+					{
+						mesh[B1][B1E][0].right = strip;
+						strip2.left = mesh[B1][B1E][0];
+					}
+					else if(direction == "U")
+					{
+						mesh[B1][B1E][0].up = strip;
+						strip2.down = mesh[B1][B1E][0];
+					}
+					else if(direction == "D")
+					{
+						mesh[B1][B1E][0].down = strip;
+						strip2.up = mesh[B1][B1E][0];
+					}
+
+					if(direction2 == "L")
+					{
+						BiomesToMake[i][B2E][0].left = strip2;
+						strip.right = BiomesToMake[i][B2E][0];
+					}
+					else if(direction2 == "R")
+					{
+						BiomesToMake[i][B2E][0].right = strip2;
+						strip.left = BiomesToMake[i][B2E][0];
+					}
+					else if(direction2 == "U")
+					{
+						BiomesToMake[i][B2E][0].up = strip2;
+						strip.down = BiomesToMake[i][B2E][0];
+					}
+					else if(direction2 == "D")
+					{
+						BiomesToMake[i][B2E][0].down = strip2;
+						strip.up = BiomesToMake[i][B2E][0];
+					}
+					
+					
+					mesh[B1] = removeIndex(B1E, mesh[B1]);
+					BiomesToMake[i] = removeIndex(B2E, BiomesToMake[i]);
+
+					if(mesh[B1].length == 0)
+						mesh = removeIndex(B1, mesh);
+
+					if(BiomesToMake[i].length > 0)
+						mesh.push(BiomesToMake[i]);
+				};
+
+				return pointOfEntry;
+			}
+			TILE.Terrain.Spawn = function(biome)
+			{
+				biome = "wood";
+
+				var A = TILE.Terrain.Square(biome,3);
+				var B = TILE.Terrain.Square(biome);
+				var C = TILE.Terrain.KeyTemple(biome);
+
+				var linkA = TILE.createTile(biome);
+				var linkB = TILE.createTile(biome);
+
+				A[1][0].right = linkA;
+				linkA.left = A[1][0];
+				B[3][0].left = linkA;
+				linkA.right = B[3][0]
+
+				B[1][0].right = linkB;
+				linkB.left = B[1][0];
+				C[1][0].left = linkB;
+				linkB.right = C[1][0];
+
+				A[0][0].down.item = "spawn";
+
+				B[0][0].down.down.down.down.item = "terminal"
+				return [B[0]];
+			}
+
+		TILE.Map = TILE.Terrain.BiomeMesh();
+		//TILE.Map = TILE.Terrain.Biome("neo",20)[0][0];
+		//TILE.Map = TILE.Terrain.Square()[0][0];
+
+		TILE.Head = TILE.Map;	
+
+
+		if(!SaveFile.exist)
+		{
+			d.Keys = 0;
+			d.Coins = 0;
+			d.Treasures = [];
+			
+			d.Visited = [];
+			d.PenMarkings = [];
+		}
+		else
+		{
+			d.Keys = SaveFile.Keys;
+			d.Coins = SaveFile.Coins;
+			d.Treasures = SaveFile.Treasures;
+
+
+			TILE.Head.item = "";
+
+			TILE.Map = SaveFile.Position;
+			TILE.Head = SaveFile.Spawn;
+
+			TILE.Head.item = "spawn";
+
+			for (var i = 0; i < SaveFile.Visited.length; i++) 
+			{
+				SaveFile.Visited[i].item = "";
+				if(SaveFile.Visited[i].drawTile == "lock.png")
+					SaveFile.Visited[i].drawTile = "unlock.png";
+			};
+		}
+
+		d.offset = Vect2(0,0);
+		d.currentDirection = "";
+		GAME.pastKeyDown = [];
+		d.info = 0;	
+
+
+		d.audio = new Audio("DataStructure.mp3");
+		d.audio.play();
+		d.audio.loop = true;
+
+		var AudioButton = document.createElement("div");
+		AudioButton.style.backgroundImage = "url('Audio.png')";
+		AudioButton.id = "audioButton";
+		AudioButton.style.right = "10px";
+		AudioButton.style.bottom = "10px";
+		AudioButton.style.position = "absolute";
+		AudioButton.style.height = "20px";
+		AudioButton.style.width = "20px";
+		AudioButton.onclick = function()
+		{
+			if(d.audio.loop)
+			{
+				this.style.backgroundImage = "url('!Audio.png')";
+				d.audio.pause();
+				d.audio.loop = false;
+			}
+			else
+			{
+				this.style.backgroundImage = "url('Audio.png')";
+				d.audio.play();
+				d.audio.loop = true;
+			}
+		};
+		document.body.appendChild(AudioButton);
+	}
+
+	function Update()
+	{
+		//Put game logic in here
+		if(d.info == 0)
+		{
+			if(d.currentDirection == "")
+			{
+				if(GAME.isKeyDown[KEY.Up] && !TILE.Map.up.blank && !(TILE.Map.up.drawTile == "lock.png" && d.Keys == 0))
+				{
+					d.currentDirection = "Up";
+					if(GAME.isKeyDown[KEY.W] && !(TILE.Map.pen % 2))
+					{
+						TILE.Map.pen += 1;
+						var n = {};
+						n.id = TILE.Map.id;
+						n.pen = TILE.Map.pen;
+						d.PenMarkings.push(n);
+					}
+				}
+				if(GAME.isKeyDown[KEY.Down] && !TILE.Map.down.blank && !(TILE.Map.down.drawTile == "lock.png" && d.Keys == 0))
+				{
+					d.currentDirection = "Down";
+					if(GAME.isKeyDown[KEY.W] && !(Math.floor(TILE.Map.pen/2) % 2))
+					{
+						TILE.Map.pen += 2;
+						var n = {};
+						n.id = TILE.Map.id;
+						n.pen = TILE.Map.pen;
+						d.PenMarkings.push(n);
+					}
+				}
+				if(GAME.isKeyDown[KEY.Left] && !TILE.Map.left.blank && !(TILE.Map.left.drawTile == "lock.png" && d.Keys == 0))
+				{
+					d.currentDirection = "Left";
+					if(GAME.isKeyDown[KEY.W] && !(Math.floor(TILE.Map.pen/4) % 2))
+					{
+						TILE.Map.pen += 4;
+						var n = {};
+						n.id = TILE.Map.id;
+						n.pen = TILE.Map.pen;
+						d.PenMarkings.push(n);
+					}
+				}
+				if(GAME.isKeyDown[KEY.Right] && !TILE.Map.right.blank && !(TILE.Map.right.drawTile == "lock.png" && d.Keys == 0))
+				{
+					d.currentDirection = "Right";
+					if(GAME.isKeyDown[KEY.W] && !(Math.floor(TILE.Map.pen/8) % 2))
+					{
+						TILE.Map.pen += 8;
+						var n = {};
+						n.id = TILE.Map.id;
+						n.pen = TILE.Map.pen;
+						d.PenMarkings.push(n);
+					}
+				}
+				if(d.currentDirection != "" && TILE.Map.drawTile == "neo.png")
+				{
+					TILE.Map.drawTile = "neo-red.png";
+					TILE.Map.drawTimer = 60;
+				}
+			}
+			else
+			{
+				if(d.currentDirection == "Up")
+				{
+					d.offset.y += 5;
+					if(d.offset.y == 40)
+					{
+						d.offset.y = 0;
+						TILE.Map = TILE.Map.up;
+						d.currentDirection = "";
+						if(GAME.isKeyDown[KEY.W] && !(Math.floor(TILE.Map.pen/2) % 2))
+						{
+							TILE.Map.pen += 2;
+							var n = {};
+							n.id = TILE.Map.id;
+							n.pen = TILE.Map.pen;
+							d.PenMarkings.push(n);
+						}
+					}
+				}
+				else if(d.currentDirection == "Down")
+				{
+					d.offset.y -= 5;
+					if(d.offset.y == -40)
+					{
+						d.offset.y = 0;
+						TILE.Map = TILE.Map.down;
+
+						d.currentDirection = "";
+						
+						if(GAME.isKeyDown[KEY.W] && !(TILE.Map.pen % 2))
+						{
+							TILE.Map.pen += 1;
+							var n = {};
+							n.id = TILE.Map.id;
+							n.pen = TILE.Map.pen;
+							d.PenMarkings.push(n);
+						}
+					}
+				}
+				else if(d.currentDirection == "Left")
+				{
+					d.offset.x += 5;
+					if(d.offset.x == +40)
+					{
+						d.offset.x = 0;
+						TILE.Map = TILE.Map.left;
+						d.currentDirection = "";
+						if(GAME.isKeyDown[KEY.W] && !(Math.floor(TILE.Map.pen/8) % 2))
+						{
+							TILE.Map.pen += 8;
+							var n = {};
+							n.id = TILE.Map.id;
+							n.pen = TILE.Map.pen;
+							d.PenMarkings.push(n);
+						}
+					}
+				}
+				else if(d.currentDirection == "Right")
+				{
+					d.offset.x -= 5;
+					if(d.offset.x == -40)
+					{
+						d.offset.x = 0;
+						TILE.Map = TILE.Map.right;
+						d.currentDirection = "";
+						
+						if(GAME.isKeyDown[KEY.W] && !(Math.floor(TILE.Map.pen/4) % 2))
+						{
+							TILE.Map.pen += 4;
+							var n = {};
+							n.id = TILE.Map.id;
+							n.pen = TILE.Map.pen;
+							d.PenMarkings.push(n);
+						}
+					}
+				}
+				if (TILE.Map.item == "terminal" && d.currentDirection == "")
+				{
+					d.info = 1;
+				}
+			}
+
+			if(GAME.isKeyDown[KEY.X])
+			{
+				if(TILE.Map.id != TILE.Head.id && d.Coins > 0)
+				{
+					TILE.Head.item = "";
+					TILE.Map.item = "spawn";
+					TILE.Head = TILE.Map;
+					d.Coins--;
+				}
+			}
+			if(GAME.isKeyDown[KEY.Z])
+				TILE.Map = TILE.Head;
+
+			if(GAME.isKeyDown[KEY.E])
+			{
+				TILE.Map.pen = 0;
+
+				var n = {};
+				n.id = TILE.Map.id;
+				n.pen = TILE.Map.pen;
+				d.PenMarkings.push(n);
+			}
+			if (TILE.Map.item != "")
+			{
+				if(TILE.Map.item == "pink")
+				{
+					setTimeout(function(){
+
+					d.offset.x = 0;
+					d.offset.y = 0;
+					d.currentDirection = "";
+
+					TILE.Map = TILE.Head;
+
+					alert("You were killed by the pink cloud");
+					GAME.isKeyDown = [];
+					},10);
+				}
+				else if(TILE.Map.item == "lavastone5")
+				{
+					setTimeout(function(){
+
+					d.offset.x = 0;
+					d.offset.y = 0;
+					d.currentDirection = "";
+
+					TILE.Map = TILE.Head;
+
+					alert("Lava burned you to a crisp");},10);
+					GAME.isKeyDown = [];
+				}
+				else if(TILE.Map.item == "key")
+				{
+					TILE.Map.item = "";
+					d.Keys++;
+					d.Visited.push(TILE.Map.id);
+				}
+				else if(TILE.Map.item == "coin")
+				{
+					TILE.Map.item = "";
+					d.Coins++;
+					d.Visited.push(TILE.Map.id);
+				}
+				else if(["manual","core","flash","NIC","crystal"].indexOf(TILE.Map.item) != -1)
+				{
+					if(d.Treasures.indexOf(TILE.Map.item) == -1)
+					{
+						d.Treasures.push(TILE.Map.item);
+						TILE.Map.item = "";
+						d.Visited.push(TILE.Map.id);
+					}
+				}
+			}
+			
+			if(TILE.Map.drawTile.substring(0,5) == "cloud" && d.currentDirection == "" && TILE.Map.item == "")
+			{
+				TILE.Map.drawTimer +=3;
+				if(TILE.Map.drawTimer > 60)
+				{
+					d.offset.x = 0;
+					d.offset.y = 0;
+					d.currentDirection = "";
+
+					TILE.Map = TILE.Head;
+
+					alert("The cloud beneath you disappeared and you fell to your death");
+					GAME.isKeyDown = [];
+					TILE.Map.drawTimer = 0;
+				}
+			}
+			
+			if(TILE.Map.drawTile == "lock.png")
+			{
+				d.Keys--;
+				TILE.Map.drawTile = "unlock.png";
+				d.Visited.push(TILE.Map.id);
+			}
+		}
+		else
+		{
+			if(d.Treasures.length == 5)
+			{
+				d.audio.pause();
+				document.getElementById("audioButton").style.display = "none";
+			}
+			else
+			{
+				if(!GAME.isKeyDown[KEY.Left] && GAME.pastKeyDown[KEY.Left])
+				{
+					d.info--;
+					if(d.info < 1)
+						d.info = 1;
+				}
+				if(!GAME.isKeyDown[KEY.Right] && GAME.pastKeyDown[KEY.Right])
+				{
+					d.info++;
+					if(d.info>8)
+						d.info = 8;
+				}
+				if(!GAME.isKeyDown[13] && GAME.pastKeyDown[13])
+				{
+					d.info = 0;
+				}
+			}
+			
+
+			GAME.pastKeyDown = GAME.isKeyDown.slice(0);
+		}		
+	}
+
+	function Draw()
+	{
+		GAME.clearDraw("#000000");
+		//Put drawing code in here
+		if(!d.info)
+		{
+			TILE.Map.Draw(Vect2(200,200).add(d.offset));
+
+			if(!TILE.Map.up.blank)
+			{
+				var currentDraw = TILE.Map.up;
+				var i = 0;
+				while(i<6)
+				{
+					currentDraw.Draw(Vect2(200,160-40*i).add(d.offset));
+
+					var subDraw = currentDraw;
+					var j = 0;
+					while(j < i)
+					{
+						if(!subDraw.left.blank)
+						{
+							j++;
+							subDraw = subDraw.left;
+							subDraw.Draw(Vect2(200-40*j,160-40*i).add(d.offset))
+						}
+						else
+							j = i;
+					}
+					subDraw = currentDraw;
+					 j = 0;
+					while(j < i)
+					{
+						if(!subDraw.right.blank)
+						{
+							j++;
+							subDraw = subDraw.right;
+							subDraw.Draw(Vect2(200+40*j,160-40*i).add(d.offset))
+						}
+						else
+							j = i;
+					}
+
+					if(!currentDraw.up.blank)
+					{
+						i++;
+						currentDraw = currentDraw.up;
+					}
+					else
+					{
+						i = 100;
+					}
+				}
+			}
+
+			if(!TILE.Map.down.blank)
+			{
+				var currentDraw = TILE.Map.down;
+				var i = 0;
+				while(i<6)
+				{
+					currentDraw.Draw(Vect2(200,240+40*i).add(d.offset));
+
+					var subDraw = currentDraw;
+					var j = 0;
+					while(j < i)
+					{
+						if(!subDraw.left.blank)
+						{
+							j++;
+							subDraw = subDraw.left;
+							subDraw.Draw(Vect2(200-40*j,240+40*i).add(d.offset))
+						}
+						else
+							j = i;
+					}
+					subDraw = currentDraw;
+					 j = 0;
+					while(j < i)
+					{
+						if(!subDraw.right.blank)
+						{
+							j++;
+							subDraw = subDraw.right;
+							subDraw.Draw(Vect2(200+40*j,240+40*i).add(d.offset))
+						}
+						else
+							j = i;
+					}
+
+					if(!currentDraw.down.blank)
+					{
+						i++;
+						currentDraw = currentDraw.down;
+					}
+					else
+					{
+						i = 100;
+					}
+				}
+			}
+
+			if(!TILE.Map.left.blank)
+			{
+				var currentDraw = TILE.Map.left;
+				var i = 1;
+				while(i<7)
+				{
+					currentDraw.Draw(Vect2(200-40*i,200).add(d.offset));
+
+					var subDraw = currentDraw;
+					var j = 0;
+					while(j < i)
+					{
+						if(!subDraw.up.blank)
+						{
+							j++;
+							subDraw = subDraw.up;
+							subDraw.Draw(Vect2(200-40*i,200-40*j).add(d.offset))
+						}
+						else
+							j = i;
+					}
+					subDraw = currentDraw;
+					j = 0;
+					while(j < i)
+					{
+						if(!subDraw.down.blank)
+						{
+							j++;
+							subDraw = subDraw.down;
+							subDraw.Draw(Vect2(200-40*i,200+40*j).add(d.offset))
+						}
+						else
+							j = i;
+					}
+
+					if(!currentDraw.left.blank)
+					{
+						i++;
+						currentDraw = currentDraw.left;
+					}
+					else
+					{
+						i = 100;
+					}
+				}
+			}
+
+			if(!TILE.Map.right.blank)
+			{
+				var currentDraw = TILE.Map.right;
+				var i = 1;
+				while(i<7)
+				{
+					currentDraw.Draw(Vect2(200+40*i,200).add(d.offset));
+
+					var subDraw = currentDraw;
+					var j = 0;
+					while(j < i)
+					{
+						if(!subDraw.up.blank)
+						{
+							j++;
+							subDraw = subDraw.up;
+							subDraw.Draw(Vect2(200+40*i,200-40*j).add(d.offset))
+						}
+						else
+							j = i;
+					}
+					subDraw = currentDraw;
+					j = 0;
+					while(j < i)
+					{
+						if(!subDraw.down.blank)
+						{
+							j++;
+							subDraw = subDraw.down;
+							subDraw.Draw(Vect2(200+40*i,200+40*j).add(d.offset))
+						}
+						else
+							j = i;
+					}
+
+					if(!currentDraw.right.blank)
+					{
+						i++;
+						currentDraw = currentDraw.right;
+					}
+					else
+					{
+						i = 100;
+					}
+				}
+			}
+
+			GAME.drawRect(Vect2(210,210),Vect2(20,20),"#0000FF");
+
+			GAME.drawRect(Vect2(120,0),Vect2(40*d.Treasures.length,40),"#000000");
+			GAME.drawRect(Vect2(0,0),Vect2(80,40),"#000000");
+			GAME.drawRect(Vect2(360,0),Vect2(80,40),"#000000");
+
+			for (var i = 0; i < d.Treasures.length; i++) 
+			{
+				GAME.drawSprite(d.Treasures[i] + ".png", Vect2(120+40*i,0));
+			};
+
+			GAME.ctx.fillStyle = "#FFFFFF";
+			GAME.ctx.font = "30px Arial";
+			GAME.ctx.fillText(d.Keys,10,30);
+			GAME.ctx.fillText(d.Coins,370,30);
+
+
+			GAME.drawSprite("key.png",Vect2(40,0));
+			GAME.drawSprite("coin.png",Vect2(400,0));	
+		}
+		else
+		{
+			GAME.ctx.font = "30px Arial";
+			GAME.ctx.fillStyle = "#FFFFFF";
+
+			if(d.Treasures.length != 5)
+			{
+				GAME.ctx.fillText("> Press Enter to close",15,30);
+				GAME.ctx.fillText("the terminal",30,60);
+				GAME.ctx.fillText("← Previous                  Next →",15,120);
+
+
+				var infoBox = [];
+				if(d.info == 1)
+				{
+					infoBox = ["Objective:","Find various items to","repair this terminal","so you can hack it","and escape from this","data structure"];
+				}
+				if(d.info == 2)
+				{
+					GAME.ctx.fillText(d.Treasures.length + "/5 parts located",100,180);
+					if(d.Treasures.indexOf("manual")==-1)
+						GAME.ctx.fillText("Need Instruction Manual",25,210);
+					if(d.Treasures.indexOf("NIC")==-1)
+						GAME.ctx.fillText("Need Network Interface Card",25,240);
+					if(d.Treasures.indexOf("flash")==-1)
+						GAME.ctx.fillText("Need Flash Fragment",25,270);
+					if(d.Treasures.indexOf("core")==-1)
+						GAME.ctx.fillText("Need Lava Core",25,300);
+					if(d.Treasures.indexOf("crystal")==-1)
+						GAME.ctx.fillText("Need Crystal Shard",25,330);
+
+				}
+				if(d.info == 3)
+				{
+					infoBox = ["Controls:","Up Arrow Key - access ","   up pointer","Down Arrow Key - access","   down pointer","Left Arrow Key - access","   left pointer","Right Arrow Key - access","   right pointer"]
+				}
+				if(d.info == 4)
+				{
+					infoBox = ["Head Pointer:","Press Z at any time to teleport","back to the head pointer","","You should do this ","if you get lost","","You will also return to the","head pointer if you die."];
+				}
+				if(d.info == 5)
+				{
+					infoBox = ["If you have a coin,","you can change the location","of the head pointer","by pressing X","","Do this before entering","dangerous areas"];
+				}
+				if(d.info == 6)
+				{
+					infoBox = ["Collect keys to open up new ","areas and biomes","Different biomes contain ","different parts to repair","the terminal","","However, some biomes are","dangerous - consider moving","the head pointer"];
+				}
+				if(d.info == 7)
+				{
+					infoBox = ["Use the pen to keep track","of where you are","","Hold W and move to write","Hold E to erase"];
+				}
+				for (var i = 0; i < infoBox.length; i++)
+				{
+					GAME.ctx.fillText(infoBox[i],30, 180+30*i);
+				};
+			}
+			else
+			{
+				GAME.ctx.font = "60px Arial";
+				GAME.ctx.fillText("You win!",100,220);
+				GAME.ctx.font = "20px Arial";
+				GAME.ctx.fillText("Have a nice day",140,260);
+			}
+
+		}	
+	}
+
+	function Unload()
+	{
+		//Put code to save/close the game in here
+		var marks = d.PenMarkings;
+		marks.reverse();
+
+		for(var i = 0; i < marks.length; i++)
+		{
+			if(marks[i] != undefined)
+			{
+				for (var j = i+1; j < marks.length; j++) 
+				{
+					if(marks[j] != undefined)
+					{
+						if(marks[j].id == marks[i].id)
+						{
+							delete marks[j];
+						}
+					}
+				}
+			}
+		}
+		d.PenMarkings = [];
+		for (var i = 0; i < marks.length; i++)
+		{
+			if(marks[i] != undefined)
+				d.PenMarkings.push(marks[i]);
+		};
+
+		var SaveFile = {};
+		SaveFile.Keys = d.Keys;
+		SaveFile.Coins = d.Coins;
+		SaveFile.Treasures = d.Treasures;
+
+		SaveFile.PenMarkings = d.PenMarkings;
+		SaveFile.Visited = d.Visited;
+		SaveFile.seed = d.seed;
+
+
+		SaveFile.Spawn = TILE.Head.id;
+		SaveFile.Position = TILE.Map.id;
+
+
+		localStorage.DataStructureSaveFile = JSON.stringify(SaveFile);
+	}
+	function preLoad()
+	{
+		//Set desired screen width here;
+		gameWindow = window.open("","","menubar=no,width=" + GAME.windowWidth + ",height=" + GAME.windowHeight);
+		gameWindow.document.write("<title>" + GAME.windowName + "</title><script src='MersenneTwister.js'></" + "script><script>" + document.getElementById('code').innerHTML + "GAME.launchLocation = window.location; Load();</" + "script>");
+	}
+
+	function Vect2(x,y)
+	{
+		var vect = {};
+		vect.x = x;
+		vect.y = y;
+		vect.length = function()
+		{
+			return Math.sqrt(this.x*this.x + this.y*this.y);
+		}
+		vect.add = function(v)
+		{
+			return Vect2(v.x + this.x, v.y + this.y);
+		}
+		vect.scale = function(factor)
+		{
+			return Vect2(this.x * factor, this.y * factor);
+		}
+
+		return vect;
+	}
+	var KEY = {};
+ 		KEY.A = 65; KEY.B = 66; KEY.C = 67; KEY.D = 68; KEY.E = 69; KEY.F = 70; KEY.G = 71; KEY.H = 72; KEY.I = 73; KEY.J = 74;KEY.K = 75; KEY.L = 76; KEY.M = 77; KEY.N = 78; KEY.O = 79; KEY.P = 80; KEY.Q = 81; KEY.R = 82; KEY.S = 83; KEY.T = 84; KEY.U = 85;KEY.V = 86; KEY.W = 87; KEY.X = 88; KEY.Y = 89; KEY.Z = 90; KEY.Up = 38; KEY.Down = 40; KEY.Left = 37; KEY.Right = 39; KEY.Num1 = 97; KEY.Num2 = 98; KEY.Num3 = 99; KEY.Num4 = 100; KEY.Num5 = 101; KEY.Num6 = 102; KEY.Num7 = 103; KEY.Num8 = 104; KEY.Num9 = 105; 
+
+	function removeIndex(index, array)
+	{
+		var resultant = new Array();
+		resultant = array.splice(0,index);
+		var part2 = new Array();
+		part2 = array.splice(1,array.length-1);
+		resultant = resultant.concat(part2);
+		return resultant;
+	}
+ 	window.addEventListener("resize", function()
+ 	{
+ 		function changeSize()
+ 		{
+	 		if(!GAME.resizable)
+	 		{
+	 			//alert();
+	 			window.resizeTo(GAME.windowWidth + window.outerWidth - window.innerWidth, GAME.windowHeight + window.outerHeight - window.innerHeight);
+	 		}
+	 		else
+	 		{
+	 			GAME.windowHeight = window.innerHeight;
+	 			GAME.windowWidth = window.innerWidth;
+	 		}
+ 			//document.getElementsByTagName("body")[0].innerHTML = "";
+	 		
+	 		document.write("<canvas style='position: absolute; top: 0px; left: 0px;' height="+GAME.windowHeight + " width=" + GAME.windowWidth + "></canvas><div id='picDiv' style='display: none;'>");
+			GAME.ctx = document.getElementsByTagName('canvas')[0].getContext('2d');
+
+			while(document.getElementsByTagName('canvas').length > 1)
+			{
+				document.getElementsByTagName('canvas')[1].parentNode.removeChild(document.getElementsByTagName('canvas')[1]);
+			}
+		}
+		if(GAME.hasBegun)
+			setTimeout(changeSize, 100);
+ 	});
+
+ 	window.onbeforeunload = function(){if(GAME.launchLocation != undefined) return "Your game won't be saved. If you want to save your game, quit by pressing [Esc]";}
+
+ 	window.addEventListener("keydown", function(e)
+ 	{
+ 		if(e.keyCode == 27 && GAME.launchLocation != undefined)
+ 		{
+ 			Unload();
+ 			window.onbeforeunload = function(){};
+ 			window.close();
+ 		}
+ 	});
+</script><div>
+	<h1>Data Structure</h1>
+	<h2>by Brambleshadow4</h2>
+	Use arrow keys to move<br>Teleport to spawn by pushing Z<br>Create new spawn point by pushing X<br>Hold W to draw - Hold E to erase
+	<br><br>
+	Press [Esc] to save and quit!<br><br>
+	This game can be confusing. It goes beyond the typical maze experince in that you are not navigating a grid, you are navigating a data structure. This means that one step left, right, up, or down can lead you to anywhere, and it might not be possible to get back to where you started easily. Fear not though; you are equipped with tools to help you navigate this mess! At anytime you can push Z to go instantly back to your spawn, and you can change this point by acquiring coins and subsequntially pushing X. You also can draw on the ground by pressing W and E. Use both of these tools to assist you in your escape from the data structure.
+<br><br><button onclick = "preLoad();">Launch Game</button><br><br><button onclick = "delete localStorage.DataStructureSaveFile;">Delete Save File</button></div></body></html>
