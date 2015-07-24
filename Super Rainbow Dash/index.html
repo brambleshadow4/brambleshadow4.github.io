@@ -1,0 +1,1494 @@
+<!DOCTYPE html><html><head><link rel="shortcut icon" type="image/x-icon" href="CutieMark.ico" /><title>Play Game</title><meta charset="UTF-8"></head><body style="background-image: url(bg.png);"><script id="code">
+var UniversalAdjust = 1;
+function CreateGame()
+{
+	var GAME = {};
+	//change these to change the size of the window
+	GAME.windowHeight = window.innerHeight;
+	GAME.windowWidth  = window.innerWidth;
+
+	GAME.FPS = 60;
+	GAME.windowName = "Super Rainbow Dash";
+	GAME.d = {};
+
+	function Load(GAME)
+	{	
+		//create a canvas
+		document.body.innerHTML = "<canvas style='position: absolute; top: 0px; left: 0px;' height=" + GAME.windowHeight + " width=" + GAME.windowWidth + "></canvas><div id='picDiv' style='display: none;'></div>";
+		GAME.ctx = document.getElementsByTagName('canvas')[0].getContext('2d');
+
+		document.getElementsByTagName("title")[0].innerHTML = GAME.windowName;
+
+		//Drawing Functions
+			/*
+			* GAME.clearDraw = function(color)
+			* GAME.drawRect = function(v1,v2,color)
+			* GAME.drawSprite = function(img, v1)
+			* GAME.drawSpriteRot = function(img, v1, angle)
+			* GAME.drawLine = function (v1, v2)
+			* GAME.drawTriangle = function(v1, v2, v3, color)
+			*/
+			GAME.clearDraw = function(color)
+			{
+				GAME.drawRect(GAME.Vect2(0,0), GAME.Vect2(GAME.windowWidth,GAME.windowHeight), color);
+			}
+
+			GAME.drawRect = function(v1,v2,color)
+			{
+				if(color != undefined)
+					GAME.ctx.fillStyle = color;
+				GAME.ctx.fillRect(v1.x,v1.y,v2.x,v2.y);
+				GAME.ctx.fill();
+			}
+
+			GAME.drawSprite = function(img, v1)
+			{
+				var pic = document.getElementById(img);
+				if(pic == undefined)
+				{
+					//alert("adding picture");
+					pic = document.createElement('img');
+					pic.src = img;
+					pic.id = img;
+					document.getElementById('picDiv').appendChild(pic);
+				}
+
+				GAME.ctx.drawImage(pic, v1.x, v1.y);
+			}
+			GAME.drawSpriteScale = function(img, v1, targetHeight)
+			{
+				var pic = document.getElementById(img);
+				if(pic == undefined)
+				{
+					//alert("adding picture");
+					pic = document.createElement('img');
+					pic.src = img;
+					pic.id = img;
+					document.getElementById('picDiv').appendChild(pic);
+				}
+
+				//console.log(pic.naturalHeight);
+				var ratio = 1;
+
+				if(pic.naturalHeight != 0)
+					ratio = targetHeight/pic.naturalHeight;
+
+				GAME.ctx.scale(ratio,ratio);
+
+				v1 = v1.scale(1/ratio);
+
+				GAME.ctx.drawImage(pic, v1.x, v1.y);
+
+				GAME.ctx.scale(1/ratio,1/ratio);
+			}
+			GAME.drawSpriteRot = function(img, v1, angle)
+			{
+				var pic = document.getElementById(img);
+				if(pic == undefined)
+				{
+					//alert("adding picture");
+					pic = document.createElement('img');
+					pic.src = img;
+					pic.id = img;
+
+					var div = document.createElement("div");
+					div.appendChild(pic);
+					document.getElementById('picDiv').appendChild(div);
+				}
+				//console.log(pic);
+
+				GAME.ctx.rotate(angle);
+				var v2 = Vect2(v1.x, v1.y);
+
+				//v2.x -= pic.naturalWidth/2;
+				//v2.y -= pic.naturalHeight/2;
+				v3 = Vect2(v2.x*Math.cos(-angle) - v2.y*Math.sin(-angle) - pic.naturalWidth/2, v2.x*Math.sin(-angle) + v2.y*Math.cos(-angle) - pic.naturalHeight/2);
+				GAME.ctx.drawImage(pic, v3.x, v3.y);
+				GAME.ctx.rotate(-angle);
+			}
+			GAME.drawLine = function (v1, v2)
+			{
+				GAME.ctx.beginPath();
+				GAME.ctx.moveTo(v1.x,v1.y);
+				GAME.ctx.lineTo(v2.x,v2.y);
+				GAME.ctx.stroke();
+			}
+			GAME.drawTriangle = function(v1, v2, v3, color)
+			{
+				var old = GAME.ctx.fillStyle;
+				GAME.ctx.fillStyle = color;
+
+				GAME.ctx.beginPath();
+				GAME.ctx.moveTo(v1.x,v1.y);
+				GAME.ctx.lineTo(v2.x,v2.y);
+				GAME.ctx.lineTo(v3.x,v3.y);
+				GAME.ctx.lineTo(v1.x,v1.y);
+				GAME.ctx.fill();
+
+				GAME.ctx.fillStyle = old;
+			}
+
+		GAME.Vect2 = function(x,y)
+		{
+			var vect = {};
+			vect.x = x;
+			vect.y = y;
+			vect.length = function()
+			{
+				return Math.sqrt(this.x*this.x + this.y*this.y);
+			}
+			vect.add = function(v)
+			{
+				return Vect2(v.x + this.x, v.y + this.y);
+			}
+			vect.scale = function(factor)
+			{
+				return Vect2(this.x * factor, this.y * factor);
+			}
+
+			return vect;
+		}
+
+		GAME.KEY = {};
+	 	GAME.KEY.A = 65; GAME.KEY.B = 66; GAME.KEY.C = 67; GAME.KEY.D = 68; GAME.KEY.E = 69; GAME.KEY.F = 70; GAME.KEY.G = 71; GAME.KEY.H = 72; GAME.KEY.I = 73; GAME.KEY.J = 74;GAME.KEY.K = 75; GAME.KEY.L = 76; GAME.KEY.M = 77; GAME.KEY.N = 78; GAME.KEY.O = 79; GAME.KEY.P = 80; GAME.KEY.Q = 81; GAME.KEY.R = 82; GAME.KEY.S = 83; GAME.KEY.T = 84; GAME.KEY.U = 85;GAME.KEY.V = 86; GAME.KEY.W = 87; GAME.KEY.X = 88; GAME.KEY.Y = 89; GAME.KEY.Z = 90; GAME.KEY.Up = 38; GAME.KEY.Down = 40; GAME.KEY.Left = 37; GAME.KEY.Right = 39; GAME.KEY.Num1 = 97; GAME.KEY.Num2 = 98; GAME.KEY.Num3 = 99; GAME.KEY.Num4 = 100; GAME.KEY.Num5 = 101; GAME.KEY.Num6 = 102; GAME.KEY.Num7 = 103; GAME.KEY.Num8 = 104; GAME.KEY.Num9 = 105; GAME.KEY.Tab = 9; GAME.KEY.Backspace = 8; GAME.KEY.Escape = 27;
+
+		window.jArray = function(anotherArray)
+		{
+			var newArray;
+			if(anotherArray != undefined)
+				newArray = anotherArray;
+			else
+				newArray = [];
+
+			newArray.remove = function(index)
+			{
+				if(index == 0)
+				{
+					this.shift();
+				}
+				else if (index == this.length -1)
+				{
+					this.pop();
+				}
+				else
+				{
+					var partAfter = this.splice(index,this.length-1);
+
+					partAfter = partAfter.splice(1,partAfter.length-1);
+
+					while(partAfter.length > 0)
+						this.push(partAfter.shift());
+				}
+			}
+			
+			return newArray;
+		}
+
+		//GAME.isKeyDown[keycode] - used to get real time input if a key is down
+		GAME.isKeyDown = jArray();
+
+		//document.onkeydown = function(){return false;}
+		document.addEventListener("keydown", function(e){GAME.isKeyDown[e.keyCode] = true;});
+		document.addEventListener("keyup", function(e){GAME.isKeyDown[e.keyCode] = false;});
+
+		window.addEventListener("resize", function(e)
+		{
+			GAME.windowWidth = window.innerWidth;
+			GAME.windowHeight = window.innerHeight;
+
+			var newCanvas = document.createElement("canvas");
+
+			document.body.innerHTML = "<canvas style='position: absolute; top: 0px; left: 0px;' height=" + GAME.windowHeight + " width=" + GAME.windowWidth + "></canvas><div id='picDiv' style='display: none;'>";
+			GAME.ctx = document.getElementsByTagName('canvas')[0].getContext('2d');
+		});
+
+		//To stop the game loop: clearInterval(GAME.loop);
+		Initialize(GAME,GAME.d);
+		GAME.loop = setInterval(function(){Update(GAME,GAME.d); Draw(GAME,GAME.d);}, 1000/GAME.FPS);
+	}
+
+	var Vect2;
+
+	var Position = {};
+	var VerticalScroll;
+	var Colors = {};
+	var colorWash;
+	var RDimageData = {};
+
+	var TimeOnClock = 0;
+	var lastTime = -1;
+
+	var Blocks = {};
+	var track = {};
+
+	var Gamestate = "Title";
+	var wasKeyDown;
+	var audio = false;
+	var music = false;
+
+	function Initialize(GAME, d)
+	{
+		//put your initial code here :)
+		wasKeyDown = jArray();
+	
+		Vect2 = GAME.Vect2;
+
+		Position.y = 1/2;
+		Position.x = 1/4;
+
+		Colors.Red = {r:255, g:0, b:0, odd: false};
+		Colors.Orange = {r:255, g:127, b:0, odd: true};
+		Colors.Yellow = {r:255, g:255, b:0, odd: false};
+		Colors.Green = {r:0, g:167, b:33, odd: true};
+		Colors.Blue = {r:0, g:0, b:255, odd: false};
+		Colors.Purple = {r:178, g:0, b:255, odd: true};
+
+		Colors.num = jArray();
+		Colors.num[-1] = Colors.Purple;
+		Colors.num[0] = Colors.Red;
+		Colors.num[1] = Colors.Orange;
+		Colors.num[2] = Colors.Yellow;
+		Colors.num[3] = Colors.Green;
+		Colors.num[4] = Colors.Blue;
+		Colors.num[5] = Colors.Purple;
+		Colors.num[6] = Colors.Red;
+
+		colorWash = 1;
+
+		var pic = document.createElement('img');
+		pic.src = "RD.png";
+		pic.id = "RD.png";
+		var div = document.createElement("div");
+		div.appendChild(pic);
+		document.getElementById('picDiv').appendChild(div);
+
+		pic.onload = function()
+		{
+			RDimageData.width = this.naturalWidth
+			RDimageData.height = this.naturalHeight;
+		}
+
+		Colors.soften = function(color,val)
+		{
+			var c = 255;
+
+			if(color.odd)
+				c = 225;
+
+			var r1 = color.r//*color.r/255/255;
+			var g1 = color.g//*color.g/255/255;
+			var b1 = color.b//*color.b/255/255;
+			//c = c*c/255/255;
+
+			var r = Math.floor(r1 * (1-val) + c*val);
+			var g = Math.floor(g1 * (1-val) + c*val);
+			var b = Math.floor(b1 * (1-val) + c*val);
+
+			/*r = Math.floor(Math.sqrt(r)*255);
+			g = Math.floor(Math.sqrt(g)*255);
+			b = Math.floor(Math.sqrt(b)*255);*/
+
+			r = r.toString(16);
+			g = g.toString(16);
+			b = b.toString(16);
+
+			if(r.length == 1)
+				r = "0" + r;
+			if(g.length == 1)
+				g = "0" + g;
+			if(b.length == 1)
+				b = "0" + b;
+
+			//console.log("#" + r + g + b);
+			return "#" + r + g + b;
+			//hexString = yourNumber.toString(16);
+		}
+
+
+		Colors.defaultBackground = function()
+		{	
+			GAME.clearDraw(Colors.soften(Colors.num[Math.floor(VerticalScroll*-6+6)],.5));
+
+			var colorBandWidth = GAME.windowHeight/6 + 2;
+
+			GAME.drawRect(Vect2(0,((0+VerticalScroll)*GAME.windowHeight)%GAME.windowHeight), Vect2(GAME.windowWidth,colorBandWidth),Colors.soften(Colors.Red,.5));
+			GAME.drawRect(Vect2(0,((1/6+VerticalScroll)*GAME.windowHeight)%GAME.windowHeight), Vect2(GAME.windowWidth,colorBandWidth),Colors.soften(Colors.Orange,.5));
+			GAME.drawRect(Vect2(0,((2/6+VerticalScroll)*GAME.windowHeight)%GAME.windowHeight), Vect2(GAME.windowWidth,colorBandWidth),Colors.soften(Colors.Yellow,.5));
+			GAME.drawRect(Vect2(0,((3/6+VerticalScroll)*GAME.windowHeight)%GAME.windowHeight), Vect2(GAME.windowWidth,colorBandWidth),Colors.soften(Colors.Green,.5));
+			GAME.drawRect(Vect2(0,((4/6+VerticalScroll)*GAME.windowHeight)%GAME.windowHeight), Vect2(GAME.windowWidth,colorBandWidth),Colors.soften(Colors.Blue,.5));
+			GAME.drawRect(Vect2(0,((5/6+VerticalScroll)*GAME.windowHeight)%GAME.windowHeight), Vect2(GAME.windowWidth,colorBandWidth),Colors.soften(Colors.Purple,.5));
+
+			VerticalScroll += .01;
+
+			if(VerticalScroll > 1)
+				VerticalScroll--;
+		}
+
+		VerticalScroll = .01;	
+
+		Position.canMoveUp = true;
+		Position.canMoveDown = true;
+
+
+		music = new Audio("SRDTheme.mp3");
+		music.loop = true;
+		music.volume = .5;
+		music.play();
+
+		Blocks.list = jArray();
+
+		Blocks.speed = 1/2;
+		//Block speed is interpreted in ammount of screens per second. 
+
+		Blocks.createNew = function(lane, start, end)
+		{
+			var myBlock = {};
+			myBlock.start = start;
+			myBlock.end = end;
+			myBlock.position = lane*1/6;
+			myBlock.lane = lane;
+
+			Blocks.list.push(myBlock);
+		}
+
+		Blocks.update = function()
+		{
+			Position.canMoveUp = true;
+			Position.canMoveDown = true;
+
+			while(this.list[0] === false)
+			{
+				this.list.shift();
+			}
+			for (var i = 0; i < this.list.length; i++)
+			{
+				if(this.list[i] != false)
+				{
+					this.list[i].start -= this.speed/60*UniversalAdjust;
+
+					if(this.list[i].start < Position.x &&  this.list[i].end > Position.x)
+					{
+						var playerLane = Math.floor(Position.y * 6);
+
+						if(this.list[i].lane == playerLane)
+						{
+							Position.x = this.list[i].start-.001;
+						}
+					}
+
+					if(this.list[i].start+Blocks.speed/60< Position.x &&  this.list[i].end > Position.x)
+					{
+						if(this.list[i].lane +1 == playerLane || this.list[i].lane == playerLane +5)
+						{
+							Position.canMoveUp = false;
+						}
+
+						if(this.list[i].lane -1 == playerLane || this.list[i].lane +5 == playerLane)
+						{
+							Position.canMoveDown = false;
+						}
+					}
+
+					this.list[i].end -= this.speed/60*UniversalAdjust;
+
+					if(this.list[i].end < 0 || this.list[i].start - this.speed*(60000-TimeOnClock)/1000 > 0)
+					{
+						this.list[i] = false;
+					}
+					else if (this.list[i].end - this.speed*(60000-TimeOnClock)/1000 > 0)
+					{
+						this.list[i].end = this.speed*(60000-TimeOnClock)/1000*UniversalAdjust;
+					}
+				}
+				//start and end speeds are not updated together to insure that everypoint inbetween is tested.
+				
+			};
+		}
+
+		Blocks.draw = function()
+		{
+			var colorBandWidth = GAME.windowHeight/6 + 2;
+
+			GAME.ctx.fillStyle = "#000000";
+
+			for (var i = 0; i < this.list.length; i++)
+			{
+				GAME.drawRect(Vect2(this.list[i].start*GAME.windowWidth,((this.list[i].position+VerticalScroll)*GAME.windowHeight)%GAME.windowHeight), Vect2((this.list[i].end - this.list[i].start)*GAME.windowWidth,colorBandWidth));
+				if((this.list[i].position+VerticalScroll)%1 >= .8)
+				{
+					GAME.drawRect(Vect2(this.list[i].start*GAME.windowWidth,((this.list[i].position+VerticalScroll-1)*GAME.windowHeight)%GAME.windowHeight), Vect2((this.list[i].end - this.list[i].start)*GAME.windowWidth,colorBandWidth));
+				}
+			};
+		}
+
+		track.buildDistance = 1;
+		track.scrollRate = 0;
+
+		if(localStorage.SuperRainbowDash != undefined)
+		{
+			track.levelsUnlocked = Number(localStorage.SuperRainbowDash);
+			if(track.levelsUnlocked < 0)
+				track.levelsUnlocked = 0;
+			if(track.levelsUnlocked > 5)
+				track.levelsUnlocked = 5;
+		}
+		else
+			track.levelsUnlocked = 0;
+
+		track.difficulty = track.levelsUnlocked;
+
+		track.createSpawn = function()
+		{
+			this.buildDistance = 1;
+
+			var lane = Math.floor(Math.random()*6);
+			Blocks.createNew(lane%6, this.buildDistance, this.buildDistance+.04);
+			Blocks.createNew((lane+3)%6, this.buildDistance, this.buildDistance+.04);
+			this.buildDistance += .3;
+
+			lane = Math.floor(Math.random()*6);
+			Blocks.createNew(lane%6, this.buildDistance, this.buildDistance+.04);
+			Blocks.createNew((lane+2)%6, this.buildDistance, this.buildDistance+.04);
+			Blocks.createNew((lane+4)%6, this.buildDistance, this.buildDistance+.04);
+			this.buildDistance += .3;
+		}
+		track.createShells = function()
+		{
+			var lane = Math.floor(Math.random()*6);
+			Blocks.createNew(lane%6, this.buildDistance, this.buildDistance+.04);
+			Blocks.createNew((lane+1)%6, this.buildDistance, this.buildDistance+.04);
+			Blocks.createNew((lane+2)%6, this.buildDistance, this.buildDistance+.04);
+			Blocks.createNew((lane+3)%6, this.buildDistance, this.buildDistance+.04);
+			Blocks.createNew((lane+4)%6, this.buildDistance, this.buildDistance+.04);
+			this.buildDistance += .3;
+
+			Blocks.createNew((lane+3)%6, this.buildDistance, this.buildDistance+.04);
+			Blocks.createNew((lane+4)%6, this.buildDistance, this.buildDistance+.04);
+			Blocks.createNew((lane+5)%6, this.buildDistance, this.buildDistance+.04);
+			Blocks.createNew((lane+6)%6, this.buildDistance, this.buildDistance+.04);
+			Blocks.createNew((lane+7)%6, this.buildDistance, this.buildDistance+.04);
+			this.buildDistance += .3;
+
+			Blocks.createNew(lane%6, this.buildDistance, this.buildDistance+.04);
+			Blocks.createNew((lane+1)%6, this.buildDistance, this.buildDistance+.04);
+			Blocks.createNew((lane+2)%6, this.buildDistance, this.buildDistance+.04);
+			Blocks.createNew((lane+3)%6, this.buildDistance, this.buildDistance+.04);
+			Blocks.createNew((lane+4)%6, this.buildDistance, this.buildDistance+.04);
+			this.buildDistance += .3;
+
+			Blocks.createNew((lane+3)%6, this.buildDistance, this.buildDistance+.04);
+			Blocks.createNew((lane+4)%6, this.buildDistance, this.buildDistance+.04);
+			Blocks.createNew((lane+5)%6, this.buildDistance, this.buildDistance+.04);
+			Blocks.createNew((lane+6)%6, this.buildDistance, this.buildDistance+.04);
+			Blocks.createNew((lane+7)%6, this.buildDistance, this.buildDistance+.04);
+			this.buildDistance += .3;
+		}
+
+		track.createSimpleSpiral = function()
+		{
+			var lane = Math.floor(Math.random()*6);
+			var x = 1.7;
+
+			Blocks.createNew(lane%6, this.buildDistance +.08*x, this.buildDistance+.28*x);
+			if(Math.random() >= .5)
+			{
+				Blocks.createNew((lane+1)%6, this.buildDistance +.12*x, this.buildDistance+.28*x);
+				Blocks.createNew((lane+2)%6, this.buildDistance +.16*x, this.buildDistance+.28*x);
+				Blocks.createNew((lane+3)%6, this.buildDistance +.20*x, this.buildDistance+.28*x);
+				Blocks.createNew((lane+4)%6, this.buildDistance +.24*x, this.buildDistance+.28*x);
+
+				Blocks.createNew((lane+1)%6, this.buildDistance, this.buildDistance+.04*x);
+				Blocks.createNew((lane+2)%6, this.buildDistance, this.buildDistance+.08*x);
+				Blocks.createNew((lane+3)%6, this.buildDistance, this.buildDistance+.12*x);
+				Blocks.createNew((lane+4)%6, this.buildDistance, this.buildDistance+.16*x);
+				Blocks.createNew((lane+5)%6, this.buildDistance, this.buildDistance+.20*x);		
+			}
+			else
+			{
+				Blocks.createNew((lane+5)%6, this.buildDistance +.12*x, this.buildDistance+.28*x);
+				Blocks.createNew((lane+4)%6, this.buildDistance +.16*x, this.buildDistance+.28*x);
+				Blocks.createNew((lane+3)%6, this.buildDistance +.20*x, this.buildDistance+.28*x);
+				Blocks.createNew((lane+2)%6, this.buildDistance +.24*x, this.buildDistance+.28*x);
+
+				Blocks.createNew((lane+5)%6, this.buildDistance, this.buildDistance+.04*x);
+				Blocks.createNew((lane+4)%6, this.buildDistance, this.buildDistance+.08*x);
+				Blocks.createNew((lane+3)%6, this.buildDistance, this.buildDistance+.12*x);
+				Blocks.createNew((lane+2)%6, this.buildDistance, this.buildDistance+.16*x);
+				Blocks.createNew((lane+1)%6, this.buildDistance, this.buildDistance+.20*x);
+			}
+			this.buildDistance += .28*x + .3;
+		}
+
+		track.createGenericShells = function()
+		{
+			for (var i = 0; i < 4; i++)
+			{
+				var choice = Math.floor(Math.random()*4);
+				var lane = Math.floor(Math.random()*6);
+
+				if(choice == 0)
+				{
+					Blocks.createNew(lane%6, this.buildDistance, this.buildDistance+.04);
+					Blocks.createNew((lane+1)%6, this.buildDistance, this.buildDistance+.04);
+					Blocks.createNew((lane+2)%6, this.buildDistance, this.buildDistance+.04);
+					Blocks.createNew((lane+3)%6, this.buildDistance, this.buildDistance+.04);
+					Blocks.createNew((lane+4)%6, this.buildDistance, this.buildDistance+.04);
+				}
+				else if(choice == 1)
+				{
+					Blocks.createNew((lane+1)%6, this.buildDistance, this.buildDistance+.04);
+					Blocks.createNew((lane+3)%6, this.buildDistance, this.buildDistance+.04);
+					Blocks.createNew((lane+4)%6, this.buildDistance, this.buildDistance+.04);
+					Blocks.createNew((lane+5)%6, this.buildDistance, this.buildDistance+.04);
+				}
+				else if(choice == 2)
+				{
+					Blocks.createNew((lane+1)%6, this.buildDistance, this.buildDistance+.04);
+					Blocks.createNew((lane+2)%6, this.buildDistance, this.buildDistance+.04);
+					Blocks.createNew((lane+4)%6, this.buildDistance, this.buildDistance+.04);
+					Blocks.createNew((lane+5)%6, this.buildDistance, this.buildDistance+.04);
+				}
+				else if(choice == 3)
+				{
+					Blocks.createNew(lane%6, this.buildDistance, this.buildDistance+.04);
+					Blocks.createNew((lane+2)%6, this.buildDistance, this.buildDistance+.04);
+					Blocks.createNew((lane+4)%6, this.buildDistance, this.buildDistance+.04);
+				}
+
+				this.buildDistance += .3;
+			};
+		}
+
+		track.createSplit = function()
+		{
+			var lane = Math.floor(Math.random()*6);
+			var x = .8;
+
+			Blocks.createNew((lane+1)%6, this.buildDistance, this.buildDistance+.08*x);
+			Blocks.createNew((lane+5)%6, this.buildDistance, this.buildDistance+.08*x);
+			Blocks.createNew((lane+2)%6, this.buildDistance, this.buildDistance+.16*x);
+			Blocks.createNew((lane+4)%6, this.buildDistance, this.buildDistance+.16*x);
+
+			Blocks.createNew(lane%6, this.buildDistance+.16*x, this.buildDistance+.40*x);
+			Blocks.createNew((lane+1)%6, this.buildDistance+.24*x, this.buildDistance+.32*x);
+			Blocks.createNew((lane+5)%6, this.buildDistance+.24*x, this.buildDistance+.32*x);
+			Blocks.createNew((lane+2)%6, this.buildDistance+.40*x, this.buildDistance+.72*x);
+			Blocks.createNew((lane+4)%6, this.buildDistance+.40*x, this.buildDistance+.72*x);
+
+			Blocks.createNew((lane+1)%6, this.buildDistance+.48*x, this.buildDistance+.56*x);
+			Blocks.createNew((lane+5)%6, this.buildDistance+.48*x, this.buildDistance+.56*x);
+
+			Blocks.createNew(lane%6, this.buildDistance+.64*x, this.buildDistance+.72*x);
+			Blocks.createNew((lane+1)%6, this.buildDistance+.80*x, this.buildDistance+.96*x);
+			Blocks.createNew((lane+5)%6, this.buildDistance+.80*x, this.buildDistance+.96*x);
+
+			var exit = Math.floor(Math.random()*3);
+
+			if(exit != 0)
+				Blocks.createNew(lane%6, this.buildDistance+.88*x, this.buildDistance+.96*x);
+			if (exit != 1)
+				Blocks.createNew((lane+4)%6, this.buildDistance+.88*x, this.buildDistance+.96*x);
+			if (exit != 2)
+				Blocks.createNew((lane+2)%6, this.buildDistance+.88*x, this.buildDistance+.96*x);
+			
+
+			Blocks.createNew((lane+3)%6, this.buildDistance, this.buildDistance+.96*x);
+			this.buildDistance += 1.3*x;
+			
+		}
+
+		track.createGiantSpiral = function()
+		{
+			var lane = Math.floor(Math.random()*6);
+			Blocks.createNew(lane%6, this.buildDistance, this.buildDistance+.4);
+
+			Blocks.createNew((lane+2)%6, this.buildDistance, this.buildDistance+.04);
+			Blocks.createNew((lane+3)%6, this.buildDistance, this.buildDistance+.04);
+			Blocks.createNew((lane+4)%6, this.buildDistance, this.buildDistance+.04);
+			
+			Blocks.createNew((lane+2)%6, this.buildDistance+.36, this.buildDistance+.4);
+			Blocks.createNew((lane+3)%6, this.buildDistance+.36, this.buildDistance+.4);
+			Blocks.createNew((lane+4)%6, this.buildDistance+.36, this.buildDistance+.4);
+			
+
+			if(Math.random() >=.5)
+			{
+				Blocks.createNew((lane+1)%6, this.buildDistance+.36, this.buildDistance+.4);
+				Blocks.createNew((lane+5)%6, this.buildDistance, this.buildDistance+.04);
+			}
+			else
+			{
+				Blocks.createNew((lane+5)%6, this.buildDistance+.36, this.buildDistance+.4);
+				Blocks.createNew((lane+1)%6, this.buildDistance, this.buildDistance+.04);
+			}
+
+			this.buildDistance += .66;
+		}
+
+		track.createQuickies = function()
+		{
+			var lane = Math.floor(Math.random()*6);
+			for(var i = 0; i < 6; i++)
+			{
+				Blocks.createNew(lane%6, this.buildDistance, this.buildDistance+.04);
+				Blocks.createNew((lane+1)%6, this.buildDistance, this.buildDistance+.04);
+				Blocks.createNew((lane+2)%6, this.buildDistance, this.buildDistance+.04);
+				Blocks.createNew((lane+3)%6, this.buildDistance, this.buildDistance+.04);
+				Blocks.createNew((lane+4)%6, this.buildDistance, this.buildDistance+.04);
+				this.buildDistance += .15;
+
+				if(Math.random() >= .5)
+					lane++;
+				else
+				{
+					lane +=5;
+				}
+			}
+			this.buildDistance += .15
+		}
+
+		track.createLengths = function()
+		{
+			var lane = Math.floor(Math.random()*6);
+
+			var d = .23;
+			Blocks.createNew(lane%6, this.buildDistance, this.buildDistance+4*d+.04);
+			Blocks.createNew((lane+1)%6, this.buildDistance, this.buildDistance+4*d+.04);
+
+			if(Math.random() >= .5)
+			{
+				Blocks.createNew((lane+2)%6, this.buildDistance, this.buildDistance+.04);
+				Blocks.createNew((lane+3)%6, this.buildDistance, this.buildDistance+.04);
+				Blocks.createNew((lane+4)%6, this.buildDistance, this.buildDistance+.04);
+
+				Blocks.createNew((lane+3)%6, this.buildDistance+d, this.buildDistance+d+.04);
+				Blocks.createNew((lane+4)%6, this.buildDistance+d, this.buildDistance+d+.04);
+				Blocks.createNew((lane+5)%6, this.buildDistance+d, this.buildDistance+d+.04);
+
+				Blocks.createNew((lane+2)%6, this.buildDistance+2*d, this.buildDistance+2*d+.04);
+				Blocks.createNew((lane+3)%6, this.buildDistance+2*d, this.buildDistance+2*d+.04);
+				Blocks.createNew((lane+4)%6, this.buildDistance+2*d, this.buildDistance+2*d+.04);
+
+				Blocks.createNew((lane+3)%6, this.buildDistance+3*d, this.buildDistance+3*d+.04);
+				Blocks.createNew((lane+4)%6, this.buildDistance+3*d, this.buildDistance+3*d+.04);
+				Blocks.createNew((lane+5)%6, this.buildDistance+3*d, this.buildDistance+3*d+.04);
+
+				Blocks.createNew((lane+2)%6, this.buildDistance+4*d, this.buildDistance+4*d+.04);
+				Blocks.createNew((lane+3)%6, this.buildDistance+4*d, this.buildDistance+4*d+.04);
+				Blocks.createNew((lane+4)%6, this.buildDistance+4*d, this.buildDistance+4*d+.04)
+			}
+			else
+			{
+				Blocks.createNew((lane+3)%6, this.buildDistance, this.buildDistance+.04);
+				Blocks.createNew((lane+4)%6, this.buildDistance, this.buildDistance+.04);
+				Blocks.createNew((lane+5)%6, this.buildDistance, this.buildDistance+.04);
+
+				Blocks.createNew((lane+2)%6, this.buildDistance+d, this.buildDistance+d+.04);
+				Blocks.createNew((lane+3)%6, this.buildDistance+d, this.buildDistance+d+.04);
+				Blocks.createNew((lane+4)%6, this.buildDistance+d, this.buildDistance+d+.04);
+
+				Blocks.createNew((lane+5)%6, this.buildDistance+2*d, this.buildDistance+2*d+.04);
+				Blocks.createNew((lane+3)%6, this.buildDistance+2*d, this.buildDistance+2*d+.04);
+				Blocks.createNew((lane+4)%6, this.buildDistance+2*d, this.buildDistance+2*d+.04);
+
+				Blocks.createNew((lane+3)%6, this.buildDistance+3*d, this.buildDistance+3*d+.04);
+				Blocks.createNew((lane+4)%6, this.buildDistance+3*d, this.buildDistance+3*d+.04);
+				Blocks.createNew((lane+2)%6, this.buildDistance+3*d, this.buildDistance+3*d+.04);
+
+				Blocks.createNew((lane+5)%6, this.buildDistance+4*d, this.buildDistance+4*d+.04);
+				Blocks.createNew((lane+3)%6, this.buildDistance+4*d, this.buildDistance+4*d+.04);
+				Blocks.createNew((lane+4)%6, this.buildDistance+4*d, this.buildDistance+4*d+.04)
+			}
+
+			this.buildDistance += 4*d+.3;
+		}
+
+		track.createPartials = function()
+		{
+
+			var lane = Math.floor(Math.random()*6);
+			for (var i = 0; i < 4; i++) 
+			{
+				Blocks.createNew(lane%6, this.buildDistance, this.buildDistance+.04);
+				Blocks.createNew((lane+2)%6, this.buildDistance, this.buildDistance+.04);
+				Blocks.createNew((lane+4)%6, this.buildDistance, this.buildDistance+.04);
+				this.buildDistance+= .13;
+
+				Blocks.createNew((lane+1)%6, this.buildDistance, this.buildDistance+.04);
+				Blocks.createNew((lane+3)%6, this.buildDistance, this.buildDistance+.04);
+				Blocks.createNew((lane+5)%6, this.buildDistance, this.buildDistance+.04);
+				this.buildDistance+= .13;
+			}
+
+			this.buildDistance += .3-.13;
+		}
+
+		track.createDoubleSpiral = function()
+		{
+			var lane = Math.floor(Math.random()*6);
+			var x = .07;
+			var spiralDirection = 1 + Math.floor(Math.random()*2);
+
+			Blocks.createNew((lane+1)%6, this.buildDistance, this.buildDistance +x);
+			Blocks.createNew((lane+2)%6, this.buildDistance, this.buildDistance +x);
+			Blocks.createNew((lane+4)%6, this.buildDistance, this.buildDistance +x);
+			Blocks.createNew((lane+5)%6, this.buildDistance, this.buildDistance +x);
+
+			this.buildDistance += x;
+			lane += spiralDirection*2-3;
+			if(lane < 0)
+				lane+= 6;
+
+			for (var i = 0; i < 10; i++)
+			{
+				Blocks.createNew(lane%6, this.buildDistance, this.buildDistance +x);
+				Blocks.createNew((lane+3)%6, this.buildDistance, this.buildDistance +x);
+
+				this.buildDistance += x;
+				lane += spiralDirection;
+			};
+
+			lane+= spiralDirection;
+
+			Blocks.createNew((lane+1)%6, this.buildDistance, this.buildDistance +x);
+			Blocks.createNew((lane+2)%6, this.buildDistance, this.buildDistance +x);
+			Blocks.createNew((lane+4)%6, this.buildDistance, this.buildDistance +x);
+			Blocks.createNew((lane+5)%6, this.buildDistance, this.buildDistance +x);
+
+			this.buildDistance += x + .3-.04;
+		}
+
+		track.update = function()
+		{
+			this.buildDistance -= Blocks.speed/60*UniversalAdjust;
+
+			if(track.difficulty == 0)
+			{
+				if(track.buildDistance < 2)
+				{
+					if(Math.random() >= .75)
+					{
+						if(Math.random() >=2/3)
+							track.createSimpleSpiral()
+						else if (Math.random() >=.5)
+							track.createSplit()
+						else
+							track.createGiantSpiral();
+					}
+					else if (Math.random() >= .5)
+						track.createShells();
+					else
+						track.createGenericShells();
+						//track.createGiantSpiral();
+						
+				}
+
+				if(TimeOnClock > 10000 && Math.abs(track.scrollRate) == .001)
+				{
+					track.scrollRate = -.002 * Math.sign(track.scrollRate);
+					Blocks.speed = .32;
+				}
+				else if(TimeOnClock > 20000 && Math.abs(track.scrollRate) == .002)
+				{
+					track.scrollRate = -.003 * Math.sign(track.scrollRate);
+					Blocks.speed = .34;
+				}
+				else if(TimeOnClock > 30000 && Math.abs(track.scrollRate) == .003)
+				{
+					track.scrollRate = -.0035 * Math.sign(track.scrollRate);
+					Blocks.speed = .36;
+				}
+				else if(TimeOnClock > 40000 && Math.abs(track.scrollRate) == .0035)
+				{
+					track.scrollRate = -.004 * Math.sign(track.scrollRate);
+					Blocks.speed = .38;
+				}
+				else if(TimeOnClock > 50000 && Math.abs(track.scrollRate) == .004)
+				{
+					track.scrollRate = -.0041 * Math.sign(track.scrollRate);
+					Blocks.speed = .4;
+				}
+			}
+			else if (track.difficulty == 1)
+			{
+				if(track.buildDistance < 2)
+				{
+					if(Math.random() >= .666)
+					{
+						if(Math.random() >=2/3)
+							track.createSplit()
+						else if (Math.random() >=.5)
+							track.createGiantSpiral()
+						else
+							track.createQuickies();
+					}
+					else if (Math.random() >= .5)
+						track.createShells();
+					else
+						track.createGenericShells();
+						//track.createGiantSpiral();
+						
+				}
+
+				if(TimeOnClock > 10000 && Math.abs(track.scrollRate) == .002)
+				{
+					track.scrollRate = -.003 * Math.sign(track.scrollRate);
+					Blocks.speed = .42;
+				}
+				else if(TimeOnClock > 20000 && Math.abs(track.scrollRate) == .003)
+				{
+					track.scrollRate = -.004 * Math.sign(track.scrollRate);
+					Blocks.speed = .44;
+				}
+				else if(TimeOnClock > 30000 && Math.abs(track.scrollRate) == .004)
+				{
+					track.scrollRate = -.0045 * Math.sign(track.scrollRate);
+					Blocks.speed = .46;
+				}
+				else if(TimeOnClock > 40000 && Math.abs(track.scrollRate) == .0045)
+				{
+					track.scrollRate = -.005 * Math.sign(track.scrollRate);
+					Blocks.speed = .48;
+				}
+				else if(TimeOnClock > 50000 && Math.abs(track.scrollRate) == .005)
+				{
+					track.scrollRate = -.0052 * Math.sign(track.scrollRate);
+					Blocks.speed = .50;
+				}
+			}
+			else if (track.difficulty == 2)
+			{
+				if(track.buildDistance < 2)
+				{
+					if(Math.random() >= .666)
+					{
+						if(Math.random() >=2/3)
+							track.createSplit()
+						else if (Math.random() >=.5)
+							track.createLengths()
+						else
+							track.createQuickies();
+					}
+					else if (Math.random() >= .5)
+						track.createShells();
+					else
+						track.createGenericShells();
+						//track.createLengths();
+						
+				}
+
+				if(TimeOnClock > 10000 && Math.abs(track.scrollRate) == .004)
+				{
+					track.scrollRate = -.006 * Math.sign(track.scrollRate);
+					Blocks.speed = .51;
+				}
+				else if(TimeOnClock > 20000 && Math.abs(track.scrollRate) == .006)
+				{
+					track.scrollRate = -.007 * Math.sign(track.scrollRate);
+					Blocks.speed = .53;
+				}
+				else if(TimeOnClock > 30000 && Math.abs(track.scrollRate) == .007)
+				{
+					track.scrollRate = -.0075 * Math.sign(track.scrollRate);
+					Blocks.speed = .545;
+				}
+				else if(TimeOnClock > 40000 && Math.abs(track.scrollRate) == .0075)
+				{
+					track.scrollRate = -.008 * Math.sign(track.scrollRate);
+					Blocks.speed = .562;
+				}
+				else if(TimeOnClock > 50000 && Math.abs(track.scrollRate) == .008)
+				{
+					track.scrollRate = -.0081 * Math.sign(track.scrollRate);
+					Blocks.speed = .57;
+				}
+			}
+			else if (track.difficulty == 3)
+			{
+				if(track.buildDistance < 2)
+				{
+					if(Math.random() >= .666)
+					{
+						if(Math.random() >=2/3)
+							track.createSplit()
+						else if (Math.random() >=.5)
+							track.createLengths()
+						else
+							track.createPartials();
+					}
+					else if (Math.random() >= .5)
+						track.createShells();
+					else
+						track.createGenericShells();
+						//track.createLengths();
+						
+				}
+
+				if(TimeOnClock > 10000 && Math.abs(track.scrollRate) == .006)
+				{
+					track.scrollRate = -.008 * Math.sign(track.scrollRate);
+					Blocks.speed = .59;
+				}
+				else if(TimeOnClock > 20000 && Math.abs(track.scrollRate) == .008)
+				{
+					track.scrollRate = -.009 * Math.sign(track.scrollRate);
+					Blocks.speed = .605;
+				}
+				else if(TimeOnClock > 30000 && Math.abs(track.scrollRate) == .009)
+				{
+					track.scrollRate = -.0095 * Math.sign(track.scrollRate);
+					Blocks.speed = .62;
+				}
+				else if(TimeOnClock > 40000 && Math.abs(track.scrollRate) == .0095)
+				{
+					track.scrollRate = -.01 * Math.sign(track.scrollRate);
+					Blocks.speed = .63;
+				}
+				else if(TimeOnClock > 50000 && Math.abs(track.scrollRate) == .01)
+				{
+					track.scrollRate = -.0101 * Math.sign(track.scrollRate);
+					Blocks.speed = .64;
+				}
+			}
+			else if (track.difficulty == 4)
+			{
+				if(track.buildDistance < 2)
+				{
+					if(Math.random() >= .5)
+					{
+						if(Math.random() >=2/3)
+							track.createSplit()
+						else if (Math.random() >=.5)
+							track.createDoubleSpiral()
+						else
+							track.createPartials();
+					}
+					else if (Math.random() >= .5)
+						track.createShells();
+					else
+						track.createGenericShells();
+						//track.createLengths();				
+				}
+
+				if(TimeOnClock > 10000 && Math.abs(track.scrollRate) == .01)
+				{
+					track.scrollRate = -.013 * Math.sign(track.scrollRate);
+					Blocks.speed = .65;
+				}
+				else if(TimeOnClock > 20000 && Math.abs(track.scrollRate) == .013)
+				{
+					track.scrollRate = -.014 * Math.sign(track.scrollRate);
+					Blocks.speed = .66;
+				}
+				else if(TimeOnClock > 30000 && Math.abs(track.scrollRate) == .014)
+				{
+					track.scrollRate = -.0145 * Math.sign(track.scrollRate);
+					Blocks.speed = .67;
+				}
+				else if(TimeOnClock > 40000 && Math.abs(track.scrollRate) == .0145)
+				{
+					track.scrollRate = -.015 * Math.sign(track.scrollRate);
+					Blocks.speed = .68;
+				}
+				else if(TimeOnClock > 50000 && Math.abs(track.scrollRate) == .015)
+				{
+					track.scrollRate = -.0155 * Math.sign(track.scrollRate);
+					Blocks.speed = .69;
+				}
+			}
+			else if (track.difficulty == 5)
+			{
+				if(track.buildDistance < 2)
+				{
+					if(Math.random() >= .4)
+					{
+						if(Math.random() < 1/7)
+							track.createSplit()
+						else if (Math.random() < 1/6)
+							track.createDoubleSpiral()
+						else if (Math.random() < 1/5)
+							track.createPartials();
+						else if (Math.random() < 1/4)
+							track.createLengths();
+						else if (Math.random() < 1/3)
+							track.createSimpleSpiral();
+						else if (Math.random() < 1/2)
+							track.createGiantSpiral();
+						else
+							track.createQuickies();
+
+					}
+					else if (Math.random() >= .5)
+						track.createShells();
+					else
+						track.createGenericShells();
+						//track.createLengths();				
+				}
+
+				if(TimeOnClock > 10000 && Math.abs(track.scrollRate) == .015)
+				{
+					track.scrollRate = -.017 * Math.sign(track.scrollRate);
+					Blocks.speed = .71;
+				}
+				else if(TimeOnClock > 20000 && Math.abs(track.scrollRate) == .017)
+				{
+					track.scrollRate = -.018 * Math.sign(track.scrollRate);
+					Blocks.speed = .72;
+				}
+				else if(TimeOnClock > 30000 && Math.abs(track.scrollRate) == .018)
+				{
+					track.scrollRate = -.019 * Math.sign(track.scrollRate);
+					Blocks.speed = .73;
+				}
+				else if(TimeOnClock > 40000 && Math.abs(track.scrollRate) == .019)
+				{
+					track.scrollRate = -.0195 * Math.sign(track.scrollRate);
+					Blocks.speed = .74;
+				}
+				else if(TimeOnClock > 50000 && Math.abs(track.scrollRate) == .0195)
+				{
+					track.scrollRate = -.02 * Math.sign(track.scrollRate);
+					Blocks.speed = .75;
+				}
+			}
+		}
+		
+		track.initialize = function(level)
+		{
+			VerticalScroll = 0;
+			Position.x = 1/4;
+			Position.y = 1/2;
+
+			Blocks.list = jArray();
+
+			TimeOnClock = 0;
+			lastTime = -1;
+
+			track.difficulty = level;
+			track.buildDistance = 1;
+
+			if(level == 0)
+			{
+				Blocks.speed = .3;
+				track.scrollRate = .001;
+			 	track.controlSpeed = .015;
+			}
+			else if(level == 1)
+			{
+				Blocks.speed = .4;
+				track.scrollRate = .002;
+			 	track.controlSpeed = .02;
+			}
+			else if (level == 2)
+			{
+				Blocks.speed = .49;
+				track.scrollRate = .004;
+			 	track.controlSpeed = .025;
+			}
+			else if (level == 3)
+			{
+				Blocks.speed = .57;
+				track.scrollRate = .006;
+			 	track.controlSpeed = .029;
+			}
+			else if (level == 4)
+			{
+				Blocks.speed = .64;
+				track.scrollRate = .01;
+			 	track.controlSpeed = .033;
+			}
+			else if (level == 5)
+			{
+				Blocks.speed = .7;
+				track.scrollRate = .015;
+			 	track.controlSpeed = .037;
+			}
+
+			if(Math.random() >= .5)
+			{
+				track.scrollRate*=-1;
+			}
+		}	
+	}
+
+	function Update(GAME, d)
+	{
+		if(Gamestate == "Title")
+		{
+			if(GAME.isKeyDown[13] && !wasKeyDown[13])
+			{
+				Gamestate = "Levelselect";
+			}
+		}
+		else if(Gamestate == "Play")
+		{
+			if(lastTime != -1)
+			{
+				var newTime = new Date().getTime();
+				TimeOnClock += newTime - lastTime;
+				lastTime = newTime;
+			}
+			else
+			{
+				lastTime = new Date().getTime();
+			}
+
+			//Put game logic in here
+
+			if(TimeOnClock < 60000)
+				Blocks.update();
+			else
+			{
+				if(music.volume == .5)
+				{
+					music.pause();
+					music = new Audio("Success.mp3");
+					music.volume = .75;
+					music.play();
+
+					audio = new Audio("Explosion.mp3");
+					audio.volume = .25;
+					audio.play();
+				}
+				Position.x += Blocks.speed/60;
+			}
+
+			if(Position.x < 0)
+			{
+				Gamestate = "Dead";
+				music.pause();
+			}
+
+
+			if(VerticalScroll > 1)
+				VerticalScroll--;
+			if(VerticalScroll < 0)
+				VerticalScroll++;
+
+			//Move up code
+			if(GAME.isKeyDown[GAME.KEY.Up] || GAME.isKeyDown[GAME.KEY.W])
+			{
+				if(!Position.canMoveUp)
+				{
+					var currentLane = Math.floor(Position.y*6);
+					Position.y -= track.controlSpeed*UniversalAdjust;
+
+					if(currentLane != Math.floor(Position.y*6))
+					{
+						Position.y = currentLane/6+.001;
+					}
+				}
+				else
+				{
+					Position.y -= track.controlSpeed *UniversalAdjust;
+				}
+				
+			}
+			//Move down code
+			if(GAME.isKeyDown[GAME.KEY.Down] || GAME.isKeyDown[GAME.KEY.S])
+			{
+				if(!Position.canMoveDown)
+				{
+					var currentLane = Math.floor(Position.y*6);
+					Position.y += track.controlSpeed*UniversalAdjust;
+
+					if(currentLane != Math.floor(Position.y*6))
+					{
+						Position.y = (currentLane+1)/6-.001;
+					}
+				}
+				else
+				{
+					Position.y += track.controlSpeed*UniversalAdjust;
+				}
+			}
+
+			//Quit code
+			if(GAME.isKeyDown[GAME.KEY.Backspace] || GAME.isKeyDown[GAME.KEY.Escape] )
+			{
+				Gamestate = "Levelselect";
+
+				music.pause();
+				music = false;
+
+				music = new Audio("SRDTheme.mp3");
+				music.loop = true;
+				music.volume = .5;
+				music.play();
+			}
+
+			if(Position.y < 0)
+				Position.y++;
+			if(Position.y > 1)
+				Position.y--;
+
+			if(Position.x < 1/4)
+			{
+				Position.x += .0001;
+			}
+
+			VerticalScroll += track.scrollRate*UniversalAdjust;
+
+			colorWash = 1-TimeOnClock/60000;
+
+			if(colorWash < 0)
+				colorWash = 0;
+			
+			track.update();
+
+			if(Position.x > 1.25)
+			{
+				if(GAME.isKeyDown[13] && !wasKeyDown[13])
+				{
+					Gamestate = "Levelselect";
+					music.pause();
+
+					music = new Audio("SRDTheme.mp3");
+					music.loop = true;
+					music.volume = .5;
+					music.play();
+
+					if(track.difficulty + 1 > track.levelsUnlocked && track.difficulty !=5)
+					{
+						track.levelsUnlocked++;
+						localStorage.SuperRainbowDash = track.levelsUnlocked;
+					}
+					if(track.difficulty != 5)
+						track.difficulty++;
+				}
+			}
+		}
+		else if(Gamestate == "Levelselect")
+		{
+			if((GAME.isKeyDown[GAME.KEY.Left] && !wasKeyDown[GAME.KEY.Left]) || (GAME.isKeyDown[GAME.KEY.A] && !wasKeyDown[GAME.KEY.A]))
+			{
+				track.difficulty--;
+				if(track.difficulty < 0)
+					track.difficulty = 5;
+			}
+			if((GAME.isKeyDown[GAME.KEY.Right] && !wasKeyDown[GAME.KEY.Right]) || (GAME.isKeyDown[GAME.KEY.D] && !wasKeyDown[GAME.KEY.D]))
+			{
+				track.difficulty++;
+				if(track.difficulty >5)
+					track.difficulty = 0;
+			}
+
+			if(GAME.isKeyDown[13] && !wasKeyDown[13] && track.difficulty <= track.levelsUnlocked)
+			{
+				Gamestate = "Play";
+				audio = false;
+				music.pause();
+
+				music = new Audio("Track" + track.difficulty%3 + ".mp3");
+				music.loop = true;
+				music.volume = .5;
+				music.play();
+				track.initialize(track.difficulty);
+				track.createSpawn();
+			}
+		}
+		else if (Gamestate  == "Dead")
+		{
+			if(audio == false)
+			{
+				audio = new Audio("Fail" + Math.floor(Math.random()*5) + ".mp3");
+				audio.play();
+			}
+			if(GAME.isKeyDown[13] || GAME.isKeyDown[GAME.KEY.Space])
+			{
+				Gamestate = "Play";
+				track.initialize(track.difficulty);
+				track.createSpawn();
+
+				music.play();
+				audio.pause();
+				audio = false;
+			}
+
+			if(GAME.isKeyDown[GAME.KEY.Backspace] || GAME.isKeyDown[GAME.KEY.Escape] )
+			{
+				Gamestate = "Levelselect";
+				audio.pause();
+				audio = false;
+
+				music = new Audio("SRDTheme.mp3");
+				music.loop = true;
+				music.volume = .5;
+				music.play();
+			}
+		}
+
+		wasKeyDown = GAME.isKeyDown.slice();
+	}
+
+	function Draw(GAME, d)
+	{
+		
+		if(Gamestate == "Play" || Gamestate == "Dead")
+		{
+			GAME.clearDraw(Colors.soften(Colors.num[Math.floor(VerticalScroll*-6+6)],colorWash));
+			//Put drawing code in here
+
+			var colorBandWidth = GAME.windowHeight/6 + 2;
+
+			//GAME.drawRect(Vect2(0,0), Vect2(GAME.windowWidth,colorBandWidth),Colors.soften(Colors.num[Math.floor(VerticalScroll*-6+6)],colorWash));
+
+			GAME.drawRect(Vect2(0,((0+VerticalScroll)*GAME.windowHeight)%GAME.windowHeight), Vect2(GAME.windowWidth,colorBandWidth),Colors.soften(Colors.Red,colorWash));
+			GAME.drawRect(Vect2(0,((1/6+VerticalScroll)*GAME.windowHeight)%GAME.windowHeight), Vect2(GAME.windowWidth,colorBandWidth),Colors.soften(Colors.Orange,colorWash));
+			GAME.drawRect(Vect2(0,((2/6+VerticalScroll)*GAME.windowHeight)%GAME.windowHeight), Vect2(GAME.windowWidth,colorBandWidth),Colors.soften(Colors.Yellow,colorWash));
+			GAME.drawRect(Vect2(0,((3/6+VerticalScroll)*GAME.windowHeight)%GAME.windowHeight), Vect2(GAME.windowWidth,colorBandWidth),Colors.soften(Colors.Green,colorWash));
+			GAME.drawRect(Vect2(0,((4/6+VerticalScroll)*GAME.windowHeight)%GAME.windowHeight), Vect2(GAME.windowWidth,colorBandWidth),Colors.soften(Colors.Blue,colorWash));
+			GAME.drawRect(Vect2(0,((5/6+VerticalScroll)*GAME.windowHeight)%GAME.windowHeight), Vect2(GAME.windowWidth,colorBandWidth),Colors.soften(Colors.Purple,colorWash));
+
+			Blocks.draw();
+
+			GAME.drawSpriteScale("RD.png", Vect2(Math.floor(Position.x*GAME.windowWidth-RDimageData.width/RDimageData.height*colorBandWidth*3/4),Math.floor((Position.y+VerticalScroll)%1 * GAME.windowHeight - colorBandWidth*.52)),colorBandWidth*3/4);
+
+			if((Position.y+VerticalScroll)%1 < 1/6)
+			{
+				GAME.drawSpriteScale("RD.png", Vect2(Position.x*GAME.windowWidth-RDimageData.width/RDimageData.height*colorBandWidth*3/4,(Position.y+VerticalScroll) * GAME.windowHeight - colorBandWidth*.52), colorBandWidth*3/4);
+			}
+			else if((Position.y+VerticalScroll)%1 > 5/6)
+			{
+				GAME.drawSpriteScale("RD.png", Vect2(Position.x*GAME.windowWidth-RDimageData.width/RDimageData.height*colorBandWidth*3/4,(Position.y+VerticalScroll-1) * GAME.windowHeight - colorBandWidth*.52), colorBandWidth*3/4);
+			}
+
+			
+
+			if(TimeOnClock < 60000)
+			{
+				GAME.ctx.fillStyle = "#FFFFFF";
+				GAME.drawRect(Vect2(GAME.windowWidth - colorBandWidth*2, GAME.windowHeight - colorBandWidth*.95),Vect2(GAME.windowWidth*.5,GAME.windowHeight*.25));
+
+				GAME.ctx.font = Math.floor(colorBandWidth*3/4) + "px Arial";
+				GAME.ctx.fillStyle = "#000000";
+
+				var timeLeft = 60000 - TimeOnClock
+				var cents = Math.floor(timeLeft/10)%100;
+				cents = cents.toString();
+				if(cents.length == 1)
+					cents = "0" +cents;
+				GAME.ctx.fillText(Math.floor(timeLeft/1000) + "." + cents, GAME.windowWidth - colorBandWidth*2, GAME.windowHeight - colorBandWidth*.25);
+
+			}
+			else
+			{
+				// 13.5/5
+				if(GAME.windowWidth/GAME.windowHeight > 13.5/5)
+				{
+					GAME.drawSpriteScale("Boom.png",Vect2(GAME.windowWidth/2-GAME.windowHeight*13.5/5/2,0),GAME.windowHeight);
+				}
+				else
+				{
+					GAME.drawSpriteScale("Boom.png",Vect2(0,GAME.windowHeight/2-GAME.windowWidth*5/13.5/2),GAME.windowWidth*5/13.5);
+				}
+
+				if(VerticalScroll > .5 && Position.x > 1.25)
+				{
+					GAME.ctx.font = Math.floor(colorBandWidth*3/4) + "px Monospace";
+					GAME.ctx.fillStyle = "#FFFFFF";
+					GAME.ctx.fillText("Press Enter",GAME.windowWidth/2 - colorBandWidth*9/4, GAME.windowHeight/2); 
+				}
+			}
+
+			if(Gamestate == "Dead")
+			{
+				if(audio.ended)
+				{
+					Colors.defaultBackground();
+					//GAME.drawSpriteScale("GameOver.png",Vect2(GAME.windowWidth/2 -GAME.windowHeight-65/50/2,GAME.windowHeight/8),GAME.windowHeight*.75);
+					if(GAME.windowWidth/GAME.windowHeight > 65/50)
+					{
+						GAME.drawSpriteScale("GameOver.png",Vect2(GAME.windowWidth/2-GAME.windowHeight*65/50/2,0),GAME.windowHeight);
+					}
+					else
+					{
+						GAME.drawSpriteScale("GameOver.png",Vect2(0,GAME.windowHeight/2-GAME.windowWidth*3/10),GAME.windowWidth*50/65);
+					}
+				}
+			}
+		}
+		if(Gamestate == "Levelselect")
+		{
+			Colors.defaultBackground();
+			var colorBandWidth = GAME.windowHeight/6 + 2;
+
+			var unlocked = "";
+			if(track.difficulty > track.levelsUnlocked)
+				unlocked = "Lock";
+			GAME.drawSpriteScale("Level" + track.difficulty + unlocked + ".png", Vect2(GAME.windowWidth/2-GAME.windowHeight/4,GAME.windowHeight/4),GAME.windowHeight/2);
+
+			GAME.drawSpriteScale("Arrows.png", Vect2(GAME.windowWidth/2-GAME.windowHeight*3/8,GAME.windowHeight/4),GAME.windowHeight/2);
+
+			GAME.ctx.font = Math.floor(colorBandWidth*3/4) + "px Monospace";
+			GAME.ctx.fillStyle = "#000000";
+			GAME.ctx.fillText("Select Difficulty",GAME.windowWidth/2 - colorBandWidth*9/4*17/11, GAME.windowHeight/8); 
+
+			var Names = ["Egghead","Gentle","Modest","Tough","Insane","Canon"];
+
+			GAME.ctx.font = Math.floor(colorBandWidth/2) + "px Monospace";
+
+			if(track.difficulty > track.levelsUnlocked)
+			{
+				GAME.ctx.fillText("Locked",GAME.windowWidth/2 - colorBandWidth/2/2*6/11*6, GAME.windowHeight*.85);
+
+				GAME.ctx.font = Math.floor(colorBandWidth/4) + "px Monospace";
+				//"To unlock this level you must beat level 1 first"
+				GAME.ctx.fillText("To unlock this level",GAME.windowWidth/2 - colorBandWidth/4/2*6/11*20, GAME.windowHeight*.9);
+				GAME.ctx.fillText("you must beat level " + track.difficulty + " first",GAME.windowWidth/2 - colorBandWidth/4/2*6/11*27, GAME.windowHeight*.95);
+
+			}
+			else
+			{
+				GAME.ctx.fillText("Level " + (track.difficulty+1),GAME.windowWidth/2 - colorBandWidth/2/2*6/11*7, GAME.windowHeight*.85)
+				GAME.ctx.fillText(Names[track.difficulty],GAME.windowWidth/2 - colorBandWidth*6/44*Names[track.difficulty].length, GAME.windowHeight*15/16); 
+			}
+		}
+		if(Gamestate == "Title")
+		{
+			Colors.defaultBackground();
+			var colorBandWidth = GAME.windowHeight/6 + 2;
+			if(GAME.windowWidth/GAME.windowHeight > 20/12)
+			{
+				GAME.drawSpriteScale("Logo.png",Vect2(GAME.windowWidth/2-GAME.windowHeight*10/12,0),GAME.windowHeight);
+			}
+			else
+			{
+				GAME.drawSpriteScale("Logo.png",Vect2(0,GAME.windowHeight/2-GAME.windowWidth*3/10),GAME.windowWidth*3/5);
+			}
+
+			if(VerticalScroll > .5)
+			{
+				GAME.ctx.font = Math.floor(colorBandWidth*3/4) + "px Monospace";
+				GAME.ctx.fillStyle = "#FFFFFF";
+				GAME.ctx.fillText("Press Enter",GAME.windowWidth/2 - colorBandWidth*9/4, GAME.windowHeight/2); 
+			}
+		}
+	}
+
+
+	function Unload(GAME, d)
+	{
+		//Put code to save/close the game in here
+	}
+
+	Math.sign = function(number)
+	{
+		if(number > 0)
+			return 1;
+		if(number < 0)
+			return -1;	
+		return 0;
+	}
+
+ 	Load(GAME);
+}
+</script><div style="text-align: center;">
+	<img src="logo.png" height = "400" width = "667">
+	<h2>by brambleshadodw4</h2>
+	<p>Play using the arrow keys or WASD</p>
+	<p>Press enter to start the selected level. Backspace will take you back to the level selection</p>
+	<p>Survive for 60 seconds to win and to unlock the next level</p>
+<button onclick = "CreateGame();" autofocus style="font-size: 30pt;">Launch Game</button><br><br>
+<a href= "">Trailer</a> <a href="https://brambleshadow4.bandcamp.com/album/super-rainbow-dash-soundtrack">Soundtrack</a> <a href="Credits.html">Credits</a> <a href="Info.html">More Info</a>
+</div></body></html>
