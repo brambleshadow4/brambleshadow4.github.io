@@ -226,6 +226,8 @@ function CreateGame()
 	var audio = false;
 	var music = false;
 
+	var preLoadedAudio = {};
+
 	function Initialize(GAME, d)
 	{
 		//put your initial code here :)
@@ -329,6 +331,10 @@ function CreateGame()
 		Position.canMoveUp = true;
 		Position.canMoveDown = true;
 
+		preLoadedAudio["Track0"] = new Audio("Track0.mp3");
+		preLoadedAudio["Track1"] = new Audio("Track1.mp3");
+		preLoadedAudio["Track2"] = new Audio("Track2.mp3");
+		preLoadedAudio["Sucess"] = new Audio("Success.mp3")
 
 		music = new Audio("SRDTheme.mp3");
 		music.loop = true;
