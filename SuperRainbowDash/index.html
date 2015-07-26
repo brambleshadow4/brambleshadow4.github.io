@@ -187,7 +187,7 @@ function CreateGame()
 		//GAME.isKeyDown[keycode] - used to get real time input if a key is down
 		GAME.isKeyDown = jArray();
 
-		document.onkeydown = function(){return false;}
+		document.onkeydown = function(e){if(e.keyCode == 8)return false;}
 		document.addEventListener("keydown", function(e){GAME.isKeyDown[e.keyCode] = true;});
 		document.addEventListener("keyup", function(e){GAME.isKeyDown[e.keyCode] = false;});
 
