@@ -226,7 +226,7 @@ function CreateGame()
 	var audio = false;
 	var music = false;
 
-	var preLoadedAudio = {};
+	var audioLoader = {};
 
 	function Initialize(GAME, d)
 	{
@@ -331,12 +331,27 @@ function CreateGame()
 		Position.canMoveUp = true;
 		Position.canMoveDown = true;
 
-		preLoadedAudio["Track0"] = new Audio("Track0.mp3");
-		preLoadedAudio["Track1"] = new Audio("Track1.mp3");
-		preLoadedAudio["Track2"] = new Audio("Track2.mp3");
-		preLoadedAudio["Sucess"] = new Audio("Success.mp3")
+		audioLoader.Audio = function(track)
+		{
+			if(this[track] == undefined)
+			{
+				this[track] = new Audio(track);
+			}
 
-		music = new Audio("SRDTheme.mp3");
+			/*this[track].onended = function()
+			{
+				if (this.loop == false)
+				{
+					this.load();
+					if(Gamestate == 'Dead')
+						Gamestate = "Dead2";
+				}
+			}*/
+
+			return this[track];
+		}
+
+		music = audioLoader.Audio("SRDTheme.mp3");
 		music.loop = true;
 		music.volume = .5;
 		music.play();
@@ -1148,11 +1163,12 @@ function CreateGame()
 				if(music.volume == .5)
 				{
 					music.pause();
-					music = new Audio("Success.mp3");
+					music.load();
+					music =  audioLoader.Audio("Success.mp3");
 					music.volume = .75;
 					music.play();
 
-					audio = new Audio("Explosion.mp3");
+					audio =  audioLoader.Audio("Explosion.mp3");
 					audio.volume = .25;
 					audio.play();
 				}
@@ -1164,7 +1180,6 @@ function CreateGame()
 				Gamestate = "Dead";
 				music.pause();
 			}
-
 
 			if(VerticalScroll > 1)
 				VerticalScroll--;
@@ -1215,9 +1230,10 @@ function CreateGame()
 				Gamestate = "Levelselect";
 
 				music.pause();
+				music.load();
 				music = false;
 
-				music = new Audio("SRDTheme.mp3");
+				music = audioLoader.Audio("SRDTheme.mp3");
 				music.loop = true;
 				music.volume = .5;
 				music.play();
@@ -1248,8 +1264,9 @@ function CreateGame()
 				{
 					Gamestate = "Levelselect";
 					music.pause();
+					music.load();
 
-					music = new Audio("SRDTheme.mp3");
+					music = audioLoader.Audio("SRDTheme.mp3");
 					music.loop = true;
 					music.volume = .5;
 					music.play();
@@ -1284,8 +1301,9 @@ function CreateGame()
 				Gamestate = "Play";
 				audio = false;
 				music.pause();
+				music.load();
 
-				music = new Audio("Track" + track.difficulty%3 + ".mp3");
+				music = audioLoader.Audio("Track" + track.difficulty%3 + ".mp3");
 				music.loop = true;
 				music.volume = .5;
 				music.play();
@@ -1293,11 +1311,11 @@ function CreateGame()
 				track.createSpawn();
 			}
 		}
-		else if (Gamestate  == "Dead")
+		else if (Gamestate  == "Dead" || Gamestate == "Dead2")
 		{
 			if(audio == false)
 			{
-				audio = new Audio("Fail" + Math.floor(Math.random()*5) + ".mp3");
+				audio = audioLoader.Audio("Fail" + Math.floor(Math.random()*5) + ".mp3");
 				audio.play();
 			}
 			if(GAME.isKeyDown[13] || GAME.isKeyDown[GAME.KEY.Space])
@@ -1308,6 +1326,7 @@ function CreateGame()
 
 				music.play();
 				audio.pause();
+				audio.load();
 				audio = false;
 			}
 
@@ -1315,9 +1334,10 @@ function CreateGame()
 			{
 				Gamestate = "Levelselect";
 				audio.pause();
+				audio.load();
 				audio = false;
 
-				music = new Audio("SRDTheme.mp3");
+				music = audioLoader.Audio("SRDTheme.mp3");
 				music.loop = true;
 				music.volume = .5;
 				music.play();
