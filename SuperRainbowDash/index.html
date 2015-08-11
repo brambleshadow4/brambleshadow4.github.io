@@ -356,6 +356,18 @@ function CreateGame()
 		music.volume = .5;
 		music.play();
 
+		audioLoader.Audio("Track0.mp3");
+		audioLoader.Audio("Track1.mp3");
+		audioLoader.Audio("Track2.mp3");
+		audioLoader.Audio("Fail0.mp3");
+		audioLoader.Audio("Fail1.mp3");
+		audioLoader.Audio("Fail2.mp3");
+		audioLoader.Audio("Fail3.mp3");
+		audioLoader.Audio("Fail4.mp3");
+		audioLoader.Audio("Success.mp3");
+		audioLoader.Audio("Explosion.mp3");
+
+
 		Blocks.list = jArray();
 
 		Blocks.speed = 1/2;
@@ -1179,6 +1191,7 @@ function CreateGame()
 			{
 				Gamestate = "Dead";
 				music.pause();
+				music.load();
 			}
 
 			if(VerticalScroll > 1)
