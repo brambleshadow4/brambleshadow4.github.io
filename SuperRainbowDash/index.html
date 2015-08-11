@@ -1191,7 +1191,6 @@ function CreateGame()
 			{
 				Gamestate = "Dead";
 				music.pause();
-				music.load();
 			}
 
 			if(VerticalScroll > 1)
@@ -1350,6 +1349,7 @@ function CreateGame()
 				audio.load();
 				audio = false;
 
+				music.load();
 				music = audioLoader.Audio("SRDTheme.mp3");
 				music.loop = true;
 				music.volume = .5;
