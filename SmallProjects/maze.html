@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Maze Generation 1.0</title>
+		<script type="text/javascript">
+			function id(id){return document.getElementById(id);}
+		</script>
+		<style type="text/css">
+
+			#maze{
+				font-family: monospace;
+				text-align: center;
+			}
+		</style>
+	</head>
+	<body onload="load();">
+		<script>
+			var Maze = {};
+			function createMaze()
+			{
+				//set up functions
+				Maze.adjacentTiles = function(tile)
+				{
+					var tileX = tile % Maze.width; 
+					var tileY = Math.floor(tile / Maze.width);
+					var tiles = [];
+					if(tileX != 0)
+						tiles.push(tile - 1);
+					if(tileX != Maze.width-1)
+						tiles.push(tile+1);
+					if(tileY != 0)
+						tiles.push(tile - Maze.width);
+					if(tileY != Maze.height-1)
+						tiles.push(tile + Maze.width);
+
+					return tiles;
+				}
+				Maze.setTileLeft = function(tile, state)
+				{
+					if(tile % Maze.width != 0)
+					{
+						var BottomState = Math.floor(Maze.data[tile-1]/2);
+						Maze.data[tile-1] = 2*BottomState + state;
+					}
+					Maze.render();
+				}
+				Maze.setTileRight = function(tile, state)
+				{
+					if(tile % Maze.width != Maze.width-1)
+					{
+						var BottomState = Math.floor(Maze.data[tile]/2);
+						Maze.data[tile] = 2*BottomState + state;
+					}
+					Maze.render();
+				}
+				Maze.setTileTop = function(tile, state)
+				{
+					if(Math.floor(tile / Maze.width) != 0)
+					{
+						var RightState = Maze.data[tile-Maze.width] % 2;
+						Maze.data[tile-Maze.width] = 2*state + RightState;
+					}
+					Maze.render();
+				}
+				Maze.setTileBottom = function(tile, state)
+				{
+					if(Math.floor(tile / Maze.width) != Maze.height-1)
+					{
+						var RightState = Maze.data[tile] % 2;
+						Maze.data[tile] = 2*state + RightState;
+					}
+					Maze.render();
+				}
+				Maze.isTileOpen = function(tile)
+				{
+					var open = false;
+					if(Maze.data[tile] != 3)
+						open = true;
+					if(tile % Maze.width != 0)
+					{
+						if(Maze.data[tile-1]%2 == 0)
+							open = true;
+					}
+					if(Math.floor(tile/Maze.height) != 0)
+					{
+						if(Maze.data[tile-Maze.width]<1)
+							open = true;
+					}
+					return open;
+				}
+
+				//create a blank maze;
+				for (var i = 0; i < Maze.height; i++) 
+				{
+					for (var j = 0; j < Maze.width; j++) 
+					{
+						Maze.data[j+i*Maze.width] = 3;
+					}
+				}
+				
+				var mazeComplete = false;
+				
+				var OpenTileList = [0];
+				while(!mazeComplete)
+				{
+					var Tile = OpenTileList[Math.floor(Math.random()*OpenTileList.length)]
+					var notDoneSegment = true;
+					while(notDoneSegment)
+					{
+						var NextTile = Maze.adjacentTiles(Tile);
+
+						for (var i = 0; i < NextTile.length; i++) 
+						{
+							if(Maze.isTileOpen(NextTile[i]))
+							{
+								NextTile = removeIndex(i, NextTile);
+								i--;
+							}
+						}
+						if(NextTile.length != 0 )
+						{
+							NextTile = NextTile[Math.floor(Math.random() * NextTile.length)];
+							OpenTileList.push(NextTile);
+							switch (Tile-NextTile)
+							{
+								case 1:
+									Maze.setTileLeft(Tile, 0);
+									break;
+								case -1:
+									Maze.setTileRight(Tile, 0);
+									break;
+								case -Maze.width:
+									Maze.setTileBottom(Tile, 0);
+									break;
+								case Maze.width:
+									Maze.setTileTop(Tile, 0);
+									break;
+							}
+							Tile = NextTile;
+						}
+						else
+						{
+							notDoneSegment = false;
+							//Maze.render();
+							//alert(); //to pause
+
+							OpenTileList = removeIndex(OpenTileList.indexOf(Tile), OpenTileList);
+							//alert(OpenTileList);
+						}
+					}
+					if(OpenTileList.length == 0)
+						mazeComplete = true;
+				}
+			}
+
+			function load()
+			{
+				var size = prompt("Maze Size:");
+				size = parseInt(size);
+
+				if(size<0)
+					size = 50;
+				if(size>500)
+					size = 50;
+
+				Maze.width = size;
+				Maze.height = size;
+				Maze.data = [];
+				
+				createMaze();
+				Maze.render();
+			}
+
+			Maze.render = function()
+			{
+				var text = " ";
+				for (var i = 0; i < Maze.width; i++) 
+				{
+					text += "_ ";
+				};
+				text+="<br>";
+				for (var i = 0; i < Maze.height; i++) 
+				{
+					text+= "|";
+					for (var j = 0; j < Maze.width; j++) 
+					{
+						if(Maze.data[j+i*Maze.width] > 1)
+							text+= "_";
+						else
+							text+= " ";
+						if(Maze.data[j+i*Maze.width]%2 == 1)
+							text+= "|";
+						else
+							text+= " "
+					}
+					text+="<br>";
+				}
+				id('maze').innerHTML = text;
+			}
+
+			function removeIndex(index, array)
+			{
+				var resultant = new Array();
+				resultant = array.splice(0,index);
+				var part2 = new Array();
+				part2 = array.splice(1,array.length-1);
+				resultant = resultant.concat(part2);
+				return resultant;
+			}
+		</script>
+		<br>
+		<div><pre id='maze'></pre></div>
+	</body>
+	<!--
+		List of errors
+		****
+		Data flipped: Should have been =0, not =1
+		Forgot a parameter in a function
+		Spelling Mistake
+		Bad data: length -1, not length
+		Forgot to specify index in an array (array vs. array[i])
+	-->
+</html>

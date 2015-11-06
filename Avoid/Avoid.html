@@ -1,0 +1,689 @@
+<!DOCTYPE html><html><head><title>Play Game</title></head><body><script id="code">
+	var GAME = {};
+	var d = {};
+	//change these to change the size of the window
+	GAME.windowHeight = 600;
+	GAME.windowWidth  = 800;
+	GAME.resizable = false;
+
+	GAME.FPS = 60;
+	GAME.windowName = "Avoid";
+
+	//technical variable - do not change
+	GAME.hasBegun = false;
+
+	function Load()
+	{	
+		//Begin the game
+		GAME.hasBegun = true;
+
+		//create a canvas
+		document.write("<canvas style=\'position: absolute; top: 0px; left: 0px;\' height="+GAME.windowHeight + " width=" + GAME.windowWidth + "></canvas><div id=\'picDiv\' style=\'display: none;\'></div>");
+		GAME.ctx = document.getElementsByTagName("canvas")[0].getContext("2d");
+
+		GAME.clearDraw = function(color)
+		{
+			GAME.drawRect(Vect2(0,0), Vect2(GAME.windowWidth,GAME.windowHeight), color);
+		}
+
+		GAME.drawRect = function(v1,v2,color)
+		{
+			var oldColor = GAME.ctx.fillStyle;
+			GAME.ctx.fillStyle = color;
+			GAME.ctx.fillRect(v1.x,v1.y,v2.x,v2.y);
+			GAME.ctx.fill();
+			GAME.ctx.fillStyle = oldColor;
+		}
+
+		GAME.drawSprite = function(img, v1)
+		{
+			var pic = document.getElementById(img);
+			if(pic == undefined)
+			{
+				//alert("adding picture");
+				pic = document.createElement("img");
+				pic.src = img;
+				pic.id = img;
+				document.getElementById("picDiv").appendChild(pic);
+			}
+
+			GAME.ctx.drawImage(pic, v1.x, v1.y);
+		}
+		GAME.drawSpriteRot = function(img, v1, angle)
+		{
+			var pic = document.getElementById(img);
+			if(pic == undefined)
+			{
+				//alert("adding picture");
+				pic = document.createElement("img");
+				pic.src = img;
+				pic.id = img;
+
+				var div = document.createElement("div");
+				div.appendChild(pic);
+				document.getElementById("picDiv").appendChild(div);
+			}
+			//console.log(pic);
+
+			GAME.ctx.rotate(angle);
+			var v2 = Vect2(v1.x, v1.y);
+
+			//v2.x -= pic.naturalWidth/2;
+			//v2.y -= pic.naturalHeight/2;
+			v3 = Vect2(v2.x*Math.cos(-angle) - v2.y*Math.sin(-angle) - pic.naturalWidth/2, v2.x*Math.sin(-angle) + v2.y*Math.cos(-angle) - pic.naturalHeight/2);
+			GAME.ctx.drawImage(pic, v3.x, v3.y);
+			GAME.ctx.rotate(-angle);
+		}
+		GAME.drawLine = function (v1, v2)
+		{
+			GAME.ctx.beginPath();
+			GAME.ctx.moveTo(v1.x,v1.y);
+			GAME.ctx.lineTo(v2.x,v2.y);
+			GAME.ctx.stroke();
+		}
+		GAME.drawTriangle = function(v1, v2, v3, color)
+		{
+			var old = GAME.ctx.fillStyle;
+			GAME.ctx.fillStyle = color;
+
+			GAME.ctx.beginPath();
+			GAME.ctx.moveTo(v1.x,v1.y);
+			GAME.ctx.lineTo(v2.x,v2.y);
+			GAME.ctx.lineTo(v3.x,v3.y);
+			GAME.ctx.lineTo(v1.x,v1.y);
+			GAME.ctx.fill();
+
+			Game.ctx.fillStyle = old;
+		}
+
+		//GAME.isKeyDown[keycode] - used to get real time input if a key is down
+		GAME.isKeyDown = [];
+		document.addEventListener("keydown", function(e){GAME.isKeyDown[e.keyCode] = true; console.log(e.keyCode);});
+		document.addEventListener("keyup", function(e){GAME.isKeyDown[e.keyCode] = false;});
+
+
+		
+
+		Initialize();
+		//To stop the game loop: clearInterval(GAME.loop);
+		GAME.loop = setInterval(function(){Update(); Draw();}, 1000/GAME.FPS);
+		//function Loop(){requestAnimationFrame(Loop); Update(); Draw();};Loop();
+	}
+	
+	function Enemy(x,y)
+	{
+		var n = {};
+		n.Position = Vect2(x,y);
+		n.Angle = Math.random()*Math.PI*2;
+
+		n.Update = function()
+		{
+			this.Position.x += d.SpeedConstant*3*Math.cos(this.Angle);
+			this.Position.y += d.SpeedConstant*3*Math.sin(this.Angle);
+			if(this.Position.x < 0 || this.Position.x > GAME.windowWidth)
+			{
+				this.Angle = Math.PI - this.Angle;			
+			}
+			if(this.Position.y < 0 || this.Position.y > GAME.windowHeight)
+			{
+				this.Angle *= -1;
+			}
+			for (var i = 0; i < d.PlayerList.length; i++) 
+			{
+				if(this.Position.add(d.PlayerList[i].Position.scale(-1)).length() < 10 || (this.Position.add(d.PlayerList[i].Position.scale(-1)).length() < 25 && d.Surprise == "Jumbo"))
+				{
+					d.PlayerList = removeIndex(i,d.PlayerList);
+					i--;
+				}
+			};
+			
+		}
+		n.Draw = function()
+		{
+			if(d.Surprise == "Jumbo")
+				GAME.drawRect(this.Position.add(Vect2(-20,-20)),Vect2(40,40));
+			else
+				GAME.drawRect(this.Position.add(Vect2(-5,-5)),Vect2(10,10));
+		}
+		return n;
+	}
+	function follower(x,y)
+	{
+		var n = {};
+		n.Position = Vect2(x,y);
+
+		n.Update = function()
+		{
+			if(d.PlayerList.length > 0)
+			{
+				var closestPlayer = 0;
+				for (var i = 0; i < d.PlayerList.length; i++)
+				{
+					if(this.Position.add(d.PlayerList[i].Position.scale(-1)).length() < this.Position.add(d.PlayerList[closestPlayer].Position.scale(-1)).length())
+						closestPlayer = i;
+				};
+
+				var direction = this.Position.add(d.PlayerList[closestPlayer].Position.scale(-1));
+				direction = direction.scale(-d.SpeedConstant * 1.2/direction.length());
+				
+				this.Position = this.Position.add(direction);
+				
+				if(this.Position.add(d.PlayerList[closestPlayer].Position.scale(-1)).length() < 10 || (this.Position.add(d.PlayerList[closestPlayer].Position.scale(-1)).length() < 25 && d.Surprise == "Jumbo"))
+				{
+					
+					d.PlayerList = removeIndex(closestPlayer,d.PlayerList);
+					
+				}
+			}
+			
+			
+		}
+		n.Draw = function()
+		{
+			if(d.Surprise == "Jumbo")
+				GAME.drawRect(this.Position.add(Vect2(-20,-20)),Vect2(40,40));
+			else
+				GAME.drawRect(this.Position.add(Vect2(-5,-5)),Vect2(10,10));
+		}
+		return n;
+	}
+	function Initialize()
+	{
+		//put your initial code here :)
+
+		function player(designation)
+		{
+			var n = {};
+			n.Position = Vect2(400,300);
+			n.Velocity = Vect2(0,0);
+			n.Angle = designation*Math.PI/2;
+			n.designation = designation + 1;
+
+			n.ForwardKey;
+			n.LeftKey;
+			n.RightKey;
+
+			if(designation == 0)
+			{
+				n.ForwardKey = KEY.Up;
+				n.LeftKey = KEY.Left;
+				n.RightKey = KEY.Right;
+			}
+			else if(designation == 1)
+			{
+				n.ForwardKey = KEY.W;
+				n.LeftKey = KEY.A;
+				n.RightKey = KEY.D;
+			}
+			else if(designation == 2)
+			{
+				n.ForwardKey = KEY.I;
+				n.LeftKey = KEY.J;
+				n.RightKey = KEY.L;
+			}
+			else if(designation == 3)
+			{
+				n.ForwardKey = KEY.Num8;
+				n.LeftKey = KEY.Num4;
+				n.RightKey = KEY.Num6;
+			}
+
+			n.Update = function()
+			{
+				if(GAME.isKeyDown[this.ForwardKey])
+				{
+					this.Velocity.x += d.SpeedConstant*0.15*Math.cos(this.Angle);
+					this.Velocity.y += d.SpeedConstant*0.15*Math.sin(this.Angle);
+				};
+				if(d.Surprise == "AutoSpin")
+				{
+					this.Angle -= .1*d.SpeedConstant;
+				}
+				else if(d.Surprise != "NoTurning")
+				{
+					if(GAME.isKeyDown[this.LeftKey])
+						this.Angle -= .1*d.SpeedConstant;
+					if(GAME.isKeyDown[this.RightKey])
+						this.Angle += .1*d.SpeedConstant;
+				}
+				if(d.Surprise == "Gravity")
+				{
+					var force = Vect2(-GAME.windowWidth/2, -GAME.windowHeight/2).add(this.Position).scale(-1);
+					var strength = .12;
+					if(Vect2(-GAME.windowWidth/2, -GAME.windowHeight/2).add(this.Position).length() > .1)
+						this.Velocity = this.Velocity.add(Vect2(strength*force.x/force.length(),strength*force.y/force.length()));
+				}
+
+				
+				this.Position = this.Position.add(this.Velocity);
+				this.Velocity = this.Velocity.scale(.99);
+
+				if(this.Position.x < 0 || this.Position.x > GAME.windowWidth)
+				{
+					this.Velocity.x*= -1;
+					this.Angle = Math.PI - this.Angle;
+					this.Position = this.Position.add(this.Velocity);
+				}
+
+				if(this.Position.y < 0 || this.Position.y > GAME.windowHeight)
+				{
+					this.Velocity.y*= -1;
+					this.Angle *= -1;
+					this.Position = this.Position.add(this.Velocity);
+				}
+
+			}
+			n.Draw = function()
+			{
+				GAME.drawSpriteRot("Ship.png",this.Position, this.Angle);
+				if(GAME.PlayerCount >1)
+				{
+					GAME.ctx.font = "20pt Monospace";
+					GAME.ctx.fillText(this.designation, this.Position.x,this.Position.y + 30);
+				}
+			}
+			return n;
+		}
+		
+		d.PlayerList =[];
+
+		if(GAME.PlayerCount == undefined)
+			GAME.PlayerCount = 1;
+		for (var i = 0; i < GAME.PlayerCount; i++)
+		{
+			d.PlayerList.push(player(i));
+		};
+	
+
+		d.EnemyList = [];
+		d.EnemyList.push(Enemy(10,10));
+
+
+		d.EnemyList.push(follower(10,10));
+
+		d.Paused = false;
+
+		d.clock = 100;
+
+		d.SpeedConstant = 1;
+
+		d.Surprise = "";
+
+		d.Lag = 0;
+		d.surviveTime = 0;
+	}
+
+	function Update()
+	{
+		//Put game logic in here
+		if(!d.Paused)
+		{
+			for (var i = 0; i < d.PlayerList.length; i++)
+			{
+				d.PlayerList[i].Update();
+			}
+			for (var i = 0; i < d.EnemyList.length; i++)
+			{
+				d.EnemyList[i].Update();
+			};
+			
+			if(d.clock == 300)
+			{
+				d.Surprise = "";
+				d.SpeedConstant = 1;
+			}
+
+			if(d.Surprise == "ArtificialLag")
+			{
+				//d.Lag = 4;
+				if(Math.random()*40 > 39 && d.Lag < -10)
+				{
+					d.Lag = 20;
+				}
+				
+				d.Lag--;
+			}
+			else
+				d.Lag = 0;
+
+			if(d.clock == 0)
+			{
+				var Surprises = ["DoubleTime","Checkers","Blurr","DoubleEnemies","NoTurning","Jumbo","Blind", "Scramble", "Randomize", "ArtificialLag", "AutoSpin", "Gravity", "NewFollower"];
+				d.Surprise = Surprises[Math.floor(Surprises.length*Math.random())];
+
+				//d.Surprise = "Gravity";
+
+				if(d.Surprise =="Scramble")
+				{
+					for (var i = 0; i < d.EnemyList.length; i++)
+					{
+						d.EnemyList[i].Angle = Math.random()*Math.PI*2;
+					};
+				}
+				else if(d.Surprise =="Randomize")
+				{
+					for (var i = 0; i < d.EnemyList.length; i++)
+					{
+						d.EnemyList[i].Position.x = Math.random()*(GAME.windowWidth-10)+5;
+						d.EnemyList[i].Position.y = Math.random()*(GAME.windowHeight-10)+5;
+					};
+				}
+
+
+				if(d.Surprise == "NewFollower")
+				{
+					d.EnemyList.push(follower(10+Math.floor(Math.random()*2)*780,10+Math.floor(Math.random()*2)*580));
+				}
+				else if(d.Surprise != "DoubleEnemies")
+				{
+					var j = Math.floor(d.EnemyList.length*Math.random());
+					d.EnemyList.push(Enemy(d.EnemyList[j].Position.x,d.EnemyList[j].Position.y));
+				}
+				else
+				{
+					var x = d.EnemyList.length;
+					for (var i = 0; i < x; i++)
+					{
+						d.EnemyList.push(Enemy(d.EnemyList[i].Position.x,d.EnemyList[i].Position.y));
+					};
+				}
+
+				d.clock = 600 + 10*d.EnemyList.length;
+
+				if(d.Surprise == "DoubleTime")
+					d.SpeedConstant = 2;
+			}
+
+			d.clock--;
+			d.surviveTime += 1/60;
+
+			if(d.PlayerList.length == 0)
+			{
+				alert("Game Over");
+
+				var ScoreBoard = [];
+				try
+				{
+					ScoreBoard = JSON.parse(window.atob(localStorage.AvoidHighScores));
+					if(ScoreBoard.length > 100)
+						ScoreBoard = ScoreBoard.slice(0,100);
+
+					var addScore = false;
+					if(ScoreBoard.length < 100)
+						addScore = true;
+					else if (ScoreBoard[99].score < d.surviveTime)
+						addScore = true;
+
+					if(addScore)
+					{
+						var entry = {};
+						entry.name = prompt("New High Score!\nPlease enter your name");
+						entry.score = Math.floor(d.surviveTime*100)/100;
+
+						var i = 0;
+
+						while(ScoreBoard[i].score > entry.score)
+							i++;
+						ScoreBoard.splice(i,0,entry);
+
+						console.log(ScoreBoard);
+
+						var ScoreBoardText = "High Scores:";
+						if(ScoreBoard.length <= 5)
+						{
+							for(var j = 0; j < ScoreBoard.length; j++)
+							{
+								ScoreBoardText += "\n" + (j+1) + ". " + ScoreBoard[j].score + " " + ScoreBoard[j].name;
+							}
+						}
+						else if (i < 3)
+						{
+							for(var j = 0; j < 5; j++)
+							{
+								ScoreBoardText += "\n" + (j+1) + ". " + ScoreBoard[j].score + " " + ScoreBoard[j].name;
+							}
+						}
+						else if (i+3 >= ScoreBoard.length)
+						{
+							for(var j = ScoreBoard.length - 5; j < ScoreBoard.length; j++)
+							{
+								ScoreBoardText += "\n" + (j+1) + ". " + ScoreBoard[j].score + " " + ScoreBoard[j].name;
+							}
+						}
+						else
+						{
+							for(var j = i - 2; j < i +3; j++)
+							{
+								ScoreBoardText += "\n" + (j+1) + ". " + ScoreBoard[j].score + " " + ScoreBoard[j].name;
+							}
+						}
+
+						alert(ScoreBoardText);
+					}
+				}
+				catch(e)
+				{
+					ScoreBoard = [];
+					var entry = {};
+					entry.name = prompt("New High Score!\nPlease enter your name");
+					entry.score = Math.floor(d.surviveTime*100)/100;
+					ScoreBoard.push(entry);
+
+					alert("High Scores:\n1. "+ entry.score + " " + entry.name);
+				}
+
+				localStorage.AvoidHighScores = btoa(JSON.stringify(ScoreBoard));
+
+				GAME.isKeyDown = [];
+
+				Initialize();
+			}
+
+			
+			if(GAME.isKeyDown[KEY.P])
+			{
+				d.Paused = true;
+
+				try
+				{
+					d.ScoreBoard = JSON.parse(window.atob(localStorage.AvoidHighScores));
+					d.ScoreBoardSelection = 0;
+
+				}
+				catch(e)
+				{
+					d.ScoreBoard = [];
+					d.ScoreBoardSelection = 0;
+				}
+			}
+		}
+		else
+		{
+			if(d.pDown == undefined)
+				d.pDown = false;
+
+			if(GAME.isKeyDown[KEY.Down] && !d.pDown)
+			{
+				d.ScoreBoardSelection++;
+				if(d.ScoreBoardSelection == 18)
+					d.ScoreBoardSelection = 17;
+			}
+
+			d.pDown = GAME.isKeyDown[KEY.Down];
+
+			if(d.pUp == undefined)
+				d.pUp = false;
+			if(GAME.isKeyDown[KEY.Up] && !d.pUp)
+			{
+				d.ScoreBoardSelection--;
+				if(d.ScoreBoardSelection == -1)
+					d.ScoreBoardSelection = 0;
+			}
+
+			d.pUp = GAME.isKeyDown[KEY.Up];
+
+			if(GAME.isKeyDown[13])
+			{
+				d.Paused = false;
+				GAME.clearDraw("#00AAFF");
+			}
+		}
+
+		if(GAME.isKeyDown[KEY.C])
+		{
+			var players = prompt("How many players (1-4)?");
+			GAME.isKeyDown = [];
+
+			players = Math.floor(players);
+			if(players > 0 && players < 5)
+			{
+				GAME.PlayerCount = players;
+			}
+			else
+				GAME.PlayerCount = 1;
+
+			d.Paused = false;
+			Initialize();
+		}
+	}
+
+	function Draw()
+	{
+		if(d.Lag <= 0 && !d.Paused)
+		{
+			if(d.Surprise != "Blurr")
+				GAME.clearDraw("#00AAFF");
+			//Put drawing code in here
+
+			GAME.ctx.font = "30px Arial";
+			GAME.ctx.fillText(d.Surprise, 30,60);
+			GAME.ctx.fillText(Math.floor(d.surviveTime*100)/100, 700,60);
+
+			if(d.Surprise == "Checkers")
+				GAME.drawSprite("checkered.png",Vect2(0,0));
+
+			for(var i = 0; i < d.PlayerList.length; i++)
+				d.PlayerList[i].Draw();
+
+			for (var i = 0; i < d.EnemyList.length; i++)
+			{
+				if(d.Surprise == "Blind")
+				{
+					var closestPlayer = 0;
+					for (var j = 0; j < d.PlayerList.length; j++)
+					{
+						if(d.EnemyList[i].Position.add(d.PlayerList[j].Position.scale(-1)).length() < d.EnemyList[i].Position.add(d.PlayerList[closestPlayer].Position.scale(-1)).length())
+							closestPlayer = j;
+					};
+
+					if(d.EnemyList[i].Position.add(d.PlayerList[closestPlayer].Position.scale(-1)).length() < 150)
+						d.EnemyList[i].Draw();
+				}
+				else
+					d.EnemyList[i].Draw();
+			};
+		}
+		else if (d.Paused)
+		{
+			GAME.clearDraw("#FFFFFF");
+
+			GAME.ctx.font = "30px Arial";
+			
+			GAME.ctx.fillText("High Scores:", 30,60)
+			var startEntry = 5 * d.ScoreBoardSelection;
+			for (var i = 0; i < 15; i++)
+			{
+				if(d.ScoreBoard.length > startEntry + i)
+				{
+					var text = (i+startEntry+1) + ". " + d.ScoreBoard[i+startEntry].score + "  -  " + d.ScoreBoard[i+startEntry].name;
+					GAME.ctx.fillText(text, 30,100+30*i);
+				}
+			};
+			GAME.ctx.fillText("Press enter to continue",430,60)
+		}
+	}
+
+	function Unload()
+	{
+		//Put code to save/close the game in here
+	}
+	function preLoad()
+	{
+		//Set desired screen width here;
+		gameWindow = window.open("","","menubar=no,width=" + GAME.windowWidth + ",height=" + GAME.windowHeight);
+		gameWindow.document.write("<title>" + GAME.windowName + "</title><script>" + document.getElementById("code").innerHTML + "GAME.launchLocation = window.location; Load();</" + "script>");
+	}
+
+	function Vect2(x,y)
+	{
+		var vect = {};
+		vect.x = x;
+		vect.y = y;
+		vect.length = function()
+		{
+			return Math.sqrt(this.x*this.x + this.y*this.y);
+		}
+		vect.add = function(v)
+		{
+			return Vect2(v.x + this.x, v.y + this.y);
+		}
+		vect.scale = function(factor)
+		{
+			return Vect2(this.x * factor, this.y * factor);
+		}
+
+		return vect;
+	}
+	var KEY = {}
+ 		KEY.A = 65; KEY.B = 66; KEY.C = 67; KEY.D = 68; KEY.E = 69; KEY.F = 70; KEY.G = 71; KEY.H = 72; KEY.I = 73; KEY.J = 74;KEY.K = 75; KEY.L = 76; KEY.M = 77; KEY.N = 78; KEY.O = 79; KEY.P = 80; KEY.Q = 81; KEY.R = 82; KEY.S = 83; KEY.T = 84; KEY.U = 85;KEY.V = 86; KEY.W = 87; KEY.X = 88; KEY.Y = 89; KEY.Z = 90; KEY.Up = 38; KEY.Down = 40; KEY.Left = 37; KEY.Right = 39; KEY.Num1 = 97; KEY.Num2 = 98; KEY.Num3 = 99; KEY.Num4 = 100; KEY.Num5 = 101; KEY.Num6 = 102; KEY.Num7 = 103; KEY.Num8 = 104; KEY.Num9 = 105; 
+
+	function removeIndex(index, array)
+	{
+		var resultant = new Array();
+		resultant = array.splice(0,index);
+		var part2 = new Array();
+		part2 = array.splice(1,array.length-1);
+		resultant = resultant.concat(part2);
+		return resultant;
+	}
+ 	window.addEventListener("resize", function()
+ 	{
+ 		function changeSize()
+ 		{
+	 		if(!GAME.resizable)
+	 		{
+	 			//alert();
+	 			window.resizeTo(GAME.windowWidth + window.outerWidth - window.innerWidth, GAME.windowHeight + window.outerHeight - window.innerHeight);
+	 		}
+	 		else
+	 		{
+	 			GAME.windowHeight = window.innerHeight;
+	 			GAME.windowWidth = window.innerWidth;
+	 		}
+ 			//document.getElementsByTagName("body")[0].innerHTML = "";
+	 		
+	 		document.write("<canvas style=\'position: absolute; top: 0px; left: 0px;\' height="+GAME.windowHeight + " width=" + GAME.windowWidth + "></canvas><div id=\'picDiv\' style=\'display: none;\'>");
+			GAME.ctx = document.getElementsByTagName("canvas")[0].getContext("2d");
+		}
+		if(GAME.hasBegun)
+			setTimeout(changeSize, 100);
+ 	});
+
+ 	window.addEventListener("keydown", function(e)
+ 	{
+ 		if(e.keyCode == 27 && GAME.launchLocation != undefined)
+ 		{
+ 			delete GAME.launchLocation;
+ 			window.close();
+ 		}
+ 	});
+</script><div>
+	<h1>Avoid</h1>
+	<h2>by Brambleshadow4</h2>
+	UP - Move forward<br>
+	LEFT/RIGHT - Turn<br>
+	P - Pause / View High Scores<br>
+	Esc - Quit
+	<br><br>
+	High Scores are stored locally. Use UP and DOWN to navigate them
+<br><br><button onclick = "preLoad();">Launch Game</button></div></body></html>

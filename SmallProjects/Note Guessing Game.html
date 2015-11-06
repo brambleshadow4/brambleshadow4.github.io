@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		
+	</head>
+	<body>
+		<script type="text/javascript">
+			var audio = {};
+			function playNote(frequncy, seconds)
+			{
+				audio = {};
+				audio = new Audio(createWavData(createWavSamples(frequncy, seconds)));
+				//console.log(createWavData(createWavSamples()));
+				//audio.addEventListener('ended', function() { audio = null; });
+				audio.setAttribute('type', 'audio/wav');
+				audio.play();
+			}
+			
+			function Waveform(t)
+			{
+				var value = Math.sin(2*Math.PI*t);
+				//var value = t - Math.floor(t);
+				if (value>1)
+					value = 1;
+				if(value < -1)
+					value = -1;
+				value *= 1/2; //to lower the volume
+				value *= 32768;
+				return value;
+			}
+				
+
+			function createWavData(data)
+			{
+				var Data = data;
+
+				var Wav = new Array();
+				Wav = Wav.concat([82,73,70,70]); //'RIFF'
+				//var DataChunkSize = Data.length
+
+				var ChunkSize = 36+ Data.length;
+				Wav = Wav.concat([ChunkSize%256, Math.floor(ChunkSize/256)%256, Math.floor(ChunkSize/256/256)%256,Math.floor(ChunkSize/256/256/256)%256]);
+				Wav = Wav.concat([87,65,86,69,102,109,116,32]);//'WAVEfmt '
+				Wav = Wav.concat([16,0,0,0,1,0,1,0]); //SubChunk1 size, audiofomrat, and chanel
+				Wav = Wav.concat([34,86,0,0]); //Sample rate
+				Wav = Wav.concat([68,172,0,0]); //Byte rate
+				Wav = Wav.concat([2,0,16,0]);//Block align & bits per sample
+				Wav = Wav.concat([100,97,116,97]); //'data'
+				Wav = Wav.concat([Data.length%256, Math.floor(Data.length/256)%256, Math.floor(Data.length/256/256)%256,Math.floor(Data.length/256/256/256)%256]);
+				Wav = Wav.concat(Data);
+
+				return ("data:audio/wav;base64," + Base64fromBytes(Wav));
+			}
+
+			function createWavSamples(frequency, seconds)
+			{
+				const SampleRate = 22050;
+
+				var ReturnBytes = new Array();
+				var SamplesToFill = SampleRate * seconds;
+				for (var i = 0; i < SamplesToFill; i++) 
+				{
+					var T = i*frequency/SampleRate;
+					//console.log(T);
+					
+					var value;
+					value = Waveform(T);
+					//Change value to match format
+					value = Math.floor(value) + 32768;
+					if(value > 32768*2)
+						value = 32768*2-1;
+					var byte1 = value % 256;
+					var byte2 = Math.floor(value/256);
+					byte2 += 128;
+					if(byte2 >255)
+						byte2 -=256;
+
+					//Add values to data
+					ReturnBytes[ReturnBytes.length] = byte1;
+					ReturnBytes[ReturnBytes.length] = byte2;
+				}
+				return ReturnBytes;
+			}
+			var Base64Enum = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','0','1','2','3','4','5','6','7','8','9','+','/'];
+			function Base64fromBytes(bytes)
+			{
+				var Base64string = "";
+				
+				for(var i = 0;i<bytes.length; i+=3)
+				{
+					var EmptyBytes = 0;
+					var BitGroup = [
+						Math.floor(bytes[i]/128)%2,
+						Math.floor(bytes[i]/64)%2,
+						Math.floor(bytes[i]/32)%2,
+						Math.floor(bytes[i]/16)%2,
+						Math.floor(bytes[i]/8)%2,
+						Math.floor(bytes[i]/4)%2,
+						Math.floor(bytes[i]/2)%2,
+						Math.floor(bytes[i])%2,
+						Math.floor(bytes[i+1]/128)%2,
+						Math.floor(bytes[i+1]/64)%2,
+						Math.floor(bytes[i+1]/32)%2,
+						Math.floor(bytes[i+1]/16)%2,
+						Math.floor(bytes[i+1]/8)%2,
+						Math.floor(bytes[i+1]/4)%2,
+						Math.floor(bytes[i+1]/2)%2,
+						Math.floor(bytes[i+1])%2,
+						Math.floor(bytes[i+2]/128)%2,
+						Math.floor(bytes[i+2]/64)%2,
+						Math.floor(bytes[i+2]/32)%2,
+						Math.floor(bytes[i+2]/16)%2,
+						Math.floor(bytes[i+2]/8)%2,
+						Math.floor(bytes[i+2]/4)%2,
+						Math.floor(bytes[i+2]/2)%2,
+						Math.floor(bytes[i+2])%2];
+					for (var j = 0; j < BitGroup.length; j++) 
+					{
+						if(BitGroup[j] != 0 && BitGroup[j] != 1)
+							BitGroup[j] = 0;
+					}
+					
+					if(bytes[i+2] == null)
+					{
+						EmptyBytes = 1;
+						
+						if(bytes[i+1]== null)
+							EmptyBytes = 2;
+					}
+					//console.log(BitGroup);
+					for (var j = 0; j < BitGroup.length; j+=6) 
+					{
+						if (j==12 && EmptyBytes == 2)
+							Base64string+= "=";
+						else if (j==18 && EmptyBytes >0)
+							Base64string+= "=";
+						else
+							Base64string+= Base64Enum[BitGroup[j]*32+BitGroup[j+1]*16+BitGroup[j+2]*8+BitGroup[j+3]*4+BitGroup[j+4]*2+BitGroup[j+5]];
+					};
+				}
+				return Base64string;
+			}
+		</script>
+		<script>
+			var myDiv = document.createElement("div");
+
+			var size = 300;
+
+			var randNote;
+
+			myDiv.style.height = size + "px"
+			myDiv.style.width = size + "px"
+			myDiv.style.border = "solid black"
+
+			myDiv.id = "questionBox";
+
+			myDiv.style.position = "absolute";
+			myDiv.style.top = (2*window.innerHeight-size-window.outerHeight)/2 + "px";
+			myDiv.style.left = (window.innerWidth-size)/2 + "px";
+			myDiv.style.textAlign = "center";
+			document.getElementsByTagName('body')[0].appendChild(myDiv);
+
+			promptQuestion();
+
+			function promptQuestion()
+			{
+				randNote = Math.floor(Math.random()*37);
+
+				playNote(Math.pow(2,(randNote-3)/12)*110,3);
+
+				document.getElementById('questionBox').innerHTML = " \
+				<span style='position: relative; top: 40%;'>\
+					Which note do you think was played?<br><br>\
+					<select id='answer' onblur = 'checkAnswer();'>\
+						<option>C</option> \
+						<option>C#</option> \
+						<option>D</option> \
+						<option>Eb</option> \
+						<option>E</option> \
+						<option>F</option> \
+						<option>F#</option> \
+						<option>G</option> \
+						<option>Ab</option> \
+						<option>A</option> \
+						<option>Bb</option> \
+						<option>B</option> \
+					</select><button onclick ='audio.play();'>Play again</button><br>\
+					<span id='result'></span> \
+				</span>"
+			}
+
+			function checkAnswer()
+			{
+				noteEnum = ['F#','G','Ab','A','Bb','B','C','C#','D','Eb','E','F'];
+				if(document.getElementsByTagName('select')[0].value == noteEnum[randNote%12])
+				{
+					document.getElementById('result').innerHTML = "Correct!";
+					setTimeout(promptQuestion, 1000);
+				}
+				else
+				{
+					document.getElementById('result').innerHTML = "Incorrect. The right answer was " + noteEnum[randNote%12];
+					setTimeout(promptQuestion, 1000);
+				}
+			}
+		
+		</script>
+	</body>
+</html>

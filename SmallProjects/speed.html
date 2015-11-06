@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Speed AI</title>
+		<style>
+			body
+			{
+				margin: auto;
+				text-align: center;
+			}
+
+			#game
+			{
+				margin: auto;	
+				background-color: PaleGoldenRod;
+				height: 500px;
+				width: 800px;
+				position: relative;
+				overflow: hidden;
+				/*border: solid;
+				border-color: red;*/
+			}
+
+			.card
+			{
+				background-color: gray;
+				position: absolute;
+				width: 100px;
+				height: 120px;
+				font-size: 50pt;
+				Padding-top: 30px;
+				cursor: pointer;
+				/*-webkit-touch-callout: none;
+			    	-webkit-user-select: none;
+				-khtml-user-select: none;
+				-moz-user-select: moz-none;
+				-ms-user-select: none;
+				user-select: none;*/
+			}
+			#LeftStack
+			{
+				top: 50px;
+				left: 250px;
+				
+			}
+			#RightStack
+			{
+				top: 50px;
+				right: 250px;
+				
+			}
+			#CardDeck
+			{
+				bottom: 50px;
+				right: 20px;
+				background-image: url(card.png);
+			}
+
+			#CycleCards
+			{
+				height: 600px;
+				width: 800px;
+				position: absolute;
+				top: 0px;
+
+				background-color: rgba(238,232,170,.5);
+			}
+		</style>
+		<script type="text/javascript">
+			var deck1 = [];
+			var deck2 = [];
+			var hand1 = [];
+			var hand2 = [];
+			var played1 = [];
+			var played2 = [];
+
+			var Selection = -1;
+
+			var AIdelay = 0;
+			var AIstate = "Decision";
+			var AIdata = [];
+
+			var AIspeed = 60;
+
+			var game;
+			//line 6
+			function Load()
+			{
+				clearInterval(game);
+				document.getElementById("game").innerHTML = "";
+
+				deck1 = [];
+				deck2 = [];
+				hand1 = [];
+				hand2 = [];
+				played1 = [];
+				played2 = [];
+
+				Selection = -1;
+
+				AIdelay = 0;
+				AIstate = "Decision";
+				AIspeed = Number(document.getElementById("DifficultySelect").elements["difficulty"].value);
+				AIdata = [];
+
+				var deck = Array();
+				deck[0] = "2";
+				deck[1] = "2";
+				deck[2] = "2";
+				deck[3] = "2";
+				deck[4] = "3";
+				deck[5] = "3";
+				deck[6] = "3";
+				deck[7] = "3";
+				deck[8] = "4";
+				deck[9] = "4";
+				deck[10] = "4";
+				deck[11] = "4";
+				deck[12] = "5";
+				deck[13] = "5";
+				deck[14] = "5";
+				deck[15] = "5";
+				deck[16] = "6";
+				deck[17] = "6";
+				deck[18] = "6";
+				deck[19] = "6";
+				deck[20] = "7";
+				deck[21] = "7";
+				deck[22] = "7";
+				deck[23] = "7";
+				deck[24] = "8";
+				deck[25] = "8";
+				deck[26] = "8";
+				deck[27] = "8";
+				deck[28] = "9";
+				deck[29] = "9";
+				deck[30] = "9";
+				deck[31] = "9";
+				deck[32] = "10";
+				deck[33] = "10";
+				deck[34] = "10";
+				deck[35] = "10";
+				deck[36] = "J";
+				deck[37] = "J";
+				deck[38] = "J";
+				deck[39] = "J";
+				deck[40] = "Q";
+				deck[41] = "Q";
+				deck[42] = "Q";
+				deck[43] = "Q";
+				deck[44] = "K";
+				deck[45] = "K";
+				deck[46] = "K";
+				deck[47] = "K";
+				deck[48] = "A";
+				deck[49] = "A";
+				deck[50] = "A";
+				deck[51] = "A";
+
+				for(var i = 0; i<52; i++)
+				{
+					var j = Math.floor(Math.random() * 52);		
+
+
+					var x = deck[i];
+					deck[i] = deck[j];
+					deck[j] =  x; 
+				}
+				
+				for(var i = 0; i <15; i++)
+				{
+					deck1[deck1.length] = deck[0];
+					deck = RemoveAt(deck, 0);
+					
+					deck2[deck2.length] = deck[0];
+					deck = RemoveAt(deck, 0);
+				}
+				for(var i = 0; i <5; i++)
+				{
+					hand1[hand1.length] = deck[0];
+					deck = RemoveAt(deck, 0);
+					hand2[hand2.length] = deck[0];
+					deck = RemoveAt(deck, 0);
+
+					var element = document.createElement('div');
+					element.innerHTML = hand1[i];
+					element.className = "card";
+					element.style.left = 50 + 120*i + "px";
+					element.style.bottom = "50px";
+					element.onmousedown = SelectCard;
+					document.getElementById('game').appendChild(element);
+					
+				}
+				for(var i = 0; i < 6; i++)
+				{
+					played1[played1.length] = deck[0];
+					deck = RemoveAt(deck, 0);
+					played2[played2.length] = deck[0];
+					deck = RemoveAt(deck, 0);
+				}
+
+				var element = document.createElement('div');
+				element.className = "card";
+				element.id = "LeftStack";
+				element.onmousedown = PlaceCard;
+				document.getElementById('game').appendChild(element);
+
+				element = document.createElement('div');
+				element.className = "card";
+				element.id = "RightStack";
+				element.onmousedown = PlaceCard;
+				document.getElementById('game').appendChild(element);
+
+				element = document.createElement('div');
+				element.className = "card";
+				element.id = "CardDeck";
+				element.onmousedown = DrawCard;
+				document.getElementById('game').appendChild(element);
+				
+				element = document.createElement('p');
+				element.id="center";
+				element.style.fontSize = "30px";
+				element.style.position = "relative";
+				element.style.top = "220px";
+				element.style.color = "Black";
+				document.getElementById('game').appendChild(element);
+
+				document.getElementsByTagName('body')[0].onselectstart = function() {return false;};
+
+				game = setInterval(Update,1000/60);
+			}
+			function Update()
+			{
+				var element = document.getElementById('LeftStack');
+				element.innerHTML = played1[played1.length-1];
+				element = document.getElementById('RightStack');
+				element.innerHTML = played2[played2.length-1];
+
+				element = document.getElementsByClassName('card');
+
+				for(var i = 0; i < hand1.length; i++)
+				{
+					element[i].innerHTML = hand1[i];
+				}
+				
+				if (hand2.length == 0 && deck2.length == 0)
+				{
+					document.getElementById('center').innerHTML="Computer Wins! You had " + (hand1.length + deck1.length) + " cards left cards left.<br><button onclick='Load();'>Play again?</button>";
+					clearInterval(game);
+				}
+				else if (hand1.length == 0 && deck1.length == 0)
+				{
+					document.getElementById('center').innerHTML="You win! The computer had " + (hand2.length + deck2.length) + " cards left.<br><button onclick='Load();'>Play again?</button>" ;
+					clearInterval(game);
+				}
+				else if(CanPlay(hand1).length == 0 && CanPlay(hand2).length == 0 && (hand1.length == 5 || deck1.length == 0) && (hand2.length == 5 || deck2.length == 0))
+				{	
+					if(document.getElementById("CycleCards") == undefined)
+					{
+						//alert();
+						var CycleCardDialog = document.createElement("div");
+						CycleCardDialog.id = "CycleCards";
+
+						CycleCardDialog.innerHTML = "<br><br><br><br><br><br><br><br><br><br><br><br><br>Neither you nor your opponent can play. Double click to switch out the top cards and resume play.";
+
+						CycleCardDialog.ondblclick = function()
+						{
+							this.parentNode.removeChild(this);
+							CycleCardFront();
+						}
+
+						document.getElementById("game").appendChild(CycleCardDialog);
+					}
+				}
+				else
+				{
+					//AI code here
+								
+						
+					if(AIstate == "Decision" && AIdelay >=AIspeed/6)
+					{
+						if(CanPlay(hand2).length != 0)
+						{
+							var CardToPlay = CanPlay(hand2)[Math.floor(Math.random() * CanPlay(hand2).length)];
+							if(CardToPlay >4)
+							{
+								AIstate = "RStack";
+								AIdata[0] = CardToPlay - 5;
+								AIdata[1] = played2[played2.length -1];
+							}
+							else
+							{
+								AIstate = "LStack";
+								AIdata[0]= CardToPlay;
+								AIdata[1] = played1[played1.length -1];
+							}
+							
+						}
+						else if (deck2.length > 0 && hand2.length < 5)
+						{
+							AIstate = "Draw";
+						}
+						AIdelay = 0;	
+					
+					}
+					else if (AIstate == "LStack")
+					{
+						if(AIdata[1] != played1[played1.length -1])
+						{
+							AIdelay = 0;
+							AIstate = "Delay";
+						}
+						else if (AIdelay >= AIspeed)
+						{
+							played1[played1.length] = hand2[AIdata[0]];
+							hand2 = RemoveAt(hand2, AIdata[0]);
+							
+							var ChainCards = new Array();
+							for (var i = 0; i < CanPlay(hand2).length; i++)
+							{
+								if(CanPlay(hand2)[i] <5)
+									ChainCards[ChainCards.length] = CanPlay(hand2)[i];
+							}
+							if (ChainCards.length >0)
+							{	
+								AIdata[0]= ChainCards[Math.floor(Math.random() * ChainCards.length)];
+								AIdata[1] = played1[played1.length -1];
+							}	
+							else
+								AIstate = "Decision";
+							AIdelay = 0;
+						}
+					}
+					else if (AIstate == "RStack")
+					{
+						if(AIdata[1] != played2[played2.length -1])
+						{
+							AIdelay = 0;
+							AIstate = "Delay";
+						}
+						else if (AIdelay >= AIspeed)
+						{
+							played2[played2.length] = hand2[AIdata[0]];
+							hand2 = RemoveAt(hand2, AIdata[0]);
+							
+							var ChainCards = new Array();
+							for (var i = 0; i < CanPlay(hand2).length; i++)
+							{
+								if(CanPlay(hand2)[i] >4)
+									ChainCards[ChainCards.length] = CanPlay(hand2)[i];
+							}
+							if (ChainCards.length >0)	
+							{
+								AIdata[0]= ChainCards[Math.floor(Math.random() * ChainCards.length)] - 5;	
+								AIdata[1] = played2[played2.length -1];
+							}
+							else
+								AIstate = "Decision";
+							AIdelay = 0;
+						}
+					}
+					else if (AIstate == "Draw" && AIdelay >= AIspeed/5)
+					{
+						hand2[hand2.length] = deck2[0];
+						deck2 = RemoveAt(deck2, 0);
+						if(hand2.length ==5 || deck2.length ==0)
+							AIstate = "Decision";
+						AIdelay = 0;
+						
+					}
+					else if (AIstate == "Delay" && AIdelay >= AIspeed)
+					{
+						AIdelay = 0;
+						AIstate = "Decision";
+					}
+					
+					AIdelay ++;
+				}
+			}
+
+			function CanPlay(hand)
+			{
+				var returnValues = new Array();
+				for(var i = 0; i < hand.length; i++)
+				{
+					if(hand[i] == "2" && (played1[played1.length-1]=="A" || played1[played1.length-1] =="3"))
+						returnValues[returnValues.length] = i;
+
+					if(hand[i] == "3" && (played1[played1.length-1]=="2" || played1[played1.length-1] =="4"))
+						returnValues[returnValues.length] = i;
+
+					if(hand[i] == "4" && (played1[played1.length-1]=="3" || played1[played1.length-1] =="5"))
+						returnValues[returnValues.length] = i;
+
+					if(hand[i] == "5" && (played1[played1.length-1]=="4" || played1[played1.length-1] =="6"))
+						returnValues[returnValues.length] = i;
+
+					if(hand[i] == "6" && (played1[played1.length-1]=="5" || played1[played1.length-1] =="7"))
+						returnValues[returnValues.length] = i;
+
+					if(hand[i] == "7" && (played1[played1.length-1]=="6" || played1[played1.length-1] =="8"))
+						returnValues[returnValues.length] = i;
+
+					if(hand[i] == "8" && (played1[played1.length-1]=="7" || played1[played1.length-1] =="9"))
+						returnValues[returnValues.length] = i;
+
+					if(hand[i] == "9" && (played1[played1.length-1]=="8" || played1[played1.length-1] =="10"))
+						returnValues[returnValues.length] = i;
+
+					if(hand[i] == "10" && (played1[played1.length-1]=="9" || played1[played1.length-1] =="J"))
+						returnValues[returnValues.length] = i;
+
+					if(hand[i] == "J" && (played1[played1.length-1]=="10" || played1[played1.length-1] =="Q"))
+						returnValues[returnValues.length] = i;
+				
+					if(hand[i] == "Q" && (played1[played1.length-1]=="J" || played1[played1.length-1] =="K"))
+						returnValues[returnValues.length] = i;
+
+					if(hand[i] == "K" && (played1[played1.length-1]=="Q" || played1[played1.length-1] =="A"))
+						returnValues[returnValues.length] = i;
+
+					if(hand[i] == "A" && (played1[played1.length-1]=="K" || played1[played1.length-1] =="2"))
+						returnValues[returnValues.length] = i;
+					
+					
+
+					if(hand[i] == "2" && (played2[played2.length-1]=="A" || played2[played2.length-1] =="3"))
+						returnValues[returnValues.length]= 5+i;
+
+					if(hand[i] == "3" && (played2[played2.length-1]=="2" || played2[played2.length-1] =="4"))
+						returnValues[returnValues.length]= 5+i;
+
+					if(hand[i] == "4" && (played2[played2.length-1]=="3" || played2[played2.length-1] =="5"))
+						returnValues[returnValues.length]= 5+i;
+
+					if(hand[i] == "5" && (played2[played2.length-1]=="4" || played2[played2.length-1] =="6"))
+						returnValues[returnValues.length]= 5+i;
+
+					if(hand[i] == "6" && (played2[played2.length-1]=="5" || played2[played2.length-1] =="7"))
+						returnValues[returnValues.length]= 5+i;
+
+					if(hand[i] == "7" && (played2[played2.length-1]=="6" || played2[played2.length-1] =="8"))
+						returnValues[returnValues.length]= 5+i;
+
+					if(hand[i] == "8" && (played2[played2.length-1]=="7" || played2[played2.length-1] =="9"))
+						returnValues[returnValues.length]= 5+i;
+
+					if(hand[i] == "9" && (played2[played2.length-1]=="8" || played2[played2.length-1] =="10"))
+						returnValues[returnValues.length]= 5+i;
+
+					if(hand[i] == "10" && (played2[played2.length-1]=="9" || played2[played2.length-1] =="J"))
+						returnValues[returnValues.length]= 5+i;
+
+					if(hand[i] == "J" && (played2[played2.length-1]=="10" || played2[played2.length-1] =="Q"))
+						returnValues[returnValues.length]= 5+i;
+				
+					if(hand[i] == "Q" && (played2[played2.length-1]=="J" || played2[played2.length-1] =="K"))
+						returnValues[returnValues.length]= 5+i;
+
+					if(hand[i] == "K" && (played2[played2.length-1]=="Q" || played2[played2.length-1] =="A"))
+						returnValues[returnValues.length]= 5+i;
+
+					if(hand[i] == "A" && (played2[played2.length-1]=="K" || played2[played2.length-1] =="2"))
+						returnValues[returnValues.length]= 5+i;
+
+				}
+				return returnValues;
+			}
+
+			function SelectCard()
+			{
+				//alert("select card");
+				var elements = document.getElementsByClassName('card');
+				for(var i = 0; i < elements.length; i++)
+				{
+					elements[i].style.border = "none";
+				}
+				this.style.border = "solid";
+				this.style.borderColor = "limegreen";
+				Selection = (parseInt(this.style.left)-50)/120;
+			}
+			function DrawCard()
+			{
+				if(hand1.length <5)
+				{
+					hand1[hand1.length] = deck1[0];
+					document.getElementsByClassName('card')[hand1.length -1].style.bottom = "50px";
+					deck1 = RemoveAt(deck1,0);
+					if(deck1.length ==0)
+						document.getElementById('CardDeck').style.bottom = "-150px";
+				}
+			}
+
+			function CycleCardFront()
+			{
+				played1[played1.length] = played1[0];	
+				played1= RemoveAt(played1, 0);
+				played2[played2.length] = played2[0];	
+				played2= RemoveAt(played2, 0);
+			}
+
+			function PlaceCard()
+			{
+				if(Selection != -1)
+				{
+					var CardValue = hand1[Selection];
+					var MatchCardValue;	
+					if(this.id == "LeftStack")
+						MatchCardValue = played1[played1.length-1];	
+					else
+						MatchCardValue = played2[played2.length -1];
+					
+					var valid = false;
+					if(MatchCardValue == "2" && (CardValue == "A" || CardValue == "3"))
+						valid = true;
+					if(MatchCardValue == "3" && (CardValue == "2" || CardValue == "4"))
+						valid = true;
+					if(MatchCardValue == "4" && (CardValue == "3" || CardValue == "5"))
+						valid = true;
+					if(MatchCardValue == "5" && (CardValue == "4" || CardValue == "6"))
+						valid = true;
+					if(MatchCardValue == "6" && (CardValue == "5" || CardValue == "7"))
+						valid = true;
+					if(MatchCardValue == "7" && (CardValue == "6" || CardValue == "8"))
+						valid = true;
+					if(MatchCardValue == "8" && (CardValue == "7" || CardValue == "9"))
+						valid = true;
+					if(MatchCardValue == "9" && (CardValue == "8" || CardValue == "10"))
+						valid = true;
+					if(MatchCardValue == "10" && (CardValue == "9" || CardValue == "J"))
+						valid = true;
+					if(MatchCardValue == "J" && (CardValue == "10" || CardValue == "Q"))
+						valid = true;
+					if(MatchCardValue == "Q" && (CardValue == "J" || CardValue == "K"))
+						valid = true;
+					if(MatchCardValue == "K" && (CardValue == "Q" || CardValue == "A"))
+						valid = true;
+					if(MatchCardValue == "A" && (CardValue == "K" || CardValue == "2"))
+						valid = true;
+					if(valid)
+					{
+						hand1 = RemoveAt(hand1, Selection);
+						document.getElementsByClassName('card')[hand1.length].style.bottom = "-150px";
+						if(this.id =="LeftStack")
+							played1[played1.length] = CardValue;
+						else
+							played2[played2.length] = CardValue;
+						var elements = document.getElementsByClassName('card');
+						for(var i =0; i <elements.length; i++)
+						{
+							elements[i].style.border = "none";
+						}
+						Selection = -1;	
+						AIdelay = 0;
+					}	
+				}
+			}
+
+			function RemoveAt(array, index)
+			{
+				var newarray = new Array();
+				for(var i = 0; i <array.length; i++)
+				{
+					if(i != index)	
+						newarray[newarray.length] = array[i]; 		
+				}
+				return newarray;
+			}
+		</script>
+
+	</head>
+	<body>
+		<h1>Speed AI</h1>
+		<div id="game">
+		</div>
+		<div style= "width: 800px; margin: auto;">
+			<h3>Select your Difficulty:</h3>
+			<form id="DifficultySelect">
+				<input type="radio" name="difficulty" value="100" id="d1"/><label for="d1">Noob</label>
+				<input type="radio" name="difficulty" value="75" id="d2"/><label for="d2">Easy</label>
+				<input type="radio" name="difficulty" value="60" id="d3" checked="checked"/><label for="d3">Normal</label>
+				<input type="radio" name="difficulty" value="50" id="d4"/><label for="d4">Hard</label>
+				<input type="radio" name="difficulty" value="40" id="d5"/><label for="d5">Expert</label>
+				<input type="radio" name="difficulty" value="30" id="d6"/><label for="d6">Insane</label>
+				<span id="difficulty++" style="display: none;">
+					<br>
+					<input type="radio" name="difficulty" value="20" id="d7"/><label for="d7">Hardcore!</label>
+					<input type="radio" name="difficulty" value="10" id="d8"/><label for="d8">Die hard hardcore!</label>
+					<input type="radio" name="difficulty" value="0" id="d9"/><label for="d9">Instant Failure</label>
+				</span>
+			</form>
+			<br>
+			<button onclick="Load();">Start Game</button>
+		</div>
+		<script>
+			var KeysDown = [];
+			window.onkeydown = function(e)
+			{
+				console.log("key down");
+				KeysDown[e.keyCode] = true;
+
+				if(KeysDown[81] && KeysDown[90])
+				{
+					document.getElementById("difficulty++").style.display = "inline";
+				}
+			};
+			window.onkeyup = function(e)
+			{
+				KeysDown[e.keyCode] = false;
+				if(!(KeysDown[81] && KeysDown[90]))
+					document.getElementById("difficulty++").style.display = "none";
+			}
+		</script>
+	</body>
+</html>

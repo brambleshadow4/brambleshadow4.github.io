@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script>
+			/*
+			Slider Inputs 
+			by Jeremy Miller
+
+			To create a slider:
+			attach this javascript
+			and use the following html
+
+			<slider id='SliderName' height="150" width="50"></slider>
+
+			To access the return value (a value 0-1) simply access the slider's value variable
+			
+			document.getElementById('SliderName').value
+			*/
+
+			window.addEventListener('load', SliderInputsInitialize);
+			function SliderInputsInitialize()
+			{
+				if(document.getElementsByTagName('body') == undefined)
+				{
+					alert(this);
+					setTimeout(this, 100);
+				}
+				else
+				{
+					var sliders = document.getElementsByTagName("slider");
+				
+					for (var i =0; i < sliders.length; i++)
+					{
+						
+						var height = parseInt(sliders[i].attributes['height'].value);
+						var width = parseInt(sliders[i].attributes['width'].value);
+
+						sliders[i].innerHTML += "<br><canvas width='" + width + "' height='" + height +"'/>";
+						sliders[i].style.cursor = "pointer";
+						sliders[i].style.display = "inline-block";
+
+						var canvas = sliders[i].getElementsByTagName('canvas')[0];
+						var ctx = canvas.getContext('2d');
+						
+						if(height>width)
+						{
+							sliders[i].value = .5;
+							sliders[i].draw = function()
+							{
+								var canvas = this.getElementsByTagName('canvas')[0];
+								var ctx = canvas.getContext('2d');
+								ctx.fillStyle = "#ffffff";
+								ctx.fillRect(0,0,width,height);
+
+								ctx.beginPath();
+
+								ctx.strokeStyle = "#777777";
+								ctx.lineWidth = 10;
+								ctx.moveTo(width/2, width/2);
+								ctx.lineTo(width/2, height - width/2);
+								ctx.stroke();
+
+								ctx.beginPath();
+								ctx.strokeStyle = "#000000";
+								ctx.lineWidth = 6;
+								ctx.moveTo(width/2, width/2 + 4);
+								ctx.lineTo(width/2, height - width/2 - 4);
+								ctx.stroke();
+
+								ctx.beginPath();
+								ctx.strokeStyle = "#ffffff";
+								ctx.lineWidth = 4;
+								ctx.moveTo(width/2, width/2 + 6);
+								ctx.lineTo(width/2, height - width/2 - 6);
+								ctx.stroke();
+
+								ctx.fillStyle = "#333333";
+								ctx.fillRect(width/2-10, (height-width)*(1-this.value)+width/2-20, 20, 40);
+							}
+							sliders[i].draw();
+							sliders[i].cursorTag = function(event)
+							{
+								while(document.getElementsByClassName('cursorTag').length !=0)
+								{
+									var x = document.getElementsByClassName('cursorTag')[0]
+									x.parentNode.removeChild(x);
+								}
+								var cursorTag = document.createElement('span');
+								cursorTag.className = "cursorTag";
+								cursorTag.innerHTML = Math.floor(this.value*1000+.5)/1000;
+								cursorTag.style.position = 'absolute';
+								cursorTag.style.backgroundColor = 'white';
+								cursorTag.style.top = event.pageY + 1 + "px";
+								cursorTag.style.left = event.pageX + 15 + "px";
+								document.getElementsByTagName('body')[0].appendChild(cursorTag);
+							}
+							sliders[i].onselectstart = function(){return false};
+							sliders[i].onmousedown = function(event)
+							{
+								//alert("1");
+								this.offY = (this.value-1)*(height-width)+width/2 + event.offsetY;
+								this.cursorTag(event);
+								this.onmousemove = function(e)
+								{
+									var newValue = (this.offY - e.offsetY - width/2)/(height-width)+1;
+									if(newValue <= 1 && newValue>=0)
+									{
+										this.value = newValue;
+										this.draw();
+									}
+									this.cursorTag(e);
+
+								}
+							}
+							sliders[i].onmouseup = function()
+							{
+								this.onmousemove = function(){return null};
+								while(document.getElementsByClassName('cursorTag').length !=0)
+								{
+									var x = document.getElementsByClassName('cursorTag')[0]
+									x.parentNode.removeChild(x);
+								}
+							}
+							sliders[i].onmouseleave = function()
+							{
+								this.onmousemove = function(){return null};
+								while(document.getElementsByClassName('cursorTag').length !=0)
+								{
+									var x = document.getElementsByClassName('cursorTag')[0]
+									x.parentNode.removeChild(x);
+								}
+							}
+						}
+						else
+						{
+							//work on horizontal code
+						}
+					}
+				}
+			}
+			function Slider(name)
+			{
+				return document.getElementById(name).value;
+			}
+		</script>
+		<script type="text/javascript">
+			function id(id)
+			{
+				return document.getElementById(id);
+			}
+			function colorWatch()
+			{
+				requestAnimationFrame(colorWatch);
+
+				if(strips != Math.floor(Math.pow(2,10*id('res').value)+1))
+					setup();
+
+				var ColorBoxes = document.getElementsByClassName("c");
+				for (var i = 0; i < ColorBoxes.length; i++) 
+				{
+					var mergeRed = 0;
+					var mergeGreen = 0;
+					var mergeBlue = 0;
+
+					var factor = i/(ColorBoxes.length-1);
+
+					//console.log(factor + "; " + i);
+
+
+					if(document.getElementById("blurType").checked)
+					{
+						mergeRed = Math.floor(Math.sqrt(id('red').value * id('red').value * (1-factor) + id('r2').value * id('r2').value * factor) *255);
+						mergeGreen = Math.floor(Math.sqrt(id('green').value * id('green').value * (1-factor) + id('g2').value * id('g2').value * factor)*255);
+						mergeBlue = Math.floor(Math.sqrt(id('blue').value * id('blue').value *(1-factor) + id('b2').value * id('b2').value *factor)*255);
+					}
+					else
+					{
+						mergeRed = Math.floor((id('red').value * (1-factor) +  id('r2').value * factor)*255);
+						mergeGreen = Math.floor((id('green').value * (1-factor) + id('g2').value  * factor)*255);
+						mergeBlue = Math.floor((id('blue').value * (1-factor) + id('b2').value * factor)*255);
+					}
+
+					ColorBoxes[i].style.backgroundColor = "rgb(" + mergeRed + "," + mergeGreen + "," + mergeBlue + ")";
+				};
+			
+			}
+		</script>
+	</head>
+	<body onload = "colorWatch();">
+		<style type="text/css">
+			.c
+			{
+				height: 100px; display: inline-block;
+				margin-left: 0px;
+				margin-right: 0px;
+				float:left;
+			}
+			body
+			{
+				margin: 0px;
+			}
+		</style>
+
+		<div id="colorStrip">
+		</div>
+
+		<script>
+			var strips = 2;
+
+			function setup()
+			{
+				strips = Math.floor(Math.pow(2,10*id('res').value)+1);
+
+				id('colorStrip').innerHTML = "";
+
+				for (var i = 0; i < strips; i++)
+				{
+					var strip = document.createElement('div');
+					strip.className = "c";
+					strip.style.width = window.innerWidth/strips + "px"
+					document.getElementById('colorStrip').appendChild(strip);
+				};
+
+				var strip_stop = document.createElement('div');
+				strip_stop.style.clear = "both";
+				document.getElementById('colorStrip').appendChild(strip_stop);
+			}
+
+			setup();
+		</script>
+		
+
+		<div>
+			<slider id='res' height="300" width="50">Resolution </slider>
+
+			<slider id='red' height="300" width="50">Red</slider>
+			<slider id='green' height="300" width="50">Green</slider>
+			<slider id='blue' height="300" width="50">Blue</slider>
+		
+			
+			<slider id='r2' height="300" width="50">Red 2</slider>
+			<slider id='g2' height="300" width="50">Green 2</slider>
+			<slider id='b2' height="300" width="50">Blue 2</slider>
+		</div>
+
+		<input id="blurType" type="checkbox" checked="true"/> Blur colors by brightness
+	</body>
+</html>

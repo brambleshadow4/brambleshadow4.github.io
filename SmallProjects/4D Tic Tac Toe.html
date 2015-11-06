@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script>
+			var Vector4 = function Vector4(x,y,z,w)
+			{
+				this.x = x;
+				this.y = y;
+				this.z = z;
+				this.w = w;
+				this.length = function()
+				{
+					return Math.sqrt(x*x + y*y + z*z + w*w);
+				}
+				this.print = function()
+				{
+					return "("+this.x+","+this.y+","+this.z+","+this.w+")";
+				}
+			}
+			Vector4.add = function(v1,v2)
+			{
+				r = new Vector4(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z, v1.w + v2.w);
+				return r;
+			}
+			Vector4.sub = function(v1,v2)
+			{
+				r = new Vector4(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z, v1.w - v2.w);
+				return r;
+			}
+			Vector4.scale = function(v, scale)
+			{
+				r = new Vector4(v.x * scale, v.y * scale, v.z * scale, v.w * scale);
+				return r;
+			}
+
+			function testFor3InARow(v1, v2, v3)
+			{
+				result = false;
+				var mid = Vector4.scale(Vector4.add(v1,v2),1/2);
+				if(mid.x == v3.x && mid.y == v3.y && mid.z == v3.z && mid.w == v3.w)
+					result = true;
+
+				mid = Vector4.scale(Vector4.add(v1,v3),1/2);
+				if(mid.x == v2.x && mid.y == v2.y && mid.z == v2.z && mid.w == v2.w)
+					result = true;
+
+				mid = Vector4.scale(Vector4.add(v3,v2),1/2);
+				if(mid.x == v1.x && mid.y == v1.y && mid.z == v1.z && mid.w == v1.w)
+					result = true;
+
+				return result;
+			}
+		</script>
+
+	</head>
+	<body>
+		<div style="width: 900px; margin: auto; padding: none; position: relative">
+			<canvas width="600" height='600'></canvas>
+			<div style="font-size: 20pt; position: absolute; top: 0px; right: 0px; width: 300px; text-align: center;">
+				<div>4D Tic Tac Toe </div>
+				<div>by Jeremy Miller</div>
+				<hr>
+				<button id='clear'>Clear Board</button>
+				<br>
+				<div id='ScoreCount'>
+					Score:<br>
+					0 X Wins<br>
+					0 O Wins
+				</div>
+				<hr>
+				<div>X - left click</div>
+				<div>O - right click</div>
+				<button id="info">How To Play</button>
+
+				<script type="text/javascript">
+					var XWins = 0;
+					var OWins = 0;
+					document.getElementById('clear').onclick = function()
+					{
+						XWins = 0;
+						OWins = 0;
+						ScoreChange("");
+						for (var i = 0; i < values.length; i++) 
+						{
+							values[i] = "";
+						};
+						clearBoard();
+
+					}
+
+					document.getElementById('info').onclick = function()
+					{
+						var Info = window.open("","_blank", "menubar=0", "");
+						//Info.innerHTML = "Testing Testing 123";
+						Info.document.write("<h2>How To Play:</h2><span style='font-size: 16pt;'>Left click the grid to mark an X, and right click the grid to mark an O.<br> Mark three Xs or Os in a row to score a point.<br> Every time a point is scored, the score counter on the right side will increase.<br>To clear the board, just push the clear button on the right side.<br><br>One player should play as X, the other O. Take turns marking the grid X or O respectively untill all 81 squares are marked. Whoever has the highest score wins.<br></span><h2>Variations:</h2><span style='font-size: 16pt;'>First to 10: Play until one player has 10 points.<br><br>Anti Tic Tac Toe: First person to make 3 in a row loses.</span>");
+						console.log(Info);
+					}
+
+					function ScoreChange(victory)
+					{
+						if(victory == "X")
+						{
+							XWins++;
+						}
+						if(victory == "O")
+						{
+							OWins++;
+						}
+
+						document.getElementById('ScoreCount').innerHTML = "Score:<br>" + XWins + " X Wins<br>" + OWins + " O Wins";
+					}
+
+
+				</script>
+			</div>
+			<div style="clear: both;"></div>
+		</div>
+		<script>
+			window.oncontextmenu = function(){return false};
+			var canvas = document.getElementsByTagName('canvas')[0];
+			var ctx = canvas.getContext('2d');
+
+			function clearBoard()
+			{
+				ctx.fillStyle = "#FFFFFF";
+				ctx.fillRect(0,0,600,600);
+				ctx.fillStyle = "#000000";
+
+				ctx.beginPath();
+				ctx.lineWidth = 2;
+
+				ctx.moveTo(200,0);
+				ctx.lineTo(200, 600);
+				ctx.moveTo(400,0);
+				ctx.lineTo(400, 600);
+				ctx.moveTo(0,200);
+				ctx.lineTo(600, 200);
+				ctx.moveTo(0,400);
+				ctx.lineTo(600, 400);
+
+				for (var i = 0; i < 9; i++) 
+				{
+					x = i%3 * 200 + 25;
+					y = Math.floor(i/3) * 200 + 25;
+
+					ctx.moveTo(x,y+50);
+					ctx.lineTo(x+150,y+50);
+					ctx.moveTo(x,y+100);
+					ctx.lineTo(x+150,y+100);
+
+					ctx.moveTo(x+50,y);
+					ctx.lineTo(x+50,y+150);
+					ctx.moveTo(x+100,y);
+					ctx.lineTo(x+100,y+150);
+				};
+				ctx.stroke();
+			}
+			
+			clearBoard();
+			function move(e)
+			{
+				var mouseX = e.pageX - (window.innerWidth-900)/2;
+				var mouseY = e.pageY - 8;
+
+				var outerX = Math.floor(mouseX/200);
+				var outerY = Math.floor(mouseY/200);
+
+				var innerX = Math.floor((mouseX%200-25)/50);
+				var innerY =  Math.floor((mouseY%200-25)/50);
+
+				if (innerX ==3)
+					innerX = 2;
+				if (innerX == -1)
+					innerX = 0;
+
+				if (innerY ==3)
+					innerY = 2;
+				if (innerY == -1)
+					innerY = 0;
+
+				var style = "X";
+				if(e.button == 2)
+					style = "O";
+
+				var square = 27*outerX + 9*outerY + 3*innerX + innerY;
+				if (values[square] == "")
+				{
+					values[square] = style;
+					if(style == "X")
+					{
+						ctx.beginPath();
+
+						ctx.moveTo(outerX*200+innerX*50+30, outerY*200+innerY*50+30);
+						ctx.lineTo(outerX*200+innerX*50+70, outerY*200+innerY*50+70);
+						ctx.moveTo(outerX*200+innerX*50+30, outerY*200+innerY*50+70);
+						ctx.lineTo(outerX*200+innerX*50+70, outerY*200+innerY*50+30);
+						ctx.stroke();
+					}
+					else
+					{
+						ctx.beginPath();
+						ctx.arc(outerX*200+innerX*50+50,outerY*200+innerY*50+50,20,0,2*Math.PI);
+						ctx.stroke();
+					}
+
+					for (var i = 0; i < nodes.length; i++) 
+					{
+						if(i != square)
+						{
+							for (var j = i+1; j < nodes.length; j++) 
+							{
+								if(j != square)
+								{
+									if(testFor3InARow(nodes[square], nodes[i], nodes[j]))
+									{
+										if(values[square]==values[i] && values[i]==values[j])
+										{
+											ScoreChange(values[i]);
+										}
+									}
+								}
+							};
+						}
+
+						nodes[i]
+					};
+				}
+				//alert(style);
+			}
+			canvas.addEventListener('mousedown', move);
+		</script>
+
+		<script type="text/javascript">
+			var nodes = [];
+			var values = [];
+			for (var x = -1; x <= 1; x++)
+			{
+				for (var y = -1; y <= 1; y++)
+				{
+					for (var z = -1; z <= 1; z++)
+					{
+						for (var w = -1; w <= 1; w++)
+						{
+							nodes.push(new Vector4(x,y,z,w));
+							values.push("");
+						}
+					}
+				}
+			}
+		</script>
+	</body>
+</html>

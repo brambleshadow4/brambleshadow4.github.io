@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Random Name Generator</title>
+		<script>
+			var data ="a,ah,an,bun,car,cha,chi,che,den,dew,e,eek,end,ex,fa,far,fon,for,heem,hel,i,ish,jed,jem,khan,lee,len,lob,mew,muw,nen,o,pen,poh,pol,pon,pus,qua,ra,ren,rie,stu,tal,ten,u,vet,wel,wen,yaz,yod,yun,zen,zha,ker,vux,hai,luv,loo,zak,zin,shu,sha,zap,leck,phos,phi";
+			function NewName()
+			{
+				
+				var parts = data.split(',');
+				var Name = ""
+				for (var i = 0; i < 3; i++) 
+				{
+					Name+= parts[Math.floor(Math.random()*parts.length)];
+				};
+				Name = Name.substr(0,1).toUpperCase() + Name.substr(1);
+				document.getElementById('Name').innerHTML = Name;
+			}
+		</script>
+	</head>
+	<body onload="NewName();" style="text-align: center;">
+		and I shall name you
+		<h1 id="Name"><h1>
+		<button onclick="NewName();">No, I don't like that name</button>
+	</body>
+</html>
