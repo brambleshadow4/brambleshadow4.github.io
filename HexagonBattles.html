@@ -2,7 +2,6 @@
 <html>
 	<head>
 		<title></title>
-		<script src="data.js"></script>
 		<script>
 		var canvas;
 		var HexArray = new Array();
@@ -35,6 +34,7 @@
 			{
 				var tile = new Object();
 				tile.type = "sea";
+				tile.pointer = -1;
 				tile.number = 0;
 				if(i%20 == 19 || (i>220 && i%2 == 1))
 					tile.type = "N/A";
@@ -387,13 +387,12 @@
 						//alert("you are dead!");
 						this.MoveStage = 5;
 					}
-
 					NextAction();
 				}
 				else if(this.MoveStage == 1)
 				{
 					//attack code
-					window.onmousedown= function()
+					window.onmousedown = function()
 					{
 						//alert(Mouse.tile);
 						var player = Players[Players[0]];
@@ -440,23 +439,29 @@
 					text = text.replace("Attack", "Move Troops");
 					document.getElementById("gametext").innerHTML = text;
 					this.selectedTile = -1;
-					window.onmousedown= function()
+					window.onmousedown= function(e)
 					{ 
-						//alert(Mouse.tile);
+						console.log(e);
 						var player = Players[Players[0]];
 
 						if(player.selectedTile == -1 && HexArray[Mouse.tile].type == player.color && HexArray[Mouse.tile].number >1)
 						{
 							Players[Players[0]].selectedTile = Mouse.tile;
 							Mouse.down = true;
+
+							if(HexArray[player.selectedTile].pointer != -1)
+							{
+								HexArray[player.selectedTile].pointer = -1;
+								player.selectedTile = -1;
+							}
 							//alert(Players[Players[0]].selectedTile);
 						}
 						else if (player.selectedTile != -1);
 						{
+							//Unchecks current tile
 							if(player.selectedTile == Mouse.tile && !Mouse.down)
 							{
 								Players[Players[0]].selectedTile = -1;
-								//alert("What the farao;kdfj;alsd!");
 							}
 							else
 							{
@@ -468,15 +473,34 @@
 									{
 										if(HexArray[player.selectedTile].number >1)
 										{
-											//adds a point to the gain property and takes one away from other tile
-											HexArray[player.selectedTile].number--;
-											if(HexArray[Mouse.tile].gain == undefined)
-												HexArray[Mouse.tile].gain = 0;
-											HexArray[Mouse.tile].gain++;
+											if(e.button == 2)
+											{
+												if(Mouse.tile - player.selectedTile == -20)
+													HexArray[player.selectedTile].pointer = 0;
+												else if ((Mouse.tile - player.selectedTile == 1 && player.selectedTile%2==1) || Mouse.tile - player.selectedTile == -19)
+													HexArray[player.selectedTile].pointer = 1;
+												else if ((Mouse.tile - player.selectedTile == 1 && player.selectedTile%2==0) || Mouse.tile - player.selectedTile == 21)
+													HexArray[player.selectedTile].pointer = 2;
+												else if (Mouse.tile - player.selectedTile == 20)
+													HexArray[player.selectedTile].pointer = 3;
+												else if ((Mouse.tile - player.selectedTile == -1 && player.selectedTile%2==0) || Mouse.tile - player.selectedTile == 19)
+													HexArray[player.selectedTile].pointer = 4;
+												else if ((Mouse.tile - player.selectedTile == -1 && player.selectedTile%2==1) || Mouse.tile - player.selectedTile == -21)
+													HexArray[player.selectedTile].pointer = 5;
 
-											if(HexArray[player.selectedTile].number == 1)
-												Players[Players[0]].selectedTile = -1;
-											
+												player.selectedTile = -1;
+											}
+											else
+											{
+												//adds a point to the gain property and takes one away from other tile
+												HexArray[player.selectedTile].number--;
+												if(HexArray[Mouse.tile].gain == undefined)
+													HexArray[Mouse.tile].gain = 0;
+												HexArray[Mouse.tile].gain++;
+
+												if(HexArray[player.selectedTile].number == 1)
+													Players[Players[0]].selectedTile = -1;
+											}
 										}
 										else
 										{
@@ -488,6 +512,8 @@
 							}
 						}
 						Mouse.down = true;
+
+						return false;
 					}
 
 					this.MoveStage++;
@@ -495,6 +521,53 @@
 				}
 				else if(this.MoveStage == 3)
 				{
+					//Automagically move troops
+					for (var i = 0; i < HexArray.length; i++) 
+					{
+						if(HexArray[i].type == this.color && HexArray[i].number > 1 && HexArray[i].pointer != -1)
+						{
+							var shipIndex = 0;
+							if(HexArray[i].pointer == 0)
+								shipIndex = i-20;
+							else if(HexArray[i].pointer == 1 && i%2 == 0)
+								shipIndex = i-19;
+							else if(HexArray[i].pointer == 1 && i%2 == 1)
+								shipIndex = i+1;
+							else if(HexArray[i].pointer == 2 && i%2 == 0)
+								shipIndex = i+1;
+							else if(HexArray[i].pointer == 2 && i%2 == 1)
+								shipIndex = i+21;
+							else if(HexArray[i].pointer == 3)
+								shipIndex = i+20;
+							else if(HexArray[i].pointer == 4 && i%2 == 0)
+								shipIndex = i-1;
+							else if(HexArray[i].pointer == 4 && i%2 == 1)
+								shipIndex = i+19;
+							else if(HexArray[i].pointer == 5 && i%2 == 0)
+								shipIndex = i-21;
+							else if(HexArray[i].pointer == 5 && i%2 == 1)
+								shipIndex = i-1;
+
+							if(isNaN(HexArray[shipIndex].gain))
+								HexArray[shipIndex].gain = HexArray[i].number-1;
+							else
+								HexArray[shipIndex].gain += HexArray[i].number-1;
+
+							HexArray[i].number = 1;
+
+
+							/*else if ((Mouse.tile - player.selectedTile == 1 && player.selectedTile%2==1) || Mouse.tile - player.selectedTile == -19)
+								HexArray[i].pointer = 1;
+							else if ((Mouse.tile - player.selectedTile == 1 && player.selectedTile%2==0) || Mouse.tile - player.selectedTile == 21)
+								HexArray[i].pointer = 2;
+							else if (Mouse.tile - player.selectedTile == 20)
+								HexArray[player.selectedTile].pointer = 3;
+							else if ((Mouse.tile - player.selectedTile == -1 && player.selectedTile%2==0) || Mouse.tile - player.selectedTile == 19)
+								HexArray[player.selectedTile].pointer = 4;
+							else if ((Mouse.tile - player.selectedTile == -1 && player.selectedTile%2==1) || Mouse.tile - player.selectedTile == -21)
+								HexArray[player.selectedTile].pointer = 5;*/
+						}
+					};
 					//gain new troops code
 					//alert("troops!");
 					for (var i = 0; i < HexArray.length; i++) 
@@ -509,6 +582,8 @@
 							}
 						}
 					}
+
+					Players[Players[0]].selectedTile = -1;
 
 					this.MoveStage = 0;
 					Players[0]++;
@@ -541,11 +616,6 @@
 			else
 			{
 				document.getElementById('gametext').innerHTML = "Game Over: This game took "+Turns + " turns";
-				if(Players[1].type == "player")
-				{
-					alert("+15 points");
-					localStorage.HexCount = 15 + parseInt(localStorage.HexCount);
-				}
 			}
 		}
 		function Debug(object)
@@ -570,6 +640,8 @@
 				var x = (i/2)%10;
 				var y = Math.floor((i/2)/10);
 				canvas.drawImage(document.getElementById(HexArray[i].type), 60*x+10,40*y+10);
+				//canvas.drawImage(document.getElementById(HexArray[i].type), 60*x+10,40*y+10);
+
 				canvas.fillText(text, 60*x+20,40*y+30);
 
 				if(x!= 9 && y!= 11)
@@ -583,6 +655,21 @@
 					canvas.fillText(text, 60*x+50,40*y+50);
 				}
 			}
+
+			for (var i = 0; i < HexArray.length; i+=2) 	
+			{
+				var x = (i/2)%10;
+				var y = Math.floor((i/2)/10);
+				if(HexArray[i].pointer != -1)
+					canvas.drawImage(document.getElementById("d" + HexArray[i].pointer), 60*x+5,40*y+5);
+
+				if(x!= 9 && y!= 11)
+				{
+					if(HexArray[i+1].pointer != -1)
+						canvas.drawImage(document.getElementById("d" + HexArray[i+1].pointer), 60*x+35,40*y+25);
+				}
+			}
+
 			canvas.fillText(("x: "+ Mouse.x + " y: " + Mouse.y+ " tile: " + Players[Players[0]].selectedTile), 0,10);
 
 			Highlight(Mouse.tile);
@@ -691,7 +778,7 @@
 				HexArray[tile2].type = HexArray[tile1].type;
 
 				HexArray[tile2].number = Attackers;
-				
+				HexArray[tile2].pointer = -1;
 			}
 			else
 			{
@@ -715,6 +802,9 @@
 				Mouse.tile += Math.floor((Mouse.y-30)/40)*20;
 			}
 		}
+
+		document.onmouseup = function(){return false;}
+		document.oncontextmenu = function(){return false;}
 		
 
 		</script>
@@ -741,6 +831,12 @@
 			<img id="blue" src="HexBattles/HexagonBlue.png"/>
 			<img id="pink" src="HexBattles/HexagonPink.png"/>
 			<img id="sea"  src="HexBattles/SeaHex2.png"/>
+			<img id="d0"  src="HexBattles/d0.png"/>
+			<img id="d1"  src="HexBattles/d1.png"/>
+			<img id="d2"  src="HexBattles/d2.png"/>
+			<img id="d3"  src="HexBattles/d3.png"/>
+			<img id="d4"  src="HexBattles/d4.png"/>
+			<img id="d5"  src="HexBattles/d5.png"/>
 			<img id="highlight" src="HexBattles/highlight.png" />
 		</div>
 	</body>
