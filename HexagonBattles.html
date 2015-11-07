@@ -731,6 +731,16 @@
 			}
 			return Tiles;
 		}
+		function SelectTiles(array, type)
+		{
+			var Tiles = new Array()
+			for (var i = 0; i < array.length; i++) 
+			{
+				if(HexArray[array[i]].type == type)
+					Tiles[Tiles.length] = array[i];
+			}
+			return Tiles;
+		}
 		
 
 		function removeIndex(index,array)
@@ -775,10 +785,55 @@
 			//alert("Attackers: "+Attackers+" Defenders: "+ Defenders);
 			if(Defenders == 0)
 			{
+				//Potential pointer chains removal
+				HexArray[tile2].pointer = -1;
+
+				var effectedHexes = SelectTiles(getAdjacentTiles(tile2),HexArray[tile2].type);
+
+				console.log(effectedHexes);
+				
+				for (var i = 0; i < effectedHexes.length; i++)
+				{
+					if(HexArray[effectedHexes[i]].pointer == 0 && effectedHexes[i]-tile2 == 20)
+					{
+						HexArray[effectedHexes[i]].pointer = -1;
+						
+					}
+					if(HexArray[effectedHexes[i]].pointer == 3 && effectedHexes[i]-tile2 == -20)
+					{
+						HexArray[effectedHexes[i]].pointer = -1;
+						
+					}
+					if(HexArray[effectedHexes[i]].pointer == 1 && effectedHexes[i]-tile2 == 19 && effectedHexes[i] %2 == 0)
+					{
+						HexArray[effectedHexes[i]].pointer = -1;
+						
+					}
+					else if(HexArray[effectedHexes[i]].pointer == 1 && effectedHexes[i]-tile2 == -1 && effectedHexes[i] %2 == 1)
+						HexArray[effectedHexes[i]].pointer = -1;
+
+					else if(HexArray[effectedHexes[i]].pointer == 2 && effectedHexes[i]-tile2 == -1 && effectedHexes[i] %2 == 0)
+						HexArray[effectedHexes[i]].pointer = -1;
+					else if(HexArray[effectedHexes[i]].pointer == 2 && effectedHexes[i]-tile2 == -21 && effectedHexes[i] %2 == 1)
+						HexArray[effectedHexes[i]].pointer = -1;
+					else if(HexArray[effectedHexes[i]].pointer == 4 && effectedHexes[i]-tile2 == 1 && effectedHexes[i] %2 == 0)
+						HexArray[effectedHexes[i]].pointer = -1;
+					else if(HexArray[effectedHexes[i]].pointer == 4 && effectedHexes[i]-tile2 == -19 && effectedHexes[i] %2 == 1)
+						HexArray[effectedHexes[i]].pointer = -1;
+					else if(HexArray[effectedHexes[i]].pointer == 5 && effectedHexes[i]-tile2 == 21 && effectedHexes[i] %2 == 0)
+						HexArray[effectedHexes[i]].pointer = -1;
+					else if(HexArray[effectedHexes[i]].pointer == 5 && effectedHexes[i]-tile2 == 1 && effectedHexes[i] %2 == 1)
+						HexArray[effectedHexes[i]].pointer = -1;
+				};
+
+				//change Color
 				HexArray[tile2].type = HexArray[tile1].type;
 
 				HexArray[tile2].number = Attackers;
-				HexArray[tile2].pointer = -1;
+
+				
+
+
 			}
 			else
 			{
