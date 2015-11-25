@@ -110,40 +110,10 @@
 	}
 	
 	var Random = {};
-
+	var SaveFile = {};
 	function Initialize()
 	{
 		//put your initial code here :)
-		var SaveFile = {};
-		SaveFile.exist = false;
-		try
-		{
-			SaveFile  = JSON.parse(localStorage.DataStructureSaveFile)
-
-			d.Visited = SaveFile.Visited.slice(0);
-			d.PenMarkings = SaveFile.PenMarkings.slice(0);
-
-
-			SaveFile.Visited.sort(function(a,b)
-			{
-				if(b < a)
-					return 1;
-				else 
-					return -1;
-			})
-			SaveFile.PenMarkings.sort(function(a,b)
-			{
-				if(b.id < a.id)
-					return 1;
-				else 
-					return -1;
-			})
-
-
-			SaveFile.exist = true;
-		}
-		catch(E){delete localStorage.DataStructureSaveFile}
-
 		Random.seed = function(val)
 		{
 			this.twister = new MersenneTwister(val);
@@ -152,21 +122,6 @@
 		Random.get = function()
 		{
 			return this.twister.random();
-		}
-
-		if(SaveFile.exist)
-		{
-			Random.seed(SaveFile.seed);
-			console.log(SaveFile.seed);
-			d.seed = SaveFile.seed;
-		}
-		else
-		{
-			var j = new Date().getTime();
-			//j = 1432841256374
-			console.log(j);
-			Random.seed(j);
-			d.seed = j;
 		}
 
 		TILE.id = 0;
@@ -191,6 +146,7 @@
 
 			n.lastDraw = 0;
 
+			n.showText = "";
 
 			if(biome == undefined)
 				biome = "grass";
@@ -1043,7 +999,6 @@
 
 				return [[Point.up.right,"R"],[Point.up.left,"L"],[Point2.down.right,"R"],[Point2.down.left,"L"]];
 			}
-
 			//Other terrain
 			TILE.Terrain.KeyTemple = function(biome)
 			{
@@ -1579,50 +1534,126 @@
 				B[0][0].down.down.down.down.item = "terminal"
 				return [B[0]];
 			}
-
-		TILE.Map = TILE.Terrain.BiomeMesh();
-		//TILE.Map = TILE.Terrain.Biome("neo",20)[0][0];
-		//TILE.Map = TILE.Terrain.Square()[0][0];
-
-		TILE.Head = TILE.Map;	
-
-
-		if(!SaveFile.exist)
-		{
-			d.Keys = 0;
-			d.Coins = 0;
-			d.Treasures = [];
-			
-			d.Visited = [];
-			d.PenMarkings = [];
-		}
-		else
-		{
-			d.Keys = SaveFile.Keys;
-			d.Coins = SaveFile.Coins;
-			d.Treasures = SaveFile.Treasures;
-
-
-			TILE.Head.item = "";
-
-			TILE.Map = SaveFile.Position;
-			TILE.Head = SaveFile.Spawn;
-
-			TILE.Head.item = "spawn";
-
-			for (var i = 0; i < SaveFile.Visited.length; i++) 
+			TILE.Terrain.MenuZone = function()
 			{
-				SaveFile.Visited[i].item = "";
-				if(SaveFile.Visited[i].drawTile == "lock.png")
-					SaveFile.Visited[i].drawTile = "unlock.png";
-			};
-		}
+				var biome = "wood";
+
+				var SaveFileExist = localStorage.DataStructureSaveFile != undefined;
+
+				var rows = [];
+				for (var i = 0; i < 5; i++) 
+				{
+					rows[i] = TILE.createTile(biome);
+				};
+
+				var entryPoint = rows[2]; 
+
+				for (var j = SaveFileExist*-5; j < 50; j++) 
+				{
+					for (var i = 0; i < 5; i++) 
+					{
+						if(j >=0 && j < 5)
+						{
+							if(i == 2 && j == 2)
+								entryPoint = rows[i];
+							rows[i].showText = "Use the arrow keys to move;Quit by pressing escape"
+						}
+						if(j < 0)
+							rows[i].showText  = "Don't know how to play?;Head to the right!";
+						if(5 <= j && j < 10)
+							rows[i].showText  = "Find keys, open doors";
+						if(10 <= j && j < 15)
+							rows[i].showText  = "Lost? Press Z to move;to the head pointer";
+						if(15 <= j && j < 20)
+							rows[i].showText  = "Find a coin and press X to;move the head pointer";
+						if(20 <= j && j < 25)
+							rows[i].showText  = "Explore Biomes";
+						if(25 <= j && j < 30)
+							rows[i].showText  = "Take caution, some biomes;are dangerous!";
+						if(30 <= j && j < 35)
+							rows[i].showText  = "Use the pen to mark;where you have been";
+						if(35 <= j && j < 50)
+							rows[i].showText  = "Hold W and move to write; Hold E to erase";
+						if(40 <= j && j < 45)
+							rows[i].showText  = "Find the missing parts";
+						if(45 <= j && j < 50)
+							rows[i].showText  = "Fix the terminal and escape";
+
+						if(j == 7 && i == 2)
+							rows[i].item = "key";
+						if(j == 17 && 0 < i && i < 4)
+							rows[i].item = "coin";
+
+						if(j >= 30 && j < 38)
+						{
+							var inks = [10,12,12,12,12,12,12,6,3,10,6,10,4,10,6,3,3,11,5,11,4,3,3,3,3,1,0,9,4,1,1,3,9,12,12,12,12,12,12,5];
+							rows[i].pen = inks[j%10+i*8];
+						}
+
+						if(j == 42)
+						{
+							rows[0].item = "manual";
+							rows[1].item = "flash";
+							rows[2].item = "core";
+							rows[3].item = "crystal";
+							rows[4].item = "NIC";
+						}
+
+						if((j == 47 || j== -3) && i == 2)
+							rows[i].item = "terminal";
+
+						//if(j == )
+					}
+					rows[0].down = rows[1];
+					rows[0].down.up = rows[0];
+					rows[1].down = rows[2];
+					rows[1].down.up = rows[1];
+					rows[2].down = rows[3];
+					rows[2].down.up = rows[2];
+					rows[3].down = rows[4];
+					rows[3].down.up = rows[3];
+
+					if(j !== 49)
+					{
+						if (j == 8)
+							biome = "lock";
+						else
+							biome = "wood";
+
+						for (var i = 0; i < 5; i++) 
+						{
+							if(j >= 21 && j < 28)
+							{
+								var biomelist = ["neo","cloud","grass","stone","lavastone"];
+								rows[i].right = TILE.createTile(biomelist[i]);
+							}
+							else
+								rows[i].right = TILE.createTile(biome);
+							if(j % 10 != 9)
+								rows[i].right.left = rows[i];
+							rows[i] = rows[i].right;
+						};
+					}
+				};
+
+				entryPoint.item = "spawn";
+				return entryPoint;
+			}
+
+		TILE.Map =	TILE.Terrain.MenuZone(); 
+		d.menuZone = true;
+		TILE.Head = TILE.Map;
+
+		d.Keys = 0;
+		d.Coins = 0;
+		d.Treasures = [];
+		d.Visited = [];
+		d.PenMarkings = [];
 
 		d.offset = Vect2(0,0);
 		d.currentDirection = "";
 		GAME.pastKeyDown = [];
 		d.info = 0;	
-
 
 		d.audio = new Audio("DataStructure.mp3");
 		d.audio.play();
@@ -1652,6 +1683,80 @@
 			}
 		};
 		document.body.appendChild(AudioButton);
+	}
+
+	function createNewMap()
+	{
+		var j = new Date().getTime();
+		//j = 1432841256374
+		console.log(j);
+		Random.seed(j);
+		d.seed = j;
+
+		TILE.id = 0;
+
+		TILE.Map = TILE.Terrain.BiomeMesh();
+		TILE.Head = TILE.Map;
+
+		d.Keys = 0;
+		d.Coins = 0;
+		d.Treasures = [];
+
+		d.Visited = [];
+		d.PenMarkings = [];
+	}
+
+	function loadOldMap()
+	{
+		try
+		{
+			SaveFile  = JSON.parse(localStorage.DataStructureSaveFile)
+
+			d.Visited = SaveFile.Visited.slice(0);
+			d.PenMarkings = SaveFile.PenMarkings.slice(0);
+
+			SaveFile.Visited.sort(function(a,b)
+			{
+				if(b < a)
+					return 1;
+				else 
+					return -1;
+			})
+			SaveFile.PenMarkings.sort(function(a,b)
+			{
+				if(b.id < a.id)
+					return 1;
+				else 
+					return -1;
+			})
+
+			SaveFile.exist = true;
+
+			Random.seed(SaveFile.seed);
+			console.log(SaveFile.seed);
+			d.seed = SaveFile.seed;
+
+			d.Keys = SaveFile.Keys;
+			d.Coins = SaveFile.Coins;
+			d.Treasures = SaveFile.Treasures;
+
+			TILE.id = 0;
+
+			TILE.Map = TILE.Terrain.BiomeMesh();
+			TILE.Map = SaveFile.Position;
+			TILE.Head = SaveFile.Spawn;
+
+			for (var i = 0; i < SaveFile.Visited.length; i++) 
+			{
+				SaveFile.Visited[i].item = "";
+				if(SaveFile.Visited[i].drawTile == "lock.png")
+					SaveFile.Visited[i].drawTile = "unlock.png";
+			};
+		}
+		catch(E)
+		{
+			delete localStorage.DataStructureSaveFile;
+		}
 	}
 
 	function Update()
@@ -1809,7 +1914,24 @@
 				}
 			}
 			if(GAME.isKeyDown[KEY.Z])
+			{
+				console.log(TILE.Head);
 				TILE.Map = TILE.Head;
+			}
+
+			if(GAME.isKeyDown[13] && TILE.Map.showText == "Press enter to resume game")
+			{
+				//loads the map;
+				d.Keys = SaveFile.Keys;
+				d.Coins = SaveFile.Coins;
+				d.Treasures = SaveFile.Treasures;
+
+				//TILE.Head.item = "";
+
+				TILE.Map = SaveFile.Position;
+				TILE.Head = SaveFile.Spawn;
+				TILE.Head.item = "spawn";
+			}
 
 			if(GAME.isKeyDown[KEY.E])
 			{
@@ -1898,25 +2020,54 @@
 		}
 		else
 		{
-			if(d.Treasures.length == 5)
+			if(d.menuZone)
+			{
+				var options = 2;
+				if(localStorage.DataStructureSaveFile != undefined)
+				{
+					options = 3;
+				}
+
+				if(!GAME.isKeyDown[KEY.Down] && GAME.pastKeyDown[KEY.Down] && d.info < options)
+					d.info++;
+				if(!GAME.isKeyDown[KEY.Up] && GAME.pastKeyDown[KEY.Up] && d.info > 1)
+					d.info--;
+
+				if(!GAME.isKeyDown[13] && GAME.pastKeyDown[13])
+				{
+					if(options == 2)
+					{
+						if(d.info == 1)
+						{
+							createNewMap();
+							d.menuZone = false;
+						}
+						d.info = 0;
+					}
+					else if (options ==3)
+					{
+						if(d.info == 1)
+						{
+							loadOldMap();
+							d.menuZone = false;
+						}
+						if(d.info == 2)
+						{
+							createNewMap();
+							d.menuZone = false;
+						}
+						d.info = 0;
+					}
+				}
+				
+			}
+			else if(d.Treasures.length == 5)
 			{
 				d.audio.pause();
 				document.getElementById("audioButton").style.display = "none";
 			}
 			else
 			{
-				if(!GAME.isKeyDown[KEY.Left] && GAME.pastKeyDown[KEY.Left])
-				{
-					d.info--;
-					if(d.info < 1)
-						d.info = 1;
-				}
-				if(!GAME.isKeyDown[KEY.Right] && GAME.pastKeyDown[KEY.Right])
-				{
-					d.info++;
-					if(d.info>8)
-						d.info = 8;
-				}
 				if(!GAME.isKeyDown[13] && GAME.pastKeyDown[13])
 				{
 					d.info = 0;
@@ -2140,29 +2291,58 @@
 			GAME.ctx.fillText(d.Keys,10,30);
 			GAME.ctx.fillText(d.Coins,370,30);
 
-
 			GAME.drawSprite("key.png",Vect2(40,0));
 			GAME.drawSprite("coin.png",Vect2(400,0));	
+
+			if(TILE.Map.showText != "")
+			{
+				if(TILE.Map.showText.indexOf(";") == -1)
+					GAME.ctx.fillText(TILE.Map.showText,15,400);
+				else
+				{
+					var text = TILE.Map.showText.split(';');
+					for (var i = 0; i < text.length; i++)
+					{
+						GAME.ctx.fillText(text[i],15,400-50*(text.length-1-i));
+					};
+				}
+			}
 		}
 		else
 		{
 			GAME.ctx.font = "30px Arial";
 			GAME.ctx.fillStyle = "#FFFFFF";
 
-			if(d.Treasures.length != 5)
-			{
-				GAME.ctx.fillText("> Press Enter to close",15,30);
-				GAME.ctx.fillText("the terminal",30,60);
-				GAME.ctx.fillText("← Previous                  Next →",15,120);
+			if(d.menuZone)
+			{	
+				GAME.ctx.fillText("> Select an action &",15,30);
+				GAME.ctx.fillText(" press enter",30,60);
+				GAME.ctx.fillText("------------------------------------------",10,90);
 
-
-				var infoBox = [];
-				if(d.info == 1)
+				var infoBox = ["Load Previous Game", "Begin New Game", "Stay in Tutorial Room"];
+				if(localStorage.DataStructureSaveFile == undefined)
 				{
-					infoBox = ["Objective:","Find various items to","repair this terminal","so you can hack it","and escape from this","data structure"];
+					infoBox = ["Begin New Game", "Stay in Tutorial Room"];
 				}
-				if(d.info == 2)
+
+				for (var i = 0; i < infoBox.length; i++)
 				{
+					var textMod = "          ";
+
+					if(i == d.info-1)
+						GAME.ctx.fillText("> " + infoBox[i],25,150+30*i);
+					else
+						GAME.ctx.fillText(infoBox[i],75,150+30*i);
+				};
+			}
+			else
+			{
+				if(d.Treasures.length != 5)
+				{
+				
+					GAME.ctx.fillText("> Press Enter to close",15,30);
+					GAME.ctx.fillText("the terminal",30,60);
+
 					GAME.ctx.fillText(d.Treasures.length + "/5 parts located",100,180);
 					if(d.Treasures.indexOf("manual")==-1)
 						GAME.ctx.fillText("Need Instruction Manual",25,210);
@@ -2174,40 +2354,16 @@
 						GAME.ctx.fillText("Need Lava Core",25,300);
 					if(d.Treasures.indexOf("crystal")==-1)
 						GAME.ctx.fillText("Need Crystal Shard",25,330);
-
 				}
-				if(d.info == 3)
-				{
-					infoBox = ["Controls:","Up Arrow Key - access ","   up pointer","Down Arrow Key - access","   down pointer","Left Arrow Key - access","   left pointer","Right Arrow Key - access","   right pointer"]
+				else
+				{	
+					GAME.ctx.font = "60px Arial";
+					GAME.ctx.fillText("You win!",100,220);
+					GAME.ctx.font = "20px Arial";
+					GAME.ctx.fillText("Have a nice day",140,260);
 				}
-				if(d.info == 4)
-				{
-					infoBox = ["Head Pointer:","Press Z at any time to teleport","back to the head pointer","","You should do this ","if you get lost","","You will also return to the","head pointer if you die."];
-				}
-				if(d.info == 5)
-				{
-					infoBox = ["If you have a coin,","you can change the location","of the head pointer","by pressing X","","Do this before entering","dangerous areas"];
-				}
-				if(d.info == 6)
-				{
-					infoBox = ["Collect keys to open up new ","areas and biomes","Different biomes contain ","different parts to repair","the terminal","","However, some biomes are","dangerous - consider moving","the head pointer"];
-				}
-				if(d.info == 7)
-				{
-					infoBox = ["Use the pen to keep track","of where you are","","Hold W and move to write","Hold E to erase"];
-				}
-				for (var i = 0; i < infoBox.length; i++)
-				{
-					GAME.ctx.fillText(infoBox[i],30, 180+30*i);
-				};
 			}
-			else
-			{
-				GAME.ctx.font = "60px Arial";
-				GAME.ctx.fillText("You win!",100,220);
-				GAME.ctx.font = "20px Arial";
-				GAME.ctx.fillText("Have a nice day",140,260);
-			}
+			
 
 		}	
 	}
@@ -2215,47 +2371,51 @@
 	function Unload()
 	{
 		//Put code to save/close the game in here
-		var marks = d.PenMarkings;
-		marks.reverse();
 
-		for(var i = 0; i < marks.length; i++)
+		if(!d.menuZone)
 		{
-			if(marks[i] != undefined)
+			var marks = d.PenMarkings;
+			marks.reverse();
+
+			for(var i = 0; i < marks.length; i++)
 			{
-				for (var j = i+1; j < marks.length; j++) 
+				if(marks[i] != undefined)
 				{
-					if(marks[j] != undefined)
+					for (var j = i+1; j < marks.length; j++) 
 					{
-						if(marks[j].id == marks[i].id)
+						if(marks[j] != undefined)
 						{
-							delete marks[j];
+							if(marks[j].id == marks[i].id)
+							{
+								delete marks[j];
+							}
 						}
 					}
 				}
 			}
+			d.PenMarkings = [];
+			for (var i = 0; i < marks.length; i++)
+			{
+				if(marks[i] != undefined)
+					d.PenMarkings.push(marks[i]);
+			};
+
+			var SaveFile = {};
+			SaveFile.Keys = d.Keys;
+			SaveFile.Coins = d.Coins;
+			SaveFile.Treasures = d.Treasures;
+
+			SaveFile.PenMarkings = d.PenMarkings;
+			SaveFile.Visited = d.Visited;
+			SaveFile.seed = d.seed;
+
+
+			SaveFile.Spawn = TILE.Head.id;
+			SaveFile.Position = TILE.Map.id;
+
+			localStorage.DataStructureSaveFile = JSON.stringify(SaveFile);
 		}
-		d.PenMarkings = [];
-		for (var i = 0; i < marks.length; i++)
-		{
-			if(marks[i] != undefined)
-				d.PenMarkings.push(marks[i]);
-		};
-
-		var SaveFile = {};
-		SaveFile.Keys = d.Keys;
-		SaveFile.Coins = d.Coins;
-		SaveFile.Treasures = d.Treasures;
-
-		SaveFile.PenMarkings = d.PenMarkings;
-		SaveFile.Visited = d.Visited;
-		SaveFile.seed = d.seed;
-
-
-		SaveFile.Spawn = TILE.Head.id;
-		SaveFile.Position = TILE.Map.id;
-
-
-		localStorage.DataStructureSaveFile = JSON.stringify(SaveFile);
+		
 	}
 	function preLoad()
 	{
