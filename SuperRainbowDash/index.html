@@ -205,6 +205,244 @@ function CreateGame()
 		//To stop the game loop: clearInterval(GAME.loop);
 		Initialize(GAME,GAME.d);
 		GAME.loop = setInterval(function(){Update(GAME,GAME.d); Draw(GAME,GAME.d);}, 1000/GAME.FPS);
+
+		Gamestate = "Loading";
+		function loadFiles(item)
+		{
+			//alert(item);
+			if(item == 0)
+			{
+				audioLoader.Audio("SRDTheme.mp3");
+				audioLoader.Audio("SRDTheme.mp3").oncanplay = loadFiles(1);
+				loadingstate = "SRDTheme.mp3";
+			}
+			else if (item == 1)
+			{
+				audioLoader.Audio("Track0.mp3");
+				audioLoader.Audio("Track0.mp3").oncanplay = loadFiles(2);
+				loadingstate = "Track0.mp3";
+			}
+			else if (item == 2)
+			{
+				audioLoader.Audio("Track1.mp3");
+				audioLoader.Audio("Track1.mp3").oncanplay = loadFiles(3);
+				loadingstate = "Track1.mp3";
+			}
+			else if (item == 3)
+			{
+				audioLoader.Audio("Track2.mp3");
+				audioLoader.Audio("Track2.mp3").oncanplay = loadFiles(4);
+				loadingstate = "Track2.mp3";
+			}
+			else if (item == 4)
+			{
+				audioLoader.Audio("Fail0.mp3");
+				audioLoader.Audio("Fail0.mp3").oncanplay = loadFiles(5);
+				loadingstate = "Fail0.mp3";
+			}
+			else if (item == 5)
+			{
+				audioLoader.Audio("Fail1.mp3");
+				audioLoader.Audio("Fail1.mp3").oncanplay = loadFiles(6);
+				loadingstate = "Fail1.mp3";
+			}
+			else if (item == 6)
+			{
+				audioLoader.Audio("Fail2.mp3");
+				audioLoader.Audio("Fail2.mp3").oncanplay = loadFiles(7);
+				loadingstate = "Fail2.mp3";
+			}
+			else if (item == 7)
+			{
+				audioLoader.Audio("Fail3.mp3");
+				audioLoader.Audio("Fail3.mp3").oncanplay = loadFiles(8);
+				loadingstate = "Fail3.mp3";
+			}
+			else if (item == 8)
+			{
+				audioLoader.Audio("Fail4.mp3");
+				audioLoader.Audio("Fail4.mp3").oncanplay = loadFiles(9);
+				loadingstate = "Fail4.mp3";
+			}
+			else if (item == 9)
+			{
+				audioLoader.Audio("Success.mp3");
+				audioLoader.Audio("Success.mp3").oncanplay = loadFiles(10);
+				loadingstate = "Success.mp3";
+			}
+			else if (item == 10)
+			{
+				audioLoader.Audio("Explosion.mp3");
+				audioLoader.Audio("Explosion.mp3").oncanplay = loadFiles(11);
+				loadingstate = "Explosion.mp3";
+			}
+			else if (item == 11)
+			{
+				var picDiv = document.getElementById("picDiv");
+				var pic = document.createElement("img");
+				pic.src = "Arrows.png";
+				picDiv.appendChild(pic);
+				pic.onload = loadFiles(12);
+				loadingstate = "Arrows.png";
+			}
+			else if (item == 12)
+			{
+				var picDiv = document.getElementById("picDiv");
+				var pic = document.createElement("img");
+				pic.src = "bg.png";
+				picDiv.appendChild(pic);
+				pic.onload = loadFiles(13);
+				loadingstate = "bg.png";
+			}
+			else if (item == 13)
+			{
+				var picDiv = document.getElementById("picDiv");
+				var pic = document.createElement("img");
+				pic.src = "Boom.png";
+				picDiv.appendChild(pic);
+				pic.onload = loadFiles(14);
+				loadingstate = "Boom.png";
+			}
+			else if (item == 14)
+			{
+				var picDiv = document.getElementById("picDiv");
+				var pic = document.createElement("img");
+				pic.src = "Level0.png";
+				picDiv.appendChild(pic);
+				pic.onload = loadFiles(15);
+				loadingstate = "Level0.png";
+			}
+			else if (item == 15)
+			{
+				var picDiv = document.getElementById("picDiv");
+				var pic = document.createElement("img");
+				pic.src = "Level1Lock.png";
+				picDiv.appendChild(pic);
+				pic.onload = loadFiles(16);
+				loadingstate = "Level1Lock.png";
+			}
+			else if (item == 16)
+			{
+				var picDiv = document.getElementById("picDiv");
+				var pic = document.createElement("img");
+				pic.src = "Level2Lock.png";
+				picDiv.appendChild(pic);
+				pic.onload = loadFiles(17);
+				loadingstate = "Level2Lock.png";
+			}
+			else if (item == 17)
+			{
+				var picDiv = document.getElementById("picDiv");
+				var pic = document.createElement("img");
+				pic.src = "Level3Lock.png";
+				picDiv.appendChild(pic);
+				pic.onload = loadFiles(18);
+				loadingstate = "Level3Lock.png";
+			}
+			else if (item == 18)
+			{
+				var picDiv = document.getElementById("picDiv");
+				var pic = document.createElement("img");
+				pic.src = "Level4Lock.png";
+				picDiv.appendChild(pic);
+				pic.onload = loadFiles(19);
+				loadingstate = "Level4Lock.png";
+			}
+			else if (item == 19)
+			{
+				var picDiv = document.getElementById("picDiv");
+				var pic = document.createElement("img");
+				pic.src = "Level5Lock.png";
+				picDiv.appendChild(pic);
+				pic.onload = loadFiles(20);
+				loadingstate = "Level5Lock.png";
+			}
+			else if (item == 20)
+			{
+				var picDiv = document.getElementById("picDiv");
+				var pic = document.createElement("img");
+				pic.src = "Level1.png";
+				picDiv.appendChild(pic);
+				pic.onload = loadFiles(21);
+				loadingstate = "Level1.png";
+			}
+			else if (item == 21)
+			{
+				var picDiv = document.getElementById("picDiv");
+				var pic = document.createElement("img");
+				pic.src = "Level2.png";
+				picDiv.appendChild(pic);
+				pic.onload = loadFiles(22);
+				loadingstate = "Level2.png";
+			}
+			else if (item == 22)
+			{
+				var picDiv = document.getElementById("picDiv");
+				var pic = document.createElement("img");
+				pic.src = "Level3.png";
+				picDiv.appendChild(pic);
+				pic.onload = loadFiles(23);
+				loadingstate = "Level3.png";
+			}
+			else if (item == 23)
+			{
+				var picDiv = document.getElementById("picDiv");
+				var pic = document.createElement("img");
+				pic.src = "Level4.png";
+				picDiv.appendChild(pic);
+				pic.onload = loadFiles(24);
+				loadingstate = "Level4.png";
+			}
+			else if (item == 24)
+			{
+				var picDiv = document.getElementById("picDiv");
+				var pic = document.createElement("img");
+				pic.src = "Level5.png";
+				picDiv.appendChild(pic);
+				pic.onload = loadFiles(25);
+				loadingstate = "Level5.png";
+			}
+			else if (item == 25)
+			{
+				var picDiv = document.getElementById("picDiv");
+				var pic = document.createElement("img");
+				pic.src = "GameOver.png";
+				picDiv.appendChild(pic);
+				pic.onload = loadFiles(26);
+				loadingstate = "GameOver.png";
+			}
+			else if (item == 26)
+			{
+				var picDiv = document.getElementById("picDiv");
+				var pic = document.createElement("img");
+				pic.src = "RD.png";
+				picDiv.appendChild(pic);
+				pic.onload = loadFiles(27);
+				loadingstate = "RD.png";
+			}
+			else if (item == 27)
+			{
+				var picDiv = document.getElementById("picDiv");
+				var pic = document.createElement("img");
+				pic.src = "Logo.png";
+				picDiv.appendChild(pic);
+				pic.onload = loadFiles(28);
+				loadingstate = "Logo.png";
+			}
+			else if (item == 28)
+			{
+				Gamestate = "Title";
+
+				music = audioLoader.Audio("SRDTheme.mp3");
+				music.loop = true;
+				music.volume = .5;
+				music.play();
+			}
+			
+			//console.log(item);
+			//console.log(loadingstate);
+		}
+		loadFiles(0);
 	}
 
 	var Vect2;
@@ -221,7 +459,8 @@ function CreateGame()
 	var Blocks = {};
 	var track = {};
 
-	var Gamestate = "Title";
+	var Gamestate = "";
+	var loadingstate = "";
 	var wasKeyDown;
 	var audio = false;
 	var music = false;
@@ -306,7 +545,6 @@ function CreateGame()
 			//hexString = yourNumber.toString(16);
 		}
 
-
 		Colors.defaultBackground = function()
 		{	
 			GAME.clearDraw(Colors.soften(Colors.num[Math.floor(VerticalScroll*-6+6)],.5));
@@ -351,23 +589,13 @@ function CreateGame()
 			return this[track];
 		}
 
-		music = audioLoader.Audio("SRDTheme.mp3");
+		/*music = audioLoader.Audio("SRDTheme.mp3");
 		music.loop = true;
 		music.volume = .5;
-		music.play();
+		music.play();*/
 
-		audioLoader.Audio("Track0.mp3");
-		audioLoader.Audio("Track1.mp3");
-		audioLoader.Audio("Track2.mp3");
-		audioLoader.Audio("Fail0.mp3");
-		audioLoader.Audio("Fail1.mp3");
-		audioLoader.Audio("Fail2.mp3");
-		audioLoader.Audio("Fail3.mp3");
-		audioLoader.Audio("Fail4.mp3");
-		audioLoader.Audio("Success.mp3");
-		audioLoader.Audio("Explosion.mp3");
-
-
+		//audioLoader.Audio("SRDTheme.mp3");
+		
 		Blocks.list = jArray();
 
 		Blocks.speed = 1/2;
@@ -1485,6 +1713,7 @@ function CreateGame()
 		}
 		if(Gamestate == "Title")
 		{
+			//console.log(loadingstate);
 			Colors.defaultBackground();
 			var colorBandWidth = GAME.windowHeight/6 + 2;
 			if(GAME.windowWidth/GAME.windowHeight > 20/12)
@@ -1502,6 +1731,18 @@ function CreateGame()
 				GAME.ctx.fillStyle = "#FFFFFF";
 				GAME.ctx.fillText("Press Enter",GAME.windowWidth/2 - colorBandWidth*9/4, GAME.windowHeight/2); 
 			}
+		}
+		if(Gamestate == "Loading")
+		{
+			Colors.defaultBackground();
+			var colorBandWidth = GAME.windowHeight/6 + 2;
+			
+			GAME.ctx.font = Math.floor(colorBandWidth*3/4) + "px Monospace";
+			GAME.ctx.fillStyle = "#000000";
+
+			GAME.ctx.fillText("Loading "+ loadingstate, 0, GAME.windowHeight*.95); 
+
+			console.log("loading");
 		}
 	}
 
