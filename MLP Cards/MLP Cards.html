@@ -1,0 +1,1530 @@
+ <!DOCTYPE html>
+<html>
+	<head>
+		<script type="text/javascript" src="Cards.js"></script>
+		<link rel="shortcut icon" type="image/x-icon" href="bramble.ico" />
+	</head>
+	<body onload = "loadPage();">
+		<div id="navigation">
+			<a href='?#Catalog' onclick = "window.location.reload();">Catalog</a>
+			<a href='?#Collection' onclick = "window.location.reload();">My Cards</a>
+			<a href='?#Market' onclick = "window.location.reload();">Market</a>
+			<a href='?#Custom' onclick = "window.location.reload();">Custom</a><br>
+			<h1 id="sortingbox">MLP Virtual Trading Cards: <input type="text" id="textFilter" placeholder="Search for..." oninput="applyFilter();"> <select id="filter" onchange = "applyFilter();"></select></h1>
+		</div>
+		<div id= 'main'>
+			<div id="cards"></div>
+			<h1></h1>
+			<div id ="other"></div>
+			<div id="customHTML" style="display: none">
+				<h1>Create your own card:</h1>
+				<div>
+					<div style = "display: inline-block"; id="customCard">
+						<button onclick = "customCard();" style= " width: 250px; height: 350px">Create a new card</button>
+					</div>
+					<div id= "customOptions" style = "display: none;">
+						Title: <input oninput="customCard();" id="customTitle" placeholder="My Card" type="text"/><br>
+						
+						Image URL*: <input oninput="customCard();"  id="customURL" placeholder="http://www.myWebsite.com/card1.png" type="text"/><br>
+					
+						Description: <input oninput="customCard();" id="customDescription" type="text"/><br>
+						<div>Tags: <span id="taglist"></span><input id="tagbox" placeholder="Cool, Pony, etc." type="text"/></div>
+						<script>
+							document.getElementById("taglist").getValue = function(){
+								var values = [];
+								for (var i = 0; i < document.getElementsByClassName("tagName").length; i++) 
+								{
+									values.push(document.getElementsByClassName("tagName")[i].innerHTML);
+								};
+								return values;
+							}
+							document.getElementById("taglist").setValue = function(valueArray){
+								if(valueArray == undefined)
+									valueArray = [];
+								document.getElementById("taglist").innerHTML = "";
+								for (var i = 0; i < valueArray.length; i++) {
+									var tagBox = document.createElement('div');
+
+									var nameBox = document.createElement('span');
+									nameBox.innerHTML = valueArray[i];
+									nameBox.className = "tagName";
+									tagBox.appendChild(nameBox);
+
+									var deleteButton = document.createElement("button");
+									deleteButton.innerHTML = "X";
+									deleteButton.onclick = function(){
+										var tagBox = this.parentNode;
+										tagBox.parentNode.removeChild(tagBox);
+										customCard();
+									};
+									tagBox.appendChild(deleteButton);
+
+									tagBox.style.backgroundColor = "#CCCCCC";
+									tagBox.style.marginLeft = "5px";
+									tagBox.style.marginRight = "5px";
+									tagBox.style.display = "inline-block";
+									document.getElementById("taglist").appendChild(tagBox);
+								};	
+							}
+							document.getElementById("tagbox").oninput = function(e){
+								var text = document.getElementById('tagbox').value;
+								if(text.indexOf(",") != -1){
+									var newTagName = text.substring(0,text.indexOf(","));
+
+									document.getElementById('tagbox').value = text.substring(text.indexOf(",")+1).trim();
+
+									newTagName = newTagName.trim();
+
+									var tagBox = document.createElement('div');
+
+									var nameBox = document.createElement('span');
+									nameBox.innerHTML = newTagName;
+									nameBox.className = "tagName";
+									tagBox.appendChild(nameBox);
+
+									var deleteButton = document.createElement("button");
+									deleteButton.innerHTML = "X";
+									deleteButton.onclick = function(){
+										var tagBox = this.parentNode;
+										tagBox.parentNode.removeChild(tagBox);
+										customCard();
+									};
+									tagBox.appendChild(deleteButton);
+
+									tagBox.style.backgroundColor = "#CCCCCC";
+									tagBox.style.marginLeft = "5px";
+									tagBox.style.marginRight = "5px";
+									tagBox.style.display = "inline-block";
+									document.getElementById("taglist").appendChild(tagBox);
+
+									customCard();
+								}
+							}
+						</script>
+						<br>
+						<div>*URL must be to an online image file. For best results, use 230 x 330 images</div>
+						<br>
+						<button onclick="saveCustomCard(false);">Save card to collection</button>
+						<button onclick="if(confirm('Are you sure you want to delete this card?'))saveCustomCard(true);">Delete card from collection</button><br><br>
+						<div>Share URL: <input id="shareURL" readonly type="text" /></div>
+						<div>Card JSON: <input id="cardJSON" readonly type="text" /></div>
+					</div>
+
+					<div><a href="Customization Help.html">What's this?</a></div>
+				</div>
+				<h1>Your custom cards:</h1>
+				<div id = "customCollection"></div>
+				<h1>Import options</h1>
+				<div id="importSettings">
+					Custom Cards available in catalog <input id= "usingCustomCards" type="checkbox"/><br><br>
+				</div>
+				<!-- TODO 
+					Need a way to create a card
+					Edit/Delete local cards
+					Add/remove card databases
+					Import cards from text file
+				-->
+			</div>
+		</div>
+		
+		<script>
+			/*
+				Card Properties:
+				name
+				image
+				info
+				style (cardback) [Standard, Foil, Green, Sunset, Black]
+
+				Every card must have a unique card URL
+			*/
+			
+			var importSettings = []
+			
+			try{
+				importSettings = JSON.parse(localStorage.MLPCardsImport);
+
+				if(importSettings.indexOf("local") != -1){
+					CardDatabase = CardDatabase.concat(JSON.parse(localStorage.MLPCustomCards));
+					importSettings.splice(importSettings.indexOf("local"),1);
+				}
+
+				function getResources(resourceList){
+					var URL = resourceList.pop();
+					var myRequest = new XMLHttpRequest();
+
+					myRequest.onreadystatechange = function() {
+						if (myRequest.readyState == 4) {
+							if(myRequest.status == 200)
+					    		loadCardLibrary(myRequest);
+					    	else{
+					    		console.log("Failed to import " + URL);
+								myRequest.abort();	
+					    	}
+					    	if(resourceList.length > 0)
+					    		getResources(resourceList);
+						}
+					};
+					myRequest.open("GET", URL, true);
+					myRequest.send();
+				}
+				if(importSettings.length > 0)
+					getResources(importSettings);
+			}
+			catch(exception){}
+
+			var CardList = [];
+
+			function enumerateAllCards(){
+				//add ordering number to all cards
+				for (var i = 0; i < CardDatabase.length; i++)
+				{
+					CardDatabase[i].order = i;
+				};
+
+				//orders cards in database
+				try
+				{
+					var MLPCards = JSON.parse(localStorage.MLPCards);
+
+					for (var i = 0; i < MLPCards.collection.length; i++)
+					{
+						var order = 0;
+
+						while(order < CardDatabase.length)
+						{
+							if(CardDatabase[order].image == MLPCards.collection[i].image)
+							{
+								MLPCards.collection[i].order = order;
+								order = CardDatabase.length+5;
+							}
+							order++;
+						}
+
+						if(order == CardDatabase.length)
+						{
+							MLPCards.collection[i].order = -1;
+						}
+					};
+
+					localStorage.MLPCards = JSON.stringify(MLPCards);
+
+				}catch(e){}
+			}
+
+			enumerateAllCards();
+
+			function createCard(descriptor){
+				var myCard = document.createElement('div');
+				myCard.className = "card front";
+				myCard.draggable = true;
+
+				if(descriptor.style == undefined || descriptor.style == "")
+				{
+					myCard.style.backgroundImage = "url(standard_back.png)";
+					descriptor.style = "standard";
+				}
+				else if (descriptor.style == "black")
+				{
+					myCard.style.backgroundColor = "black";
+				}
+				else if (descriptor.style == "ghost")
+				{
+					myCard.style.backgroundColor = "gray";
+					myCard.classList.add("ghost");
+					//descriptor.name = "";
+					myCard.style.display = "none";
+				}
+				else
+				{
+					myCard.style.backgroundImage = "url(" + descriptor.style + "_back.png)";
+				}
+
+				var frontSide = document.createElement('div');
+				frontSide.className = "fs";
+				frontSide.style.visibility = "visible";
+				myCard.appendChild(frontSide);
+
+				if(descriptor.name != undefined && descriptor.name != "" && descriptor.style != "ghost")
+				{
+					var nameplate = document.createElement("div");
+					nameplate.className = "namePlate";
+					nameplate.innerHTML = descriptor.name;
+					frontSide.appendChild(nameplate);
+				}
+
+
+				var cardImage = document.createElement('img');
+				var ImageDiv = document.createElement('div');
+				cardImage.src = "logo.png";
+				cardImage.alt = descriptor.image;
+				cardImage.draggable = false;
+				if(descriptor.image != undefined && descriptor.image != "")
+				{
+					cardImage.src = descriptor.image;
+
+					cardImage.width = 230;
+					cardImage.height = 330;
+				}
+				ImageDiv.appendChild(cardImage);
+				ImageDiv.style.height = 240;
+				ImageDiv.style.width = 340;
+				ImageDiv.style.overflow = "hidden";
+
+				frontSide.appendChild(ImageDiv);
+
+				if(descriptor.style == "ghost")
+				{
+					var cardImage = document.createElement('img');
+					cardImage.src = "missing.png";
+					cardImage.draggable = false;
+					cardImage.style.position = "absolute";
+					cardImage.style.top = "0px";
+					cardImage.style.left = "0px";
+					frontSide.appendChild(cardImage);
+				}
+
+				var backSide = document.createElement('div');
+				backSide.className = "bs";
+				backSide.style.visibility = "hidden";
+
+				if(descriptor.info != undefined && descriptor.info != "")
+				{
+					var infoBox = document.createElement("div");
+					infoBox.className = "info";
+					infoBox.innerHTML = "<img draggable = 'false' src='bracket2.png'><div>" + descriptor.info + "</div><img src='bracket2.png' draggable = 'false' style='-webkit-transform: scaleY(-1);'>";
+					backSide.appendChild(infoBox);
+				}
+				myCard.appendChild(backSide);
+				
+
+				myCard.onclick = function()
+				{
+					if(this.classList.contains("card") && this.classList.contains("front"))
+					{
+						this.classList.add("r1");
+						this.classList.remove("front");
+						var x = this;
+						setTimeout(function()
+						{
+							x.classList.remove("r1");
+							x.classList.add("back");
+							x.getElementsByClassName("fs")[0].style.visibility = "hidden"; 
+							x.getElementsByClassName("bs")[0].style.visibility = "visible"; 
+						},500);
+					}
+					else if (this.classList.contains("back"))
+					{
+						this.classList.add("r3");
+						this.classList.remove("back");
+						var x = this;
+						setTimeout(function()
+						{
+							x.classList.remove("r3"); 
+							x.classList.add("r4");
+							x.getElementsByClassName("fs")[0].style.visibility = "visible"; 
+							x.getElementsByClassName("bs")[0].style.visibility = "hidden"; 
+						},500);
+						setTimeout(function(){x.classList.remove("r4"); x.classList.add("front");}, 1000);
+					}
+					
+				}
+
+				if(descriptor.style == "ghost")
+					myCard.onclick = function(){return null};
+
+				myCard.categories = descriptor.categories;
+				myCard.JSON = copyObj(descriptor);
+
+				return myCard;
+				//document.getElementById('cards').appendChild(myCard);
+			}
+
+			function getCategories(){
+				var categoryList = [];
+				var totalCount = 0;
+
+				//Categories
+				for (var i = 0; i < CardList.length; i++) 
+				{
+					if(CardList[i].style != "ghost")
+					{
+						for (var j = 0; j < CardList[i].categories.length; j++)
+						{	
+							var index = 0;
+							var foundIndex = false;
+							while(!foundIndex)
+							{	
+								if(index >= categoryList.length)
+									foundIndex = true;
+								else if (CardList[i].categories[j] == categoryList[index].name)
+									foundIndex = true;
+								else
+									index++;
+							}
+							if(index == categoryList.length)
+							{
+								var newCategory = {};
+								newCategory.name = CardList[i].categories[j];
+								newCategory.count = 1;
+								categoryList.push(newCategory);
+							}
+							else
+							{
+								categoryList[index].count++;
+							}
+							//CardList[i].categories[j]
+							
+						}
+
+
+						totalCount++;
+					}
+					//CardList[i]
+				};
+
+				var dropDown = document.getElementById("filter");
+				dropDown.innerHTML = "";
+
+				var item = document.createElement("option");
+				item.innerHTML = "All (" + totalCount + ")";
+				dropDown.appendChild(item);
+
+				for (var i = 0; i < categoryList.length; i++)
+				{	
+					item = document.createElement("option");
+					item.innerHTML = categoryList[i].name  + " (" + categoryList[i].count + ")";
+					dropDown.appendChild(item);
+					categoryList[i]
+				};
+
+				//Card Types
+
+				if(window.location.hash == "#Collection")
+				{
+					var CardBacks = {};
+					CardBacks.Standard = 0;
+					CardBacks.GreenBack = 0;
+					CardBacks.CloudBack = 0;
+					CardBacks.Sunset = 0;
+					CardBacks.Foil = 0;
+					for (var i = 0; i < CardList.length; i++) 
+					{
+						if(CardList[i].style == "standard" || CardList[i].style == "black" || CardList[i].style == "")
+							CardBacks.Standard++;
+						else if (CardList[i].style == "green")
+							CardBacks.GreenBack++;
+						else if (CardList[i].style == "cloud")
+							CardBacks.CloudBack++;
+						else if (CardList[i].style == "sunset")
+							CardBacks.Sunset++;
+						else if (CardList[i].style == "foil")
+							CardBacks.Foil++;
+					};
+
+					var styleSelector = document.getElementById("cardback");
+					if(styleSelector != undefined)
+						styleSelector.parentNode.removeChild(styleSelector);
+
+					styleSelector = document.createElement("select");
+					styleSelector.id = "cardback";
+					styleSelector.onchange = applyFilter;
+
+					var option = document.createElement("option");
+					option.innerHTML = "Any card back";
+					styleSelector.appendChild(option);
+					option = document.createElement("option");
+					option.innerHTML = "Standard (" + CardBacks.Standard + ")";
+					styleSelector.appendChild(option);
+					option = document.createElement("option");
+					option.innerHTML = "Green Back (" + CardBacks.GreenBack + ")";
+					styleSelector.appendChild(option);
+					option = document.createElement("option");
+					option.innerHTML = "Cloud Back (" + CardBacks.CloudBack + ")";
+					styleSelector.appendChild(option);
+					option = document.createElement("option");
+					option.innerHTML = "Sunset (" + CardBacks.Sunset + ")";
+					styleSelector.appendChild(option);
+					option = document.createElement("option");
+					option.innerHTML = "Foil (" + CardBacks.Foil + ")";
+					styleSelector.appendChild(option);
+					option = document.createElement("option");
+					option.innerHTML = "Uncommon";
+					styleSelector.appendChild(option);
+					option = document.createElement("option");
+					option.innerHTML = "Rare";
+					styleSelector.appendChild(option);
+
+					document.getElementsByTagName('h1')[0].insertBefore(styleSelector,document.getElementsByTagName("label")[0]);
+				}
+			}
+			
+			function applyFilter(){
+				var filterName = document.getElementById("filter").value;
+
+				filterName = filterName.substring(0,filterName.indexOf("(")-1);
+				
+				var cards = document.getElementById("cards").getElementsByClassName("card");
+				var showGhost = false;
+				try{showGhost = document.getElementById("ghost").checked;}catch(e){};
+
+				var hideDup = false;
+				try{hideDup = document.getElementById("dup").checked;;}catch(e){};
+
+				//category filtering
+				if(filterName != "All"){
+					for (var i = 0; i < cards.length; i++) 
+					{
+						if(cards[i].categories.indexOf(filterName) == -1)
+							cards[i].style.display = "none";
+						else if (cards[i].JSON.style != "ghost" || showGhost)
+							cards[i].style.display = "inline-block";
+						else
+							cards[i].style.display = "none";
+					};
+				}
+				else
+				{
+					for (var i = 0; i < cards.length; i++) 
+					{	
+						if(cards[i].JSON.style != "ghost")
+							cards[i].style.display = "inline-block";
+						else if(showGhost)
+							cards[i].style.display = "inline-block";
+						else
+							cards[i].style.display = "none";
+
+					};
+				}
+
+				//cardback filtering
+				if(document.getElementById('cardback') != undefined){
+					var filterName = document.getElementById('cardback').value;
+					if(filterName != "Any card back" && filterName != "Uncommon" && filterName != "Rare")
+					{
+						var selectedStyle = document.getElementById('cardback').value;
+						selectedStyle = selectedStyle.substring(0,selectedStyle.indexOf(" "));
+						selectedStyle = selectedStyle.toLowerCase();
+						
+						var cards = document.getElementById("cards").getElementsByClassName("card");
+						for (var i = 0; i < cards.length; i++)
+						{
+							if(cards[i].JSON.style != selectedStyle && cards[i].JSON.style != "ghost")
+								cards[i].style.display = "none";
+						};
+					}
+					else if(filterName == "Uncommon")
+					{
+						var cards = document.getElementById("cards").getElementsByClassName("card");
+						for (var i = 0; i < cards.length; i++)
+						{
+							if(cards[i].JSON.style == "standard")
+								cards[i].style.display = "none";
+						};
+					}
+					else if (filterName == "Rare")
+					{
+						var cards = document.getElementById("cards").getElementsByClassName("card");
+						for (var i = 0; i < cards.length; i++)
+						{
+							if(cards[i].JSON.style != "foil" && cards[i].JSON.style != "ghost" && cards[i].JSON.style != "sunset")
+								cards[i].style.display = "none";
+						};
+					}
+					
+				}
+
+				//search filtering
+				if(document.getElementById("textFilter").value != "")
+				{
+					var searchQuery = document.getElementById("textFilter").value;
+					searchQuery = searchQuery.toLowerCase();
+
+
+					for (var i = 0; i < cards.length; i++) 
+					{
+						var data = cards[i].JSON.name /*+" "+ cards[i].JSON.info*/;
+
+						data = data.toLowerCase();
+
+						if(data.indexOf(searchQuery) == -1)
+						{
+							cards[i].style.display = "none";
+						}
+					};
+
+				}
+
+				//turn off duplicates if enabled
+				cards = document.getElementById("cards").getElementsByClassName("card");
+				if(hideDup)
+				{
+					for (var i = 1; i < cards.length; i++) 
+					{		
+						if(cards[i].JSON.order == cards[i-1].JSON.order && cards[i-1].JSON.style != "ghost")
+						{
+							cards[i-1].style.display = "none";
+						}
+					};
+				}
+
+				//ghost cards
+				if(showGhost)
+				{
+					var ghostCards = document.getElementById("cards").getElementsByClassName("ghost");
+					var cards = document.getElementById("cards").getElementsByClassName("card");
+					for (var i = 0; i < cards.length; i++)
+					{
+						if(cards[i].style.display != "none" && cards[i].JSON.style != "ghost")
+							ghostCards[cards[i].JSON.order].style.display = "none";
+					};
+				}
+			}
+
+			function buyBooster()
+			{
+				var canBuy = false;
+				var Credits = 0;
+				try
+				{
+					Credits = JSON.parse(localStorage.MLPCards).credits;
+				}
+				catch(e){}
+
+				if(Credits == 0)
+				{
+					var CardList = [];
+					try
+					{
+						CardList = JSON.parse(localStorage.MLPCards).collection;
+					}
+					catch(e){CardList = [];}
+
+					if(CardList.length == 0)
+						canBuy = true;
+				}
+				else if(Credits >= 350)
+				{
+					Credits -= 350;
+
+					var MLPCards = JSON.parse(localStorage.MLPCards);
+					MLPCards.credits = Credits;
+					localStorage.MLPCards = JSON.stringify(MLPCards);
+
+					canBuy = true;
+				}
+
+				if(canBuy)
+				{
+					document.getElementById("other").innerHTML = "";
+					document.getElementById("cards").innerHTML = "";
+
+					for (var i = 0; i < 7; i++)
+					{
+						var style = "standard";
+						var card = CardDatabase[Math.floor(Math.random()*CardDatabase.length)];
+						if(Math.random()*3 >=2)
+						{
+							if(Math.random()*5>=4)
+							{
+								if(Math.random()*5 >=4)
+									style = "foil";
+								else
+									style = "sunset";
+							}
+							else
+							{
+								if(Math.random()*2 >=1)
+									style = "green";
+								else
+									style = "cloud";
+							}
+						}
+						card.style = style;
+
+						document.getElementById("cards").appendChild(createCard(card));
+
+						try{
+							var MLPCards = JSON.parse(localStorage.MLPCards);
+							MLPCards.collection.push(card);
+							localStorage.MLPCards =  JSON.stringify(MLPCards);
+						}
+						catch(e)
+						{
+							var MLPCards = {};
+							MLPCards.collection = [];
+							MLPCards.collection.push(card);
+							localStorage.MLPCards = JSON.stringify(MLPCards);
+						}	
+					};
+
+					document.getElementsByTagName("h1")[0].innerHTML = "Your new cards!";
+				}
+			}
+
+			function priceUpdate()
+			{
+				var allPrices = document.getElementsByClassName("price");
+				var cardsToUpdate = allPrices.length/30;
+
+				var min_price = {"standard":0, "": 0,"green":50,"cloud":50,"sunset":100,"foil":750};
+				var max_price = {"standard":30,"":30,"green":125,"cloud":125,"sunset":300,"foil":1250};
+
+				if(Math.random() <= cardsToUpdate%1)
+					cardsToUpdate++;
+				cardsToUpdate = Math.floor(cardsToUpdate);
+				for (var i = 0; i < cardsToUpdate; i++)
+				{
+					var randIndex = Math.floor(allPrices.length*Math.random());
+					var cardPrice = Number(allPrices[randIndex].innerHTML);
+					var cardStyle = allPrices[randIndex].parentNode.getElementsByClassName('card')[0].JSON.style;
+
+					if(Math.random() >= .5)
+					{
+						cardPrice += Math.round(Math.random()*(max_price[cardStyle]-min_price[cardStyle])/15)
+						allPrices[randIndex].classList.remove("rglow");
+						allPrices[randIndex].classList.remove("gglow");
+						allPrices[randIndex].classList.add("rglow");
+					}
+					else
+					{
+						cardPrice -= Math.round(Math.random()*(max_price[cardStyle]-min_price[cardStyle])/15);
+						allPrices[randIndex].classList.remove("rglow");
+						allPrices[randIndex].classList.remove("gglow");
+						allPrices[randIndex].classList.add("gglow");
+					}
+
+					if(cardPrice < min_price[cardStyle])
+						cardPrice = min_price[cardStyle];
+					if(cardPrice >  max_price[cardStyle])
+						cardPrice = max_price[cardStyle];
+
+					allPrices[randIndex].innerHTML = cardPrice;
+				};
+
+				var allDisplayPrices = document.getElementById("cards").getElementsByClassName("price");
+
+				//remove a card
+				if(Math.random() < allDisplayPrices.length/100/60)
+				{
+					var randIndex = Math.floor(allDisplayPrices.length*Math.random());
+
+					allDisplayPrices[randIndex].parentNode.parentNode.removeChild(allDisplayPrices[randIndex].parentNode);
+				}
+				//add  a card
+				if(Math.random() < (100 - allDisplayPrices.length)/100/60)
+				{
+					var buyDiv = document.createElement('div');
+					var card = {};
+					var cardJSON = copyObj(CardDatabase[Math.floor(Math.random()*CardDatabase.length)]);
+					if(Math.random()*5>=4)
+						cardJSON.style = "foil";
+					else if (Math.random()*4>=3)
+						cardJSON.style = "green";
+					else if (Math.random()*3>=2)
+						cardJSON.style = "cloud";
+					else if (Math.random()*2>=1)
+						cardJSON.style = "sunset";
+					else
+						cardJSON.style = "standard";
+
+					card = createCard(cardJSON);
+					card.classList.add("mini");
+
+					card.onclick = function()
+					{
+						if(this.parentNode.parentNode.id == "other")
+						{
+							var CardBox = this.parentNode;
+
+							CardBox.parentNode.removeChild(CardBox);
+							document.getElementById("cards").appendChild(CardBox);
+
+							try
+							{
+								var MLPCards = JSON.parse(localStorage.MLPCards);
+								MLPCards.credits += Number(CardBox.getElementsByClassName("price")[0].innerHTML);
+								
+								var index = 0;
+								while (index < MLPCards.collection.length)
+								{
+									if(this.JSON.description == MLPCards.collection[index].description && this.JSON.image == MLPCards.collection[index].image && this.JSON.style ==  MLPCards.collection[index].style)
+									{
+										MLPCards.collection.splice(index,1);
+										index = MLPCards.collection.length;
+									}
+									else
+										index++;
+								}
+
+								document.getElementsByTagName("h1")[0].innerHTML = "Click to buy: You have " + MLPCards.credits + " credits";
+								localStorage.MLPCards = JSON.stringify(MLPCards);
+							}
+							catch(e)
+							{
+								var MLPCards = {};
+								MLPCards.credits = 0;
+								MLPCards.collection = 0;
+							}
+						}
+						else if(this.parentNode.parentNode.id == "cards")
+						{
+							try
+							{
+								var MLPCards = JSON.parse(localStorage.MLPCards);
+								var CardBox = this.parentNode;
+
+								if(MLPCards.credits >= Number(CardBox.getElementsByClassName("price")[0].innerHTML))
+								{
+									MLPCards.credits -= Number(CardBox.getElementsByClassName("price")[0].innerHTML);
+									MLPCards.collection.push(this.JSON);
+									CardBox.parentNode.removeChild(CardBox);
+
+									var insertIndex = 0;
+									var priceList = document.getElementById('other').getElementsByClassName("price");
+									while(insertIndex < priceList.length)
+									{
+										if(this.JSON.image == priceList[insertIndex].parentNode.getElementsByClassName("card")[0].JSON.image)
+										{
+											document.getElementById("other").insertBefore(CardBox,priceList[insertIndex].parentNode);
+											insertIndex = priceList.length+5;
+										}
+										else
+										{
+											insertIndex++;
+										}
+									}
+									if(insertIndex == priceList.length)
+										document.getElementById("other").appendChild(CardBox);
+								}
+								document.getElementsByTagName("h1")[0].innerHTML = "Click to buy: You have " + MLPCards.credits + " credits";
+
+								localStorage.MLPCards = JSON.stringify(MLPCards);
+							}
+							catch(e){}
+						}
+					}
+				
+					buyDiv.appendChild(card);
+					buyDiv.style.display = "inline-block";
+					buyDiv.style.textAlign = "center";
+					buyDiv.style.fontSize = "20pt";
+
+					buyDiv.appendChild(document.createElement("br"));
+					var PriceBox = document.createElement("div");
+					PriceBox.className = "price";
+					PriceBox.innerHTML = Math.floor(Math.random()*(max_price[card.JSON.style] - min_price[card.JSON.style]+1)) + min_price[card.JSON.style];
+					buyDiv.appendChild(PriceBox);
+				
+					document.getElementById('cards').appendChild(buyDiv);
+				}
+
+				// checking for bad cards
+				var badCards = 0;
+				allPrices = document.getElementsByClassName("price");
+				for (var i = 0; i < allPrices.length; i++)
+				{
+					var cardInQuestion = allPrices[i].parentNode.getElementsByClassName("card")[0];
+					var backgroundURL = cardInQuestion.style.backgroundImage; 
+					backgroundURL = backgroundURL.substring(5);
+
+					backgroundURL = backgroundURL.substring(0,backgroundURL.indexOf("_"));
+
+					if(cardInQuestion.JSON.style != backgroundURL)
+					{
+						badCards++;
+						zzz = cardInQuestion;
+						alert("bad card! " + cardInQuestion.JSON.style + " " + backgroundURL);
+					}
+				};
+
+				if(window.location.hash == "#Market" && badCards == 0)
+					requestAnimationFrame(priceUpdate);
+			}
+
+			function loadPage(databaseIndex){
+
+				//document.getElementById("cards").innerHTML = "";
+				//database index is at zero when page initially loads. When card databases load, page reloads, 
+				//but only the new cards above this index should be looked at
+				if(databaseIndex == undefined)
+					databaseIndex = 0;
+
+				if(localStorage.MLPCards == undefined)
+				{
+					MLPCards = {};
+					MLPCards.credits = 0;
+					MLPCards.collection = [];
+					localStorage.MLPCards = JSON.stringify(MLPCards);
+				}
+				if(window.location.search.length > 1){
+					window.location.hash = "#Custom";
+				}
+
+			 	if(window.location.hash == "#Collection"){
+					CardList = [];
+					var Credits = 0;
+
+					try
+					{
+						CardList = JSON.parse(localStorage.MLPCards).collection;
+					}
+					catch(e){CardList = [];}
+
+					try
+					{
+						Credits = JSON.parse(localStorage.MLPCards).credits;
+					}
+					catch(e){}
+
+					//add ghost cards
+					for (var i = databaseIndex; i < CardDatabase.length; i++)
+					{
+						var missingCard = copyObj(CardDatabase[i]);
+						missingCard.style = "ghost";
+						CardList.push(missingCard);
+					};
+
+					//sort all the cards
+					CardList.sort(function(a,b){
+					if(a.order - b.order == 0)
+					{
+						var styleOrders = ["ghost","","black","standard","green","cloud","sunset","foil"];
+
+						return styleOrders.indexOf(a.style) - styleOrders.indexOf(b.style);
+					}
+					else
+						return a.order - b.order;
+					});
+
+					//removes cards that aren't in the Database yet
+					while(CardList[0].order == -1)
+						CardList.shift();
+
+					getCategories();
+
+					for (var i = 0; i < CardList.length; i++) 
+					{	
+						if(CardList[i].order >= databaseIndex)
+							document.getElementById('cards').appendChild(createCard(CardList[i]));
+					}
+
+				
+
+					if(CardList.length == 0)
+					{
+						document.getElementById("cards").innerHTML = "You have no cards :(";
+					}
+
+					if(databaseIndex == 0){
+						document.getElementById("sortingbox").innerHTML += '<label for="dup"> Hide Duplicates</label><input type="checkbox" id="dup" onchange = "applyFilter();"><label for="ghost"> Show Missing Cards</label><input type="checkbox" id="ghost" onchange = "applyFilter();">'
+
+						if(Credits == 0 && CardList.length == CardDatabase.length)
+						{
+							document.getElementById("other").innerHTML += "<br><button onclick = 'buyBooster();'>Click here for a <br>free booster pack!</button>";
+						}
+						else
+						{
+							document.getElementById("other").innerHTML += "<h1>" + Credits + " Credits</h1><button onclick = 'buyBooster();'>Buy Booster Pack <br>(350 Credits)</button>";
+						}
+
+						var DeleteInventoryButton = document.createElement("button");
+						DeleteInventoryButton.innerHTML = "Delete Inventory";
+						DeleteInventoryButton.onclick = function(){
+							if(confirm("Are you sure you want to delete all cards and credits from your collection?")){
+								delete localStorage.MLPCards;
+							}
+						}
+
+						document.getElementById("other").appendChild(document.createElement("br"));
+						document.getElementById("other").appendChild(document.createElement("br"));
+						document.getElementById("other").appendChild(DeleteInventoryButton);
+
+						document.getElementById("other").style.position = "fixed";
+						document.getElementById("other").style.bottom = "0px";
+						document.getElementById("other").style.right = "0px";
+						document.getElementById("other").style.margin = "10px";
+						document.getElementById("other").style.padding = "10px";
+						document.getElementById("other").style.textAlign = "center";
+						document.getElementById("other").style.backgroundColor = "white";
+					}
+				}
+				else if(window.location.hash == "#Market"){
+					CardList = [];
+					var Credits = 0;
+					var min_price = {"standard":0, "": 0,"green":50,"cloud":50,"sunset":100,"foil":750};
+					var max_price = {"standard":30,"":30,"green":125,"cloud":125,"sunset":300,"foil":1250};
+
+					try
+					{
+						CardList = JSON.parse(localStorage.MLPCards).collection;
+					}
+					catch(e){CardList = [];}
+
+					try
+					{
+						Credits = JSON.parse(localStorage.MLPCards).credits;
+					}
+					catch(e){}
+
+					for (var i = 0; i < CardList.length; i++) 
+					{	
+						var buyDiv = document.createElement('div');
+						var card = createCard(CardList[i]);
+
+						card.classList.add("mini");
+						card.onclick = function()
+						{
+							if(this.parentNode.parentNode.id == "other")
+							{
+								var CardBox = this.parentNode;
+
+								CardBox.parentNode.removeChild(CardBox);
+								document.getElementById("cards").appendChild(CardBox);
+
+								try
+								{
+									var MLPCards = JSON.parse(localStorage.MLPCards);
+									MLPCards.credits += Number(CardBox.getElementsByClassName("price")[0].innerHTML);
+									
+									var index = 0;
+									while (index < MLPCards.collection.length)
+									{
+										if(this.JSON.description == MLPCards.collection[index].description && this.JSON.image == MLPCards.collection[index].image && this.JSON.style ==  MLPCards.collection[index].style)
+										{
+											MLPCards.collection.splice(index,1);
+											index = MLPCards.collection.length;
+										}
+										else
+											index++;
+									}
+
+									document.getElementsByTagName("h1")[0].innerHTML = "Click to buy: You have " + MLPCards.credits + " credits";
+									localStorage.MLPCards = JSON.stringify(MLPCards);
+								}
+								catch(e)
+								{
+									var MLPCards = {};
+									MLPCards.credits = 0;
+									MLPCards.collection = 0;
+								}
+							}
+							else if(this.parentNode.parentNode.id == "cards")
+							{
+								try
+								{
+									var MLPCards = JSON.parse(localStorage.MLPCards);
+									var CardBox = this.parentNode;
+
+									if(MLPCards.credits >= Number(CardBox.getElementsByClassName("price")[0].innerHTML))
+									{
+										MLPCards.credits -= Number(CardBox.getElementsByClassName("price")[0].innerHTML);
+										MLPCards.collection.push(this.JSON);
+										CardBox.parentNode.removeChild(CardBox);
+
+										var insertIndex = 0;
+										var priceList = document.getElementById('other').getElementsByClassName("price");
+										while(insertIndex < priceList.length)
+										{
+											if(this.JSON.image == priceList[insertIndex].parentNode.getElementsByClassName("card")[0].JSON.image)
+											{
+												document.getElementById("other").insertBefore(CardBox,priceList[insertIndex].parentNode);
+												insertIndex = priceList.length+5;
+											}
+											else
+											{
+												insertIndex++;
+											}
+										}
+										if(insertIndex == priceList.length)
+											document.getElementById("other").appendChild(CardBox);
+									}
+									document.getElementsByTagName("h1")[0].innerHTML = "Click to buy: You have " + MLPCards.credits + " credits";
+
+									localStorage.MLPCards = JSON.stringify(MLPCards);
+								}
+								catch(e){}
+							}
+						}
+						
+						buyDiv.appendChild(card);
+						buyDiv.style.display = "inline-block";
+						buyDiv.style.textAlign = "center";
+						buyDiv.style.fontSize = "20pt";
+
+						buyDiv.appendChild(document.createElement("br"));
+						var PriceBox = document.createElement("div");
+						PriceBox.className = "price";
+						//PriceBox.innerHTML = Math.floor(Math.random()*31) + min_price[CardList[i].style];
+						PriceBox.innerHTML = Math.floor(Math.random()*(max_price[CardList[i].style] - min_price[CardList[i].style]+1)) + min_price[CardList[i].style];
+						buyDiv.appendChild(PriceBox);
+					
+						var insertIndex = 0;
+						var priceList = document.getElementById('other').getElementsByClassName("price");
+						while(insertIndex < priceList.length)
+						{
+							if(card.JSON.image == priceList[insertIndex].parentNode.getElementsByClassName("card")[0].JSON.image)
+							{
+								//.insertBefore(buyDiv);
+								document.getElementById("other").insertBefore(buyDiv,priceList[insertIndex].parentNode)
+								insertIndex = priceList.length+5;
+							}
+							else
+							{
+								insertIndex++;
+							}
+						}
+						if(insertIndex == priceList.length)
+						{
+							document.getElementById('other').appendChild(buyDiv);
+							//alert("adding card to div");
+						}
+					}
+					var credits;
+
+					try{credits = JSON.parse(localStorage.MLPCards).credits}
+					catch(e){credits = 0;}
+
+					var h1 = document.getElementsByTagName("h1")[0];
+					h1.parentNode.removeChild(h1);
+
+					h1.innerHTML = "Click to buy: You have " + credits + " credits";
+
+					document.getElementsByTagName('div')[1].insertBefore(h1,document.getElementById("cards"));
+
+					document.getElementsByTagName("h1")[1].innerHTML = "Click to sell:";
+
+					if(CardList.length == 0)
+					{
+						document.getElementById("other").innerHTML = "You have no cards :(";
+					}
+
+					priceUpdate();
+				}
+				else if (window.location.hash == "#Custom"){
+					//document.getElementById('cards').innerHTML = document.getElementById("customHTML").innerHTML;
+					document.getElementById("customHTML").style.display = "block";
+					document.getElementById("sortingbox").style.display = "none";
+
+					//load custom card URLs
+					try{
+						var customCardInfo = window.location.search.substring(3);
+
+						//customCardInfo = atob(customCardInfo);
+						customCardInfo = decodeURI(customCardInfo);
+						customCardInfo = JSON.parse(customCardInfo);
+
+						document.getElementById("customURL").value = customCardInfo.image;
+						document.getElementById("customTitle").value = customCardInfo.name;
+						document.getElementById("customDescription").value = customCardInfo.info;
+						document.getElementById('taglist').setValue(customCardInfo.categories);
+						customCard();
+					}
+					catch(exception){};
+
+					//load local custom collection
+					try{
+						var cardDiv = document.getElementById("customCollection");
+						var cards = JSON.parse(localStorage.MLPCustomCards);
+
+						for (var i = 0; i < cards.length; i++) {
+
+							var myCard = createCard(cards[i]);
+							myCard.classList.add('mini');
+							myCard.onclick = function(){
+								document.getElementById("customURL").value = this.JSON.image;
+								document.getElementById("customTitle").value = this.JSON.name;
+								document.getElementById("customDescription").value = this.JSON.info;
+								document.getElementById('taglist').setValue(this.JSON.categories);
+								customCard();
+							}
+
+							cardDiv.appendChild(myCard);
+						};
+						if(cards.length == 0){
+							var text = document.createElement('p');
+							text.innerHTML = "You don't have any custom cards saved :(";
+							cardDiv.appendChild(text);
+						}
+						else{
+							var collectionJSONbox = document.createElement("input");
+							collectionJSONbox.type = "text";
+							collectionJSONbox.readOnly = true;
+							collectionJSONbox.value = localStorage.MLPCustomCards;
+							cardDiv.appendChild(document.createElement("br"));
+							cardDiv.appendChild(collectionJSONbox);
+						}
+
+						
+					}
+					catch(exception){
+						var text = document.createElement('p');
+						text.innerHTML = "You don't have any custom cards saved :(";
+						cardDiv.appendChild(text);
+					}
+
+					//load import settings
+					try{
+						var importSettings = JSON.parse(localStorage.MLPCardsImport);
+
+						if(importSettings.indexOf("local") == -1)
+							document.getElementById("usingCustomCards").checked = false;
+						else{
+							document.getElementById("usingCustomCards").checked = true;
+							importSettings.splice(importSettings.indexOf("local"),1);
+						}
+
+						for (var i = 0; i < importSettings.length; i++) {
+							var importSettingBox = document.createElement('div');
+
+							var label = document.createElement('span');
+							label.innerHTML = "import <span style='color: blue;'>" + importSettings[i] + "</span> ";
+							importSettingBox.appendChild(label);
+
+							var removeButt = document.createElement("button");
+							removeButt.innerHTML = "X";
+							removeButt.onclick = function(){
+								try{
+									var item = this.parentNode.getElementsByTagName("span")[0].getElementsByTagName("span")[0].innerHTML;
+									var importSettings = JSON.parse(localStorage.MLPCardsImport);
+									importSettings.splice(importSettings.indexOf(item),1);
+									localStorage.MLPCardsImport = JSON.stringify(importSettings);
+								}
+								catch(ex){}
+								window.location.reload();
+							}
+							importSettingBox.appendChild(removeButt);
+
+							document.getElementById("importSettings").appendChild(importSettingBox);
+						};
+
+						var addImportBox = document.createElement('div');
+
+						var addBox = document.createElement('input');
+						addBox.placeholder = "text file URL";
+						addBox.type = "text";
+						addImportBox.appendChild(addBox);
+
+						var addButt = document.createElement("button");
+						addButt.innerHTML = "Add";
+						addButt.onclick = function(){
+							try{
+								var item = this.parentNode.getElementsByTagName("input")[0].value;
+								var importSettings = JSON.parse(localStorage.MLPCardsImport);
+								importSettings.push(item);
+								localStorage.MLPCardsImport = JSON.stringify(importSettings);
+							}
+							catch(ex){}
+							window.location.reload();
+						}
+
+						addImportBox.appendChild(addButt); 
+						document.getElementById("importSettings").appendChild(document.createElement("br"));
+						document.getElementById("importSettings").appendChild(addImportBox);
+
+						var helpBox = document.createElement("div");
+						var helpLink = document.createElement("a");
+						helpLink.innerHTML = "What's this?";
+						helpLink.href = "Customization Help.html";
+						helpBox.appendChild(helpLink);
+						document.getElementById("importSettings").appendChild(helpBox);
+
+					}catch(exception){
+						console.log("Restoring default import settings");
+						localStorage.MLPCardsImport = "[]";
+						document.getElementById("usingCustomCards").checked = false;
+					}
+
+					document.getElementById("usingCustomCards").onchange = function(){
+						try{
+							var importSettings = JSON.parse(localStorage.MLPCardsImport);
+							if(this.checked){
+								importSettings.push("local");
+							}
+							else
+								importSettings.splice(importSettings.indexOf("local"),1);
+
+							localStorage.MLPCardsImport = JSON.stringify(importSettings);
+						}
+						catch(exception){
+							var importSettings = [];
+							if(this.checked){
+								importSettings.push("local");
+							}
+							localStorage.MLPCardsImport = JSON.stringify(importSettings);
+						}
+					}
+				}
+				else{
+					CardList = CardDatabase;
+					for (var i = databaseIndex; i < CardList.length; i++) 
+					{	
+						document.getElementById('cards').appendChild(createCard(CardList[i]));
+					}
+					getCategories();
+				}
+
+				var topMargin = document.getElementById("navigation").clientHeight;
+				document.getElementById('main').style.marginTop = topMargin + "px";
+			}
+
+			function loadCardLibrary(Ajax){
+				try{
+					var cardLibrary = JSON.parse(Ajax.responseText);
+
+					CardDatabase = CardDatabase.concat(cardLibrary);
+
+					enumerateAllCards();
+
+					if(window.location.hash == "#Collection"){
+						loadPage(CardDatabase.length - cardLibrary.length);
+						applyFilter();
+					}
+					else if (window.location.hash !="#Market" && window.location.hash !="#Custom" && window.location.search.length < 2){
+						loadPage(CardDatabase.length - cardLibrary.length)
+						applyFilter();
+					}
+
+					console.log(Ajax.responseURL + " successfully imported");
+				}
+				catch(e){}
+			}
+
+			function customCard(){
+				var cardDescription = {};
+				cardDescription.name = document.getElementById("customTitle").value;
+				cardDescription.info = document.getElementById("customDescription").value;
+				cardDescription.image = document.getElementById("customURL").value;
+				cardDescription.categories = document.getElementById("taglist").getValue();
+
+				var JSONtext = JSON.stringify(cardDescription);
+				document.getElementById("cardJSON").value = JSONtext;
+
+				document.getElementById("customOptions").style.display = "inline-block";
+
+				document.getElementById("shareURL").value = window.location.origin + window.location.pathname + "?c=" + encodeURI(JSONtext);
+
+				var flipped = false;
+				if(document.getElementById("customCard").getElementsByClassName("back").length == 1)
+					flipped = true;
+
+				document.getElementById("customCard").innerHTML = "";
+				var card = createCard(cardDescription,false);
+
+				if(flipped){
+					card.classList.remove("front"); 
+					card.classList.add("back");
+
+					card.getElementsByClassName('fs')[0].style.visibility = "hidden";
+					card.getElementsByClassName('bs')[0].style.visibility = "visible";
+				}
+				document.getElementById("customCard").appendChild(card);
+
+				return JSONtext;
+			}
+
+			function saveCustomCard(deleteCard){
+				if(document.getElementsByClassName("card").length != 0){
+					try{
+						var CardCollection = JSON.parse(localStorage.MLPCustomCards);
+						var CardToAdd = JSON.parse(customCard());
+
+						for (var i = 0; i < CardCollection.length; i++) {
+							if(CardCollection[i].image == CardToAdd.image){
+								CardCollection.splice(i,1);
+								i--;
+							}
+						};
+
+						if(!deleteCard)
+							CardCollection.push(CardToAdd);
+
+						localStorage.MLPCustomCards = JSON.stringify(CardCollection);
+					}
+					catch(excpetion){
+						if(!deleteCard){
+							var CardCollection = [];
+							var CardToAdd = JSON.parse(customCard());
+							CardCollection.push(CardToAdd);
+							localStorage.MLPCustomCards = JSON.stringify(CardCollection);
+						}
+					}
+					if(window.location.search = "?")
+						window.location.reload();
+					window.location.search = "?";
+				}
+			}
+			function copyObj(object1){
+				return JSON.parse(JSON.stringify(object1));
+			}
+		</script>
+		<style type="text/css">
+			select {font-size: 15pt;}
+			h1 label,input{
+				font-size: 12pt;
+				font-weight: normal;
+			}
+
+			#sortingbox{
+				margin: 0px;
+				padding: 0px;
+				text-align: left;
+				z-index: 1;
+				/*position: fixed;*/
+				display: inline;
+				/*background-color: white;*/
+			}
+			.card{
+				height: 350px;
+				width: 250px;
+				position: relative;
+				display: inline-block;
+				margin: 5px;
+				border-radius: 10px;
+				font-family: "Comic Sans MS";
+				text-align: center;
+
+				-webkit-transition: .5s;
+				transition: .5s;
+				transition-timing-function: linear;
+			}
+			.ghost{
+				-webkit-filter: grayscale(100%); /* Chrome, Safari, Opera */
+				filter: grayscale(100%);
+			}
+			.card:hover
+			{
+				box-shadow: 0px 0px 25px  blue;
+			}				
+
+			.fs {position: relative;}
+			.fs .namePlate
+			{
+				width: 100%;
+				position: absolute;
+				bottom: 15%;
+				background-color: white;
+				font-size: 1.5em;
+			}
+			.fs img
+			{
+				margin: 10px;
+			}
+			.bs
+			{
+				-webkit-transform: scaleX(-1); transform: scaleX(-1);
+				position: absolute;
+				top: 0px;
+				height: 330px;
+				margin: 10px;
+				overflow: hidden;
+			}
+			.bs .info
+			{
+				position: relative;
+				top: 50%;
+				-webkit-transform: translateY(-50%);
+				width: 230px;
+				background-color: rgba(255,255,255,.5);
+
+				border-radius: 15px;
+			}
+			.r3{-webkit-transform: rotateY(270deg);}
+			.r1{-webkit-transform: rotateY(90deg);}
+			.back{-webkit-transform: rotateY(180deg);}
+			.r4{ -webkit-transform: rotateY(360deg);}
+			.front{ -webkit-transition: 0s; transition: 0s;}
+
+			#navigation{
+				position: fixed;
+				background-color: white;
+				z-index: 4;
+				top: 0px;
+				text-align: center;
+				width: 100%;
+			}
+			#navigation a{
+				display: inline-block;
+				margin: auto;
+				font-size: 15pt;
+				width: 23%;
+				padding: 5px;
+				text-decoration: none;
+			}
+			#navigation a:hover{
+				background-color: gray;
+			}
+
+			/*#customOptions{
+				height: 350px;
+			}*/
+
+			.card.mini
+			{
+				width: 75px;
+				height: 105px;
+				font-size: 3pt;
+				background-size: 100%;
+				border-radius: 3px;
+				margin: 2px;
+			}
+			.mini .fs img
+			{
+				margin: 3px;
+				width: 69px;
+				height: 99px;
+			}
+			.mini .bs
+			{
+				position: absolute;
+				top: 0px;
+				height: 99px;
+				width: 69px;
+				margin: 3px;
+				overflow: hidden;
+			}
+			.mini .bs .info
+			{
+				position: relative;
+				top: 50%;
+				-webkit-transform: translateY(-50%);
+				width: 69px;
+				background-color: rgba(255,255,255,.5);
+				border-radius: 5px;
+			}
+			.mini .bs img
+			{
+				width: 69px;
+			}
+
+			.mini 
+			{
+				width: 30%;
+				height: 30%;
+			}
+
+			/*.gglow
+			{
+				
+				animation-name: gglowanim;
+					animation-duration: .5s;
+			}
+			.rglow
+			{
+				
+				animation-name: rglowanim;
+					animation-duration: .5s;
+			}*/
+			
+			@keyframes gglowanim 
+			{
+				from {background-color: green;}
+				to {background-color: white;}
+			}
+			@keyframes rglowanim 
+			{
+				from {background-color: red;}
+				to {background-color: white;}
+			}
+		</style>	
+	</body>
+</html>
