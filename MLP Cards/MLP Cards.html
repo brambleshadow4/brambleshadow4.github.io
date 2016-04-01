@@ -1232,6 +1232,7 @@
 						console.log("Restoring default import settings");
 						localStorage.MLPCardsImport = "[]";
 						document.getElementById("usingCustomCards").checked = false;
+						location.reload();
 					}
 
 					document.getElementById("usingCustomCards").onchange = function(){
