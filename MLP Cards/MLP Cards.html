@@ -137,6 +137,7 @@
 
 				Every card must have a unique card URL
 			*/
+			var myInterval;
 			
 			var importSettings = []
 			
@@ -213,6 +214,34 @@
 
 			enumerateAllCards();
 
+			function addSparkle(container, frame){
+				var animationImg = document.createElement('img');
+				
+				var state;
+
+				if(frame == undefined)
+					state = Math.floor(Math.random()*10);
+				else
+					state = frame;
+
+
+				animationImg.src = "twinkle" + (state < 5 ? state : 10-state) + ".png";
+				animationImg.state = state;
+
+				animationImg.className = "twinkle";
+				var isMini = false;
+				if(container.classList.contains("mini")){
+					isMini = true;
+					animationImg.classList.add("mini");
+				}
+
+				animationImg.style.position = "absolute";
+				animationImg.style.top = Math.floor(Math.random()*(container.clientHeight-3)-(isMini? 3: 15)) + "px";
+				animationImg.style.left = Math.floor(Math.random()*(container.clientWidth-3)-(isMini? 3: 15)) + "px";
+			
+				container.appendChild(animationImg);
+			}
+
 			function createCard(descriptor){
 				var myCard = document.createElement('div');
 				myCard.className = "card front";
@@ -252,7 +281,6 @@
 					frontSide.appendChild(nameplate);
 				}
 
-
 				var cardImage = document.createElement('img');
 				var ImageDiv = document.createElement('div');
 				cardImage.src = "logo.png";
@@ -282,6 +310,16 @@
 					cardImage.style.left = "0px";
 					frontSide.appendChild(cardImage);
 				}
+				if(descriptor.style == "foil"){
+					addSparkle(myCard,0);
+					addSparkle(myCard,5);
+					addSparkle(myCard,1);
+					addSparkle(myCard,9);
+					addSparkle(myCard,3);
+					addSparkle(myCard,8);
+					addSparkle(myCard);
+					addSparkle(myCard);
+				}
 
 				var backSide = document.createElement('div');
 				backSide.className = "bs";
@@ -297,8 +335,7 @@
 				myCard.appendChild(backSide);
 				
 
-				myCard.onclick = function()
-				{
+				myCard.onclick = function(){
 					if(this.classList.contains("card") && this.classList.contains("front"))
 					{
 						this.classList.add("r1");
@@ -900,7 +937,7 @@
 					while(CardList[0].order == -1)
 						CardList.shift();
 
-					getCategories();
+					
 
 					for (var i = 0; i < CardList.length; i++) 
 					{	
@@ -947,6 +984,8 @@
 						document.getElementById("other").style.textAlign = "center";
 						document.getElementById("other").style.backgroundColor = "white";
 					}
+					getCategories();
+
 				}
 				else if(window.location.hash == "#Market"){
 					CardList = [];
@@ -1264,6 +1303,35 @@
 					getCategories();
 				}
 
+				if(databaseIndex == 0){
+					
+					myInterval = window.setInterval(function(){
+						var items = document.getElementsByClassName("twinkle");
+
+						for (var i = 0; i < items.length; i++){
+							var state = Number(items[i].state);
+							state++;
+
+							if(state == 10){
+								var parent = items[i].parentNode;
+								parent.removeChild(items[i]);
+								addSparkle(parent,0);
+							}
+							else{
+								items[i].state = state;
+								items[i].src = "twinkle" + (state < 5 ? state : 10-state) + ".png";
+							}	
+
+							/*if(items[i].parentNode.classList.contains("mini") && items[i].parentNode.getElementsByClassName("twinkle").length >2){
+								var twinkleList = items[i].parentNode.getElementsByClassName("twinkle");
+								while(twinkleList.length > 2)
+									twinkleList[0].parentNode.removeChild(twinkleList[0]);
+								twinkleList[1].state = (Number(twinkleList[0].state)+5)%10;
+							}*/
+						}
+					},40);
+				}
+
 				var topMargin = document.getElementById("navigation").clientHeight;
 				document.getElementById('main').style.marginTop = topMargin + "px";
 			}
@@ -1398,18 +1466,14 @@
 			}				
 
 			.fs {position: relative;}
-			.fs .namePlate
-			{
+			.fs .namePlate{
 				width: 100%;
 				position: absolute;
 				bottom: 15%;
 				background-color: white;
 				font-size: 1.5em;
 			}
-			.fs img
-			{
-				margin: 10px;
-			}
+			.fs img{margin: 10px;}
 			.bs
 			{
 				-webkit-transform: scaleX(-1); transform: scaleX(-1);
@@ -1459,8 +1523,7 @@
 				height: 350px;
 			}*/
 
-			.card.mini
-			{
+			.card.mini{
 				width: 75px;
 				height: 105px;
 				font-size: 3pt;
@@ -1468,14 +1531,12 @@
 				border-radius: 3px;
 				margin: 2px;
 			}
-			.mini .fs img
-			{
+			.mini .fs img{
 				margin: 3px;
 				width: 69px;
 				height: 99px;
 			}
-			.mini .bs
-			{
+			.mini .bs{
 				position: absolute;
 				top: 0px;
 				height: 99px;
@@ -1483,8 +1544,7 @@
 				margin: 3px;
 				overflow: hidden;
 			}
-			.mini .bs .info
-			{
+			.mini .bs .info{
 				position: relative;
 				top: 50%;
 				-webkit-transform: translateY(-50%);
@@ -1492,15 +1552,16 @@
 				background-color: rgba(255,255,255,.5);
 				border-radius: 5px;
 			}
-			.mini .bs img
-			{
-				width: 69px;
-			}
+			.mini .bs img{width: 69px;}
 
-			.mini 
-			{
+			.mini {
 				width: 30%;
 				height: 30%;
+			}
+
+			.twinkle.mini{
+				width: 10px;
+				height: 10px;
 			}
 
 			/*.gglow

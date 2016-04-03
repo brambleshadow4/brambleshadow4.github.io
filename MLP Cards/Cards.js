@@ -372,6 +372,42 @@ var CardDatabase =
 		image: "sshill.png",
 		info: "Silver Shill is a sales pony who worked with the Flim Flam brothers.",
 		categories: ["Character","Earth Pony"]
+	},
+	{
+		name: "Maud Pie",
+		image: "mpie.png",
+		info: "Maud Pie is Pinkie Pie's older sister. She lives on a rock farm with the rest of the Pie family.",
+		categories: ["Character","Earth Pony"]
+	},
+	{
+		name: "Trouble Shoes",
+		image: "tshoes.png",
+		info: "Trouble Shoes is a pony from Appleoosa. He dreams of competing in the rodeo there.",
+		categories: ["Character","Earth Pony"]
+	},
+	{
+		name: "Tree Hugger",
+		image: "tree.png",
+		info: "Tree hugger is a friend of Fluttershy's. She's a laid back hippie of sorts.",
+		categories: ["Character","Earth Pony"]
+	},
+	{
+		name: "Sassy Saddles",
+		image: "ssaddles.png",
+		info: "Sassy Saddles is Rarity's manager. She works in the Canterlot Boutique.",
+		categories: ["Character","Unicorn"]
+	},
+	{
+		name: "Sunburst",
+		image: "sunburst.png",
+		info: "Sunburst is an old friend of Starlight's. He got his cutie mark in magic and ended up going to Celestia's school in Canterlot.",
+		categories: ["Character","Unicorn"]
+	},
+	{
+		name: "Flurry Heart",
+		image: "fheart.png",
+		info: "Flurry Heart is Princess Cadance and Shining Armor's child. She is first known alicorn to be born in Equestria.",
+		categories: ["Character","Alicorn"]
 	}
 ];
 
@@ -409,12 +445,8 @@ Gummy
 Steven Magnet
 
 Secondary Characters
-Trenderhoof
-Maud Pie & Pie Family
-Spitfire
-Soarin
-Fleetfoot
-Silver Shill
+Pie Family
+
 
 Flutterbat
 Pinkamena 
