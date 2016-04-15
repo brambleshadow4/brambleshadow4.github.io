@@ -2,12 +2,17 @@
 <html>
 	<body>
 		<style type="text/css">
-			body{text-align: center; font-family: "Keryodchi";}
+			body{
+				text-align: center; font-family: "Keryodchi";
+				background: url("WebArt.png") no-repeat center fixed;
+				font-size: 15pt;
+			}
 			h1{font-size: 40pt;}
 			h2{font-size: 20pt;}
-			table{border: 5px solid black; font-size: 20pt;}
+			table{border: 5px solid white; font-size: 20pt;}
 			table button {font-size: 20pt;}
-			tr, th, td{border: 1px solid black;}
+			tr, th, td{border: 1px solid white;}
+			a{color: #5555ff;}
 
 			.f30 {font-size: 30pt}
 
@@ -15,60 +20,133 @@
 			  	font-family: Keryodchi;
 			    src: url(Keryodchi.otf);
 			}
-		</style>
 
-		<h1>brambleshadow4.github.io</h1>
-		<h2>You've come to the right place!</h2>
-		<img src="FluttershyYay.png" height = "380" width = "600"/>
-		<p>This is the location of some of my own programs and games. Feel free to look at them and thier code, or just play around with the games as you like</p>
-		<span class="f30">Project List:</span>
-		<table style = 'margin: auto;'>
-			<tr><th>Project</th><th>Type</th></tr>
-			<tr>
-				<td><a href="Data Structure/Data Structure.html">Data Structure</a></td>
-				<td>Game</td>
-			</tr>
-			<tr>
-				<td><a href="Avoid/Avoid.html">Avoid</a></td>
-				<td>Game</td>
-			</tr>
-			<tr>
-				<td><a href="SmallProjects/Name Generator.html">Name Generator</a></td>
-				<td>Generator</td>
-			</tr>
-			<tr>
-				<td><a href="SmallProjects/maze.html">Maze Generator</a></td>
-				<td>Generator</td>
-			</tr>
-			<!--<tr>
-				<td><a href="SmallProjects/Note Guessing Game.html">Note Guessing Game</a></td>
-				<td>Game</td>
-			</tr>-->
-			<tr>
-				<td><a href="SmallProjects/4D Tic Tac Toe.html">4D Tic Tac Toe</a></td>
-				<td>Game</td>
-			</tr>
-			<tr>
-				<td><a href="SmallProjects/speed.html">Speed AI</a></td>
-				<td>Game</td>
-			</tr>
-			<tr>
-				<td><a href="SuperRainbowDash/index.html">Super Rainbow Dash</a></td>
-				<td>Game</td>
-			</tr>
-			<tr>
-				<td><a href="HexagonBattles.html">Hexagon Battles</a></td>
-				<td>Game</td>
-			</tr>
-			<tr>
-				<td><a href="SmallProjects/Proper Color Blur.html">Color Gradients</a></td>
-				<td>Experiments</td>
-			</tr>
-			<tr>
-				<td><a href="MLP Cards/MLP Cards.html">MLP Cards</a></td>
-				<td>Design</td>
-			</tr>
-		</table>
+			#entrance{
+				color: white;
+				font-size: 20pt;
+				font-weight: bold;
+			}
+			#entrance div{
+				width: 100%;
+				cursor: pointer;
+				position: absolute;
+				text-align: center;
+				bottom: 20px;
+			}
+
+			#main{
+				width: 100%;
+				background-color: black;
+				color: white;
+				position: absolute;
+				left: 0px;
+
+			}
+
+		</style>
+		<div id="entrance">
+
+			<div><span>Enter brambleshadow4.github.io</span></div>
+		</div>
+		<div id="main" style="display: none;">
+			<h1>brambleshadow4.github.io</h1>
+			<p>This is the location of some of my own programs and games. Feel free to look at them and thier code, or just play around with the games as you like</p>
+			<span class="f30">Project List:</span>
+			<table style = 'margin: auto;'>
+				<tr><th>Project</th><th>Type</th></tr>
+				<tr>
+					<td><a href="Data Structure/Data Structure.html">Data Structure</a></td>
+					<td>Game</td>
+				</tr>
+				<tr>
+					<td><a href="Avoid/Avoid.html">Avoid</a></td>
+					<td>Game</td>
+				</tr>
+				<tr>
+					<td><a href="SmallProjects/Name Generator.html">Name Generator</a></td>
+					<td>Generator</td>
+				</tr>
+				<tr>
+					<td><a href="SmallProjects/maze.html">Maze Generator</a></td>
+					<td>Generator</td>
+				</tr>
+				<!--<tr>
+					<td><a href="SmallProjects/Note Guessing Game.html">Note Guessing Game</a></td>
+					<td>Game</td>
+				</tr>-->
+				<tr>
+					<td><a href="SmallProjects/4D Tic Tac Toe.html">4D Tic Tac Toe</a></td>
+					<td>Game</td>
+				</tr>
+				<tr>
+					<td><a href="SmallProjects/speed.html">Speed AI</a></td>
+					<td>Game</td>
+				</tr>
+				<tr>
+					<td><a href="SuperRainbowDash/index.html">Super Rainbow Dash</a></td>
+					<td>Game</td>
+				</tr>
+				<tr>
+					<td><a href="HexagonBattles.html">Hexagon Battles</a></td>
+					<td>Game</td>
+				</tr>
+				<tr>
+					<td><a href="SmallProjects/Proper Color Blur.html">Color Gradients</a></td>
+					<td>Experiments</td>
+				</tr>
+				<tr>
+					<td><a href="MLP Cards/MLP Cards.html">MLP Cards</a></td>
+					<td>Design</td>
+				</tr>
+			</table>
+		</div>
+
+		<script>
+
+			var Main = document.getElementById("main");
+			function prepareWindow(){
+				document.body.style.overflow = "hidden";
+				Main.style.top = window.innerHeight + "px";
+				Main.style.height = window.innerHeight + "px";
+			}
+			prepareWindow();
+
+			function loadMainDiv(){
+
+				Main.style.position = "absolute";
+				Main.style.display = "block";
+				
+				var text = Main.style.top;
+
+				text = text.substring(0,text.length-2);
+				text = Number(text)-20;
+				
+				if(text < 0)
+					text = 0;
+
+				Main.style.top = text + "px";
+
+				if(text > 0)
+					setTimeout(loadMainDiv,10);
+				else{
+					document.body.style.overflow = "inherit";
+					document.body.style.background = "black";
+					
+					Main.style.width = "100%";
+					Main.style.height = "inherit";
+					document.getElementById("entrance").style.display = "none";					
+
+					window.onclick = function(){};
+					window.onresize = function(){};
+				}
+				
+			}
+
+			window.onresize = prepareWindow;
+			window.onclick = loadMainDiv;
+
+		</script>
+		
 
 	</body>
 </html>
