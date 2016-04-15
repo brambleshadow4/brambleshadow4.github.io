@@ -2,6 +2,7 @@
 <html>
 	<head>
 		<script type="text/javascript" src="Cards.js"></script>
+		<meta charset="UTF-8"/>
 		<link rel="shortcut icon" type="image/x-icon" href="bramble.ico" />
 	</head>
 	<body onload = "loadPage();">
@@ -329,7 +330,7 @@
 				{
 					var infoBox = document.createElement("div");
 					infoBox.className = "info";
-					infoBox.innerHTML = "<img draggable = 'false' src='bracket2.png'><div>" + descriptor.info + "</div><img src='bracket2.png' draggable = 'false' style='-webkit-transform: scaleY(-1);'>";
+					infoBox.innerHTML = "<img draggable = 'false' src='bracket2.png'><div>" + descriptor.info + "</div><img src='bracket2.png' draggable = 'false' style='-webkit-transform: scaleY(-1); transform: scaleY(-1)'>";
 					backSide.appendChild(infoBox);
 				}
 				myCard.appendChild(backSide);
@@ -1488,15 +1489,16 @@
 				position: relative;
 				top: 50%;
 				-webkit-transform: translateY(-50%);
+				transform: translateY(-50%);
 				width: 230px;
 				background-color: rgba(255,255,255,.5);
 
 				border-radius: 15px;
 			}
-			.r3{-webkit-transform: rotateY(270deg);}
-			.r1{-webkit-transform: rotateY(90deg);}
-			.back{-webkit-transform: rotateY(180deg);}
-			.r4{ -webkit-transform: rotateY(360deg);}
+			.r3{-webkit-transform: rotateY(270deg); transform: rotateY(270deg);}
+			.r1{-webkit-transform: rotateY(90deg); transform: rotateY(90deg);}
+			.back{-webkit-transform: rotateY(180deg); transform: rotateY(180deg);}
+			.r4{ -webkit-transform: rotateY(360deg); transform: rotateY(360deg);}
 			.front{ -webkit-transition: 0s; transition: 0s;}
 
 			#navigation{
@@ -1548,6 +1550,7 @@
 				position: relative;
 				top: 50%;
 				-webkit-transform: translateY(-50%);
+				transform: translateY(-50%) ;
 				width: 69px;
 				background-color: rgba(255,255,255,.5);
 				border-radius: 5px;
