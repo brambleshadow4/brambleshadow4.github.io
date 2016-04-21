@@ -193,7 +193,7 @@ function CreateGame()
 		document.addEventListener("keydown", function(e){GAME.isKeyDown[e.keyCode] = true;});
 		document.addEventListener("keyup", function(e){GAME.isKeyDown[e.keyCode] = false;});
 
-		document.addEventListener("mousedown", function(e){
+		document.addEventListener("touchstart", function(e){
 			GAME.MouseZone = {Any: false, Left: false, Center: false, Right: false, Top: false, Bottom: false};
 
 			if(e.y < window.innerHeight/2)
@@ -211,7 +211,7 @@ function CreateGame()
 			GAME.MouseZone.Any = true;
 			console.log(GAME.MouseZone);
 		});
-		document.addEventListener("mouseup", function(e){
+		document.addEventListener("touchend", function(e){
 			GAME.MouseZone = {Any: false, Left: false, Center: false, Right: false, Top: false, Bottom: false};
 		});
 
