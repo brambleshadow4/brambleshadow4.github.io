@@ -186,10 +186,34 @@ function CreateGame()
 
 		//GAME.isKeyDown[keycode] - used to get real time input if a key is down
 		GAME.isKeyDown = jArray();
+		GAME.MouseZone = {Any: false, Left: false, Center: false, Right: false, Top: false, Bottom: false};
+
 
 		document.onkeydown = function(e){if(e.keyCode == 8)return false;}
 		document.addEventListener("keydown", function(e){GAME.isKeyDown[e.keyCode] = true;});
 		document.addEventListener("keyup", function(e){GAME.isKeyDown[e.keyCode] = false;});
+
+		document.addEventListener("mousedown", function(e){
+			GAME.MouseZone = {Any: false, Left: false, Center: false, Right: false, Top: false, Bottom: false};
+
+			if(e.y < window.innerHeight/2)
+				GAME.MouseZone.Top = true;
+			else
+				GAME.MouseZone.Bottom = true;
+
+			if(e.x < window.innerWidth/3)
+				GAME.MouseZone.Left = true;
+			else if (e.x < window.innerWidth*2/3)
+				GAME.MouseZone.Center = true;
+			else 
+				GAME.MouseZone.Right = true;
+
+			GAME.MouseZone.Any = true;
+			console.log(GAME.MouseZone);
+		});
+		document.addEventListener("mouseup", function(e){
+			GAME.MouseZone = {Any: false, Left: false, Center: false, Right: false, Top: false, Bottom: false};
+		});
 
 		window.addEventListener("resize", function(e)
 		{
@@ -462,6 +486,7 @@ function CreateGame()
 	var Gamestate = "";
 	var loadingstate = "";
 	var wasKeyDown;
+	var wasMouseZone;
 	var audio = false;
 	var music = false;
 
@@ -1376,7 +1401,7 @@ function CreateGame()
 	{
 		if(Gamestate == "Title")
 		{
-			if(GAME.isKeyDown[13] && !wasKeyDown[13])
+			if((GAME.isKeyDown[13] && !wasKeyDown[13]) || (GAME.MouseZone.Any && !wasMouseZone.Any))
 			{
 				Gamestate = "Levelselect";
 			}
@@ -1427,7 +1452,7 @@ function CreateGame()
 				VerticalScroll++;
 
 			//Move up code
-			if(GAME.isKeyDown[GAME.KEY.Up] || GAME.isKeyDown[GAME.KEY.W])
+			if(GAME.isKeyDown[GAME.KEY.Up] || GAME.isKeyDown[GAME.KEY.W] || GAME.MouseZone.Top)
 			{
 				if(!Position.canMoveUp)
 				{
@@ -1446,7 +1471,7 @@ function CreateGame()
 				
 			}
 			//Move down code
-			if(GAME.isKeyDown[GAME.KEY.Down] || GAME.isKeyDown[GAME.KEY.S])
+			if(GAME.isKeyDown[GAME.KEY.Down] || GAME.isKeyDown[GAME.KEY.S] || GAME.MouseZone.Bottom)
 			{
 				if(!Position.canMoveDown)
 				{
@@ -1500,7 +1525,7 @@ function CreateGame()
 
 			if(Position.x > 1.25)
 			{
-				if(GAME.isKeyDown[13] && !wasKeyDown[13])
+				if((GAME.isKeyDown[13] && !wasKeyDown[13]) || (GAME.MouseZone.Any && !wasMouseZone.Any))
 				{
 					Gamestate = "Levelselect";
 					music.pause();
@@ -1523,20 +1548,20 @@ function CreateGame()
 		}
 		else if(Gamestate == "Levelselect")
 		{
-			if((GAME.isKeyDown[GAME.KEY.Left] && !wasKeyDown[GAME.KEY.Left]) || (GAME.isKeyDown[GAME.KEY.A] && !wasKeyDown[GAME.KEY.A]))
+			if((GAME.isKeyDown[GAME.KEY.Left] && !wasKeyDown[GAME.KEY.Left]) || (GAME.isKeyDown[GAME.KEY.A] && !wasKeyDown[GAME.KEY.A]) || (GAME.MouseZone.Left && !wasMouseZone.Left))
 			{
 				track.difficulty--;
 				if(track.difficulty < 0)
 					track.difficulty = 5;
 			}
-			if((GAME.isKeyDown[GAME.KEY.Right] && !wasKeyDown[GAME.KEY.Right]) || (GAME.isKeyDown[GAME.KEY.D] && !wasKeyDown[GAME.KEY.D]))
+			if((GAME.isKeyDown[GAME.KEY.Right] && !wasKeyDown[GAME.KEY.Right]) || (GAME.isKeyDown[GAME.KEY.D] && !wasKeyDown[GAME.KEY.D])|| (GAME.MouseZone.Right && !wasMouseZone.Right))
 			{
 				track.difficulty++;
 				if(track.difficulty >5)
 					track.difficulty = 0;
 			}
 
-			if(GAME.isKeyDown[13] && !wasKeyDown[13] && track.difficulty <= track.levelsUnlocked)
+			if((GAME.isKeyDown[13] && !wasKeyDown[13]) || (GAME.MouseZone.Center && !wasMouseZone.Center) && track.difficulty <= track.levelsUnlocked)
 			{
 				Gamestate = "Play";
 				audio = false;
@@ -1558,7 +1583,7 @@ function CreateGame()
 				audio = audioLoader.Audio("Fail" + Math.floor(Math.random()*5) + ".mp3");
 				audio.play();
 			}
-			if(GAME.isKeyDown[13] || GAME.isKeyDown[GAME.KEY.Space])
+			if(GAME.isKeyDown[13] || GAME.isKeyDown[GAME.KEY.Space] || GAME.MouseZone.Bottom)
 			{
 				Gamestate = "Play";
 				track.initialize(track.difficulty);
@@ -1570,7 +1595,7 @@ function CreateGame()
 				audio = false;
 			}
 
-			if(GAME.isKeyDown[GAME.KEY.Backspace] || GAME.isKeyDown[GAME.KEY.Escape] )
+			if(GAME.isKeyDown[GAME.KEY.Backspace] || GAME.isKeyDown[GAME.KEY.Escape] || GAME.MouseZone.Top)
 			{
 				Gamestate = "Levelselect";
 				audio.pause();
@@ -1586,6 +1611,7 @@ function CreateGame()
 		}
 
 		wasKeyDown = GAME.isKeyDown.slice();
+		wasMouseZone = JSON.parse(JSON.stringify(GAME.MouseZone));
 	}
 
 	function Draw(GAME, d)
