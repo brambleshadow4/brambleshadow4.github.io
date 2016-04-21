@@ -196,20 +196,22 @@ function CreateGame()
 		document.addEventListener("touchstart", function(e){
 			GAME.MouseZone = {Any: false, Left: false, Center: false, Right: false, Top: false, Bottom: false};
 
-			if(e.y < window.innerHeight/2)
+
+			if(e.changedTouches[0].pageY < window.innerHeight/2)
 				GAME.MouseZone.Top = true;
 			else
 				GAME.MouseZone.Bottom = true;
 
-			if(e.x < window.innerWidth/3)
+			if(e.changedTouches[0].pageX < window.innerWidth/3)
 				GAME.MouseZone.Left = true;
-			else if (e.x < window.innerWidth*2/3)
+			else if (e.changedTouches[0].pageX < window.innerWidth*2/3)
 				GAME.MouseZone.Center = true;
 			else 
 				GAME.MouseZone.Right = true;
 
 			GAME.MouseZone.Any = true;
-			console.log(GAME.MouseZone);
+			//console.log(GAME.MouseZone);
+			return false;
 		});
 		document.addEventListener("touchend", function(e){
 			GAME.MouseZone = {Any: false, Left: false, Center: false, Right: false, Top: false, Bottom: false};
@@ -1583,7 +1585,7 @@ function CreateGame()
 				audio = audioLoader.Audio("Fail" + Math.floor(Math.random()*5) + ".mp3");
 				audio.play();
 			}
-			if(GAME.isKeyDown[13] || GAME.isKeyDown[GAME.KEY.Space] || GAME.MouseZone.Bottom)
+			if(GAME.isKeyDown[13] || GAME.isKeyDown[GAME.KEY.Space] || (GAME.MouseZone.Bottom && !wasMouseZone.Bottom))
 			{
 				Gamestate = "Play";
 				track.initialize(track.difficulty);
@@ -1595,7 +1597,7 @@ function CreateGame()
 				audio = false;
 			}
 
-			if(GAME.isKeyDown[GAME.KEY.Backspace] || GAME.isKeyDown[GAME.KEY.Escape] || GAME.MouseZone.Top)
+			if(GAME.isKeyDown[GAME.KEY.Backspace] || GAME.isKeyDown[GAME.KEY.Escape] || (GAME.MouseZone.Top && !wasMouseZone.Top))
 			{
 				Gamestate = "Levelselect";
 				audio.pause();
