@@ -12,13 +12,30 @@
 	//technical variable - do not change
 	GAME.hasBegun = false;
 
+	GAME.highScoreName = "";
+
 	function Load()
 	{	
 		//Begin the game
 		GAME.hasBegun = true;
 
 		//create a canvas
-		document.write("<canvas style=\'position: absolute; top: 0px; left: 0px;\' height="+GAME.windowHeight + " width=" + GAME.windowWidth + "></canvas><div id=\'picDiv\' style=\'display: none;\'></div>");
+		document.body.innerHTML = "";
+
+		var canvas = document.createElement("canvas");
+		canvas.width = GAME.windowWidth;
+		canvas.height = GAME.windowHeight;
+		canvas.style.position = "absolute";
+		canvas.style.top = "0px";
+		canvas.style.left = "0px";
+		document.body.appendChild(canvas);
+
+		var picDiv = document.createElement("div");
+		picDiv.style.display = "none";
+		picDiv.id = "picDiv";
+		document.body.appendChild(picDiv);
+
+		//document.write("<canvas style=\'position: absolute; top: 0px; left: 0px;\' height="+GAME.windowHeight + " width=" + GAME.windowWidth + "></canvas><div id=\'picDiv\' style=\'display: none;\'></div>");
 		GAME.ctx = document.getElementsByTagName("canvas")[0].getContext("2d");
 
 		GAME.clearDraw = function(color)
@@ -98,18 +115,15 @@
 
 		//GAME.isKeyDown[keycode] - used to get real time input if a key is down
 		GAME.isKeyDown = [];
-		document.addEventListener("keydown", function(e){GAME.isKeyDown[e.keyCode] = true; console.log(e.keyCode);});
-		document.addEventListener("keyup", function(e){GAME.isKeyDown[e.keyCode] = false;});
-
-
-		
+		document.addEventListener("keydown", function(e){GAME.isKeyDown[e.keyCode] = true;});
+		document.addEventListener("keyup", function(e){GAME.isKeyDown[e.keyCode] = false;});		
 
 		Initialize();
 		//To stop the game loop: clearInterval(GAME.loop);
 		GAME.loop = setInterval(function(){Update(); Draw();}, 1000/GAME.FPS);
 		//function Loop(){requestAnimationFrame(Loop); Update(); Draw();};Loop();
 	}
-	
+		
 	function Enemy(x,y)
 	{
 		var n = {};
@@ -130,7 +144,7 @@
 			}
 			for (var i = 0; i < d.PlayerList.length; i++) 
 			{
-				if(this.Position.add(d.PlayerList[i].Position.scale(-1)).length() < 10 || (this.Position.add(d.PlayerList[i].Position.scale(-1)).length() < 25 && d.Surprise == "Jumbo"))
+				if(d.fadetorandom == undefined && (this.Position.add(d.PlayerList[i].Position.scale(-1)).length() < 10 || (this.Position.add(d.PlayerList[i].Position.scale(-1)).length() < 25 && d.Surprise == "Jumbo")))
 				{
 					d.PlayerList = removeIndex(i,d.PlayerList);
 					i--;
@@ -190,7 +204,6 @@
 	function Initialize()
 	{
 		//put your initial code here :)
-
 		function player(designation)
 		{
 			var n = {};
@@ -254,7 +267,6 @@
 						this.Velocity = this.Velocity.add(Vect2(strength*force.x/force.length(),strength*force.y/force.length()));
 				}
 
-				
 				this.Position = this.Position.add(this.Velocity);
 				this.Velocity = this.Velocity.scale(.99);
 
@@ -309,6 +321,8 @@
 
 		d.Surprise = "";
 
+		GAME.ctx.setTransform(1,0,0,1,0,0);
+
 		d.Lag = 0;
 		d.surviveTime = 0;
 	}
@@ -329,15 +343,29 @@
 			
 			if(d.clock == 300)
 			{
+				GAME.ctx.setTransform(1,0,0,1,0,0);
 				d.Surprise = "";
+
 				d.SpeedConstant = 1;
+			}
+			if(d.fadetorandom != undefined)
+			{
+				d.fadetorandom++;
+				if(d.fadetorandom == 0){
+					for (var i = 0; i < d.EnemyList.length; i++)
+					{
+						d.EnemyList[i].Position.x = Math.random()*(GAME.windowWidth-10)+5;
+						d.EnemyList[i].Position.y = Math.random()*(GAME.windowHeight-10)+5;
+					};
+				}
+				if (d.fadetorandom == 30)
+					delete d.fadetorandom
 			}
 
 			if(d.Surprise == "ArtificialLag")
 			{
 				//d.Lag = 4;
-				if(Math.random()*40 > 39 && d.Lag < -10)
-				{
+				if(Math.random()*35 > 34 && d.Lag < -10){
 					d.Lag = 20;
 				}
 				
@@ -348,11 +376,15 @@
 
 			if(d.clock == 0)
 			{
-				var Surprises = ["DoubleTime","Checkers","Blurr","DoubleEnemies","NoTurning","Jumbo","Blind", "Scramble", "Randomize", "ArtificialLag", "AutoSpin", "Gravity", "NewFollower"];
+				var Surprises = ["DoubleTime","Checkers","Blurr","DoubleEnemies","NoTurning","Jumbo","Blind", "Scramble", "Randomize", "ArtificialLag", "AutoSpin", "Gravity", "NewFollower", "Mirror"];
 				d.Surprise = Surprises[Math.floor(Surprises.length*Math.random())];
 
-				//d.Surprise = "Gravity";
+				//d.Surprise = "Mirror";
 
+				if(d.Surprise == "Mirror")
+				{
+					GAME.ctx.transform(-1,0,0,1,800,0);
+				}
 				if(d.Surprise =="Scramble")
 				{
 					for (var i = 0; i < d.EnemyList.length; i++)
@@ -360,13 +392,8 @@
 						d.EnemyList[i].Angle = Math.random()*Math.PI*2;
 					};
 				}
-				else if(d.Surprise =="Randomize")
-				{
-					for (var i = 0; i < d.EnemyList.length; i++)
-					{
-						d.EnemyList[i].Position.x = Math.random()*(GAME.windowWidth-10)+5;
-						d.EnemyList[i].Position.y = Math.random()*(GAME.windowHeight-10)+5;
-					};
+				else if(d.Surprise =="Randomize"){
+					d.fadetorandom = -30;
 				}
 
 
@@ -417,45 +444,42 @@
 					if(addScore)
 					{
 						var entry = {};
-						entry.name = prompt("New High Score!\nPlease enter your name");
+						GAME.highScoreName = prompt("New High Score!\nPlease enter your name",GAME.highScoreName);
+						entry.name = GAME.highScoreName;
 						entry.score = Math.floor(d.surviveTime*100)/100;
 
 						var i = 0;
 
-						while(ScoreBoard[i].score > entry.score)
+					
+						while(i < ScoreBoard.length && ScoreBoard[i].score > entry.score){
 							i++;
+						}
 						ScoreBoard.splice(i,0,entry);
 
-						console.log(ScoreBoard);
+						while(ScoreBoard.length > 100)
+							ScoreBoard.splice(100,1);
+						
+
+						var LowerIndex = i-2;
+						var UpperIndex = i+2;
+
+						if(UpperIndex >= ScoreBoard.length)
+							UpperIndex = ScoreBoard.length-1;
+						if(LowerIndex < 0)
+							LowerIndex = 0;
+
+
+						while(LowerIndex == 0 && UpperIndex-LowerIndex < 4 && UpperIndex < ScoreBoard.length-1)
+							UpperIndex++;
+						while(UpperIndex == ScoreBoard.length-1 && UpperIndex-LowerIndex < 4 && LowerIndex > 0)
+							LowerIndex--;
 
 						var ScoreBoardText = "High Scores:";
-						if(ScoreBoard.length <= 5)
+						
+
+						for(var j = LowerIndex; j <= UpperIndex; j++)
 						{
-							for(var j = 0; j < ScoreBoard.length; j++)
-							{
-								ScoreBoardText += "\n" + (j+1) + ". " + ScoreBoard[j].score + " " + ScoreBoard[j].name;
-							}
-						}
-						else if (i < 3)
-						{
-							for(var j = 0; j < 5; j++)
-							{
-								ScoreBoardText += "\n" + (j+1) + ". " + ScoreBoard[j].score + " " + ScoreBoard[j].name;
-							}
-						}
-						else if (i+3 >= ScoreBoard.length)
-						{
-							for(var j = ScoreBoard.length - 5; j < ScoreBoard.length; j++)
-							{
-								ScoreBoardText += "\n" + (j+1) + ". " + ScoreBoard[j].score + " " + ScoreBoard[j].name;
-							}
-						}
-						else
-						{
-							for(var j = i - 2; j < i +3; j++)
-							{
-								ScoreBoardText += "\n" + (j+1) + ". " + ScoreBoard[j].score + " " + ScoreBoard[j].name;
-							}
+							ScoreBoardText += "\n" + (j+1) + ". " + ScoreBoard[j].score + " " + ScoreBoard[j].name;
 						}
 
 						alert(ScoreBoardText);
@@ -478,11 +502,11 @@
 
 				Initialize();
 			}
-
 			
 			if(GAME.isKeyDown[KEY.P])
 			{
 				d.Paused = true;
+				d.imgData = GAME.ctx.getImageData(0,0,800,600);  //GAME.ctx.save();
 
 				try
 				{
@@ -525,7 +549,9 @@
 			if(GAME.isKeyDown[13])
 			{
 				d.Paused = false;
-				GAME.clearDraw("#00AAFF");
+				//GAME.clearDraw("#00AAFF");
+				
+				GAME.ctx.putImageData(d.imgData,0,0);
 			}
 		}
 
@@ -564,6 +590,25 @@
 
 			for(var i = 0; i < d.PlayerList.length; i++)
 				d.PlayerList[i].Draw();
+
+			GAME.ctx.fillStyle = "#000000";
+
+			if(d.fadetorandom != undefined){
+				function componentToHex(c) {
+				    var hex = c.toString(16);
+				    return hex.length == 1 ? "0" + hex : hex;
+				}
+
+				function rgbToHex(r, g, b) {
+				    return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+				}
+
+				var phase = Math.abs(d.fadetorandom)/30;
+
+				var hex = rgbToHex(0, Math.floor(170*(1-phase)),Math.floor(255*(1-phase)));
+				GAME.ctx.fillStyle = hex;
+			}
+			
 
 			for (var i = 0; i < d.EnemyList.length; i++)
 			{
@@ -610,8 +655,7 @@
 	function preLoad()
 	{
 		//Set desired screen width here;
-		gameWindow = window.open("","","menubar=no,width=" + GAME.windowWidth + ",height=" + GAME.windowHeight);
-		gameWindow.document.write("<title>" + GAME.windowName + "</title><script>" + document.getElementById("code").innerHTML + "GAME.launchLocation = window.location; Load();</" + "script>");
+		gameWindow = window.open(window.location.origin + window.location.pathname,window.location.origin + window.location.pathname,"menubar=no,width=" + GAME.windowWidth + ",height=" + GAME.windowHeight);
 	}
 
 	function Vect2(x,y)
@@ -634,7 +678,7 @@
 
 		return vect;
 	}
-	var KEY = {}
+	var KEY = {};
  		KEY.A = 65; KEY.B = 66; KEY.C = 67; KEY.D = 68; KEY.E = 69; KEY.F = 70; KEY.G = 71; KEY.H = 72; KEY.I = 73; KEY.J = 74;KEY.K = 75; KEY.L = 76; KEY.M = 77; KEY.N = 78; KEY.O = 79; KEY.P = 80; KEY.Q = 81; KEY.R = 82; KEY.S = 83; KEY.T = 84; KEY.U = 85;KEY.V = 86; KEY.W = 87; KEY.X = 88; KEY.Y = 89; KEY.Z = 90; KEY.Up = 38; KEY.Down = 40; KEY.Left = 37; KEY.Right = 39; KEY.Num1 = 97; KEY.Num2 = 98; KEY.Num3 = 99; KEY.Num4 = 100; KEY.Num5 = 101; KEY.Num6 = 102; KEY.Num7 = 103; KEY.Num8 = 104; KEY.Num9 = 105; 
 
 	function removeIndex(index, array)
@@ -646,6 +690,7 @@
 		resultant = resultant.concat(part2);
 		return resultant;
 	}
+
  	window.addEventListener("resize", function()
  	{
  		function changeSize()
@@ -660,9 +705,24 @@
 	 			GAME.windowHeight = window.innerHeight;
 	 			GAME.windowWidth = window.innerWidth;
 	 		}
- 			//document.getElementsByTagName("body")[0].innerHTML = "";
-	 		
-	 		document.write("<canvas style=\'position: absolute; top: 0px; left: 0px;\' height="+GAME.windowHeight + " width=" + GAME.windowWidth + "></canvas><div id=\'picDiv\' style=\'display: none;\'>");
+ 			//document.getElementsByTagName("body")[0].innerHTML = ""
+ 			var canvas = document.getElementsByTagName("canvas")[0];
+ 			canvas.parentNode.removeChild(canvas);
+
+			canvas = document.createElement("canvas");
+			canvas.width = GAME.windowWidth;
+			canvas.height = GAME.windowHeight;
+			canvas.style.position = "absolute";
+			canvas.style.top = "0px";
+			canvas.style.left = "0px";
+			document.body.appendChild(canvas);
+
+			var picDiv = document.createElement("div");
+			picDiv.style.display = "none";
+			picDiv.id = "picDiv";
+			document.body.appendChild(picDiv);
+
+		GAME.ctx = document.getElementsByTagName("canvas")[0].getContext("2d");
 			GAME.ctx = document.getElementsByTagName("canvas")[0].getContext("2d");
 		}
 		if(GAME.hasBegun)
@@ -671,12 +731,15 @@
 
  	window.addEventListener("keydown", function(e)
  	{
- 		if(e.keyCode == 27 && GAME.launchLocation != undefined)
- 		{
- 			delete GAME.launchLocation;
- 			window.close();
+ 		if(e.keyCode == 27 && GAME.hasBegun)
+ 		{	
+			Unload();
+			delete GAME.launchLocation;
+			window.close();	
  		}
  	});
+
+ 	if(window.opener != null)Load();
 </script><div>
 	<h1>Avoid</h1>
 	<h2>by Brambleshadow4</h2>
