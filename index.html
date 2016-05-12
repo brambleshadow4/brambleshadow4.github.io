@@ -2,151 +2,81 @@
 <html>
 	<body>
 		<style type="text/css">
-			body{
-				text-align: center; font-family: "Keryodchi";
+			body{	
 				background: url("WebArt.png") no-repeat center fixed;
-				font-size: 15pt;
+				background-color: black;
+				margin: 0px;
 			}
-			h1{font-size: 40pt;}
-			h2{font-size: 20pt;}
-			table{border: 5px solid white; font-size: 20pt;}
-			table button {font-size: 20pt;}
-			tr, th, td{border: 1px solid white;}
-			a{color: #5555ff;}
 
-			.f30 {font-size: 30pt}
+			div{
+				font-family: "Keryodchi";
+				color: white;
+				font-size: 20pt;
+				font-weight: bold;
+				cursor: pointer;
+
+				width: 100%;
+				text-align: center;
+				position: absolute;
+				bottom: 15%;
+			}
 
 			@font-face{
 			  	font-family: Keryodchi;
 			    src: url(Keryodchi.otf);
 			}
 
-			#entrance{
-				color: white;
-				font-size: 20pt;
-				font-weight: bold;
-			}
-			#entrance div{
-				width: 100%;
-				cursor: pointer;
-				position: absolute;
-				text-align: center;
-				bottom: 20px;
-			}
-
-			#main{
-				width: 100%;
-				background-color: black;
-				color: white;
+			iframe{
 				position: absolute;
 				left: 0px;
-
+				bottom: 0px;
+				width: 100%;
+				border: none;
 			}
 
 		</style>
-		<div id="entrance">
-
-			<div><span>Enter brambleshadow4.github.io</span></div>
-		</div>
-		<div id="main" style="display: none;">
-			<h1>brambleshadow4.github.io</h1>
-			<p>This is the location of some of my own programs and games. Feel free to look at them and thier code, or just play around with the games as you like</p>
-			<span class="f30">Project List:</span>
-			<table style = 'margin: auto;'>
-				<tr><th>Project</th><th>Type</th></tr>
-				<tr>
-					<td><a href="Data Structure/Data Structure.html">Data Structure</a></td>
-					<td>Game</td>
-				</tr>
-				<tr>
-					<td><a href="Avoid/Avoid.html">Avoid</a></td>
-					<td>Game</td>
-				</tr>
-				<tr>
-					<td><a href="SmallProjects/Name Generator.html">Name Generator</a></td>
-					<td>Generator</td>
-				</tr>
-				<tr>
-					<td><a href="SmallProjects/maze.html">Maze Generator</a></td>
-					<td>Generator</td>
-				</tr>
-				<!--<tr>
-					<td><a href="SmallProjects/Note Guessing Game.html">Note Guessing Game</a></td>
-					<td>Game</td>
-				</tr>-->
-				<tr>
-					<td><a href="SmallProjects/4D Tic Tac Toe.html">4D Tic Tac Toe</a></td>
-					<td>Game</td>
-				</tr>
-				<tr>
-					<td><a href="SmallProjects/speed.html">Speed AI</a></td>
-					<td>Game</td>
-				</tr>
-				<tr>
-					<td><a href="SuperRainbowDash/index.html">Super Rainbow Dash</a></td>
-					<td>Game</td>
-				</tr>
-				<tr>
-					<td><a href="HexagonBattles.html">Hexagon Battles</a></td>
-					<td>Game</td>
-				</tr>
-				<tr>
-					<td><a href="SmallProjects/Proper Color Blur.html">Color Gradients</a></td>
-					<td>Experiments</td>
-				</tr>
-				<tr>
-					<td><a href="MLP Cards/MLP Cards.html">MLP Cards</a></td>
-					<td>Design</td>
-				</tr>
-			</table>
-		</div>
+		
+		<div>Enter brambleshadow4.github.io</div>
 
 		<script>
+		
+			window.onclick = function(){
+				if(document.getElementsByTagName("iframe").length == 0){
+					var frame = document.createElement("iframe");
+					frame.src = "list.html";
+					frame.style.height = "0px";
+					document.body.appendChild(frame);
 
-			var Main = document.getElementById("main");
-			function prepareWindow(){
-				document.body.style.overflow = "hidden";
-				Main.style.top = window.innerHeight + "px";
-				Main.style.height = window.innerHeight + "px";
-			}
-			prepareWindow();
+					function slideFrame(){
+						
+						var height = Number(frame.style.height.substring(0,frame.style.height.length-2));
 
-			function loadMainDiv(){
+						
+						if(height < window.innerHeight){
 
-				Main.style.position = "absolute";
-				Main.style.display = "block";
-				
-				var text = Main.style.top;
+							height+= 30;
+							frame.style.height = height + "px";
 
-				text = text.substring(0,text.length-2);
-				text = Number(text)-20;
-				
-				if(text < 0)
-					text = 0;
+							requestAnimationFrame(slideFrame);
+						}
 
-				Main.style.top = text + "px";
-
-				if(text > 0)
-					setTimeout(loadMainDiv,10);
-				else{
-					document.body.style.overflow = "inherit";
-					document.body.style.background = "black";
-					
-					Main.style.width = "100%";
-					Main.style.height = "inherit";
-					document.getElementById("entrance").style.display = "none";					
-
-					window.onclick = function(){};
-					window.onresize = function(){};
+						if(height >= window.innerHeight){
+							frame.style.height = innerHeight + "px";
+							document.body.style.background = "white";
+						}
+					}
+					slideFrame();
 				}
 				
+			};
+
+			window.onresize = function(){
+				if(document.getElementsByTagName("iframe").length != 0){
+					document.getElementsByTagName("iframe")[0].style.height = innerHeight + "px";
+				}
 			}
 
-			window.onresize = prepareWindow;
-			window.onclick = loadMainDiv;
-
 		</script>
-		
 
 	</body>
 </html>
