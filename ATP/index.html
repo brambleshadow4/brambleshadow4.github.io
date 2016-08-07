@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>About Them Ponies</title>
+		<style>
+			
+			#pane-left{
+				position: absolute;
+				left: 0px;
+				top: 0px;
+				bottom: 0px;
+
+				padding: 20px;
+				text-align: center;
+				overflow: scroll;
+			}
+			#pane-right{
+				position: absolute;
+				right: 0px;
+				top: 0px;
+				bottom: 0px;
+				overflow: scroll;
+
+				white-space: nowrap;
+				text-align: center;
+			}
+
+			#pane-right div{
+				display: inline-block;
+			}
+			#next, #previous{
+				width: 40px;
+				height: 120px;
+				margin: 20px;
+				position: absolute;
+			}
+			#next {right: 0px;}
+			#previous {left: 0px;}
+			#autoload{width: 60px;}
+
+			pre{
+				border: solid black;
+				display: block;
+				padding: 1em;
+				text-align: left;
+			}
+			table{
+				display: inline-block;
+				border-collapse: collapse;
+
+			}
+			td{border: solid 1px gray; padding: 5px;}
+		</style>
+	</head>
+	<body>
+		<div id='pane-left'>
+			<h1>About Them Ponies</h1>
+			<h2>Post Repository</h2>
+			<p>
+				Autoload the first <input id='autoload' onchange='localStorage["ATP-autoload"] = this.value' type='number'/> posts <button onclick='load(true);'>Refresh Files</button>
+			</p>
+			<table><tbody id='files'></tbody>
+			</table>
+
+			<script>
+				var files;
+				var file = "";
+				var page = 0;
+				function load(forceRefresh)
+				{	
+					document.getElementById('files').innerHTML = "";
+
+					var file = 0;
+					if(!isNaN(Number(localStorage["ATP-autoload"])))
+						file = Number(localStorage["ATP-autoload"]);
+					document.getElementById('autoload').value = file;
+
+					for (var i = 0; i < file; i++)
+					{
+						var request = new XMLHttpRequest();
+						var fileName = "ATP"+(i+1)+".txt";
+						if(forceRefresh)
+							fileName += "?d="+ new Date().getTime();
+						request.open("GET",fileName,true);
+						request.send();
+
+						request.onreadystatechange = function()
+						{
+							if (this.readyState == 4 && this.status == "200")
+							{
+								var num = /ATP(\d+)\.txt/.exec(this.responseURL)[1];
+								files["ATP"+num+".txt"] = this.responseText.split("\f\r\n");
+
+								var title = /About Them Ponies\r?\n([\s\S]*?)\r?\n\r?\n/.exec(this.responseText)[1];
+								title = title.replace(/\s+/g," ");
+
+								var newRow = document.createElement('tr');
+								newRow.setAttribute('atp',num);
+								newRow.innerHTML += "<td>ATP " + num + "</td><td><a href='ATP"+num+".txt' onclick='open(this)'>" + title + "</a></td>";
+								bindLink(newRow);
+								var rows = document.getElementsByTagName('tr');
+
+								for (var i = 0; i < rows.length; i++)
+								{
+									if(Number(rows[i].getAttribute('atp')) > num)
+									{
+										document.getElementById('files').insertBefore(newRow,rows[i]);
+										i = rows.length+1;
+										newRow = "added";
+									}
+								}
+								if(newRow != "added")
+									document.getElementById('files').appendChild(newRow);
+
+							}
+						}
+					}
+
+					file++;
+					
+					files = {};
+
+					function getNextDoc()
+					{
+						var request = new XMLHttpRequest();
+						var fileName = "ATP"+file+".txt";
+						if(forceRefresh)
+							fileName += "?d="+ new Date().getTime();
+
+						request.open("GET",fileName /*+"?d="+ new Date().getTime()*/,true);
+						request.send();
+
+						request.onreadystatechange = function()
+						{
+							if (this.readyState == 4 && this.status == "200")
+							{
+								files["ATP"+file+".txt"] = this.responseText;
+
+								var title = /About Them Ponies\r?\n([\s\S]*?)\r?\n\r?\n/.exec(this.responseText)[1];
+								title = title.replace(/\s+/g," ");
+								document.getElementById('files').innerHTML += "<tr atp='" + file + "'><td>ATP " + file + "</td><td><a href='ATP" + file + ".txt'>" + title + "</a></td></tr>";
+								file++;
+								getNextDoc();
+							}
+						}
+					}
+
+					getNextDoc();
+				}
+				load();
+
+				function bindLink(element)
+				{
+					var aTags = element.getElementsByTagName('a');
+					for (var i = 0; i < aTags.length; i++)
+					{
+						aTags[i].onclick = function()
+						{
+							page = 0;
+							file = this.getAttribute('href');
+							loadPage();
+							return false;
+						}
+					}
+				}
+
+				function loadPage()
+				{
+					if(page > files[file].length-2)
+						page = files[file].length-2;
+					if(page < 0)
+						page = 0;
+
+					document.getElementById('txtDoc').innerHTML = files[file][page];
+					document.getElementById('pane-right').style.display = "block";
+					document.getElementById('pane-right').scrollTop = 0;
+					adjustPanes();
+				}
+			</script>
+
+		</div>
+		<div id='pane-right' style=''>
+			<div>
+				<button id='previous' onclick='page--; loadPage()''>&lt;</button>
+			</div>
+			<div style='justify-content: top;'>
+				<pre id='txtDoc'></pre>
+				<button onclick='window.open(file);'>View Source</button>
+				<button onclick='document.getElementById("txtDoc").innerHTML=""; adjustPanes();'>Close</button>
+			</div>
+			<div><button id='next' onclick='page++; loadPage()'>&gt;</button></div>
+
+			<script>
+				
+				function centerButtons(){
+					var pane = document.getElementById('pane-right');
+					var button1 = document.getElementById('next');
+					var button2 = document.getElementById('previous');
+
+					heightLimit = window.innerHeight;
+					if(document.getElementById('txtDoc').clientHeight < heightLimit)
+						heightLimit = document.getElementById('txtDoc').clientHeight;
+
+
+					button1.style.top = ((heightLimit-button1.clientHeight)/2+pane.scrollTop)+"px";
+					button2.style.top = ((heightLimit-button2.clientHeight)/2+pane.scrollTop)+"px";
+				}
+
+				document.getElementById('pane-right').onscroll = centerButtons;
+				
+				
+				centerButtons();
+
+				function adjustPanes()
+				{
+					var lPane = document.getElementById('pane-left');
+					var rPane = document.getElementById('pane-right');
+					var txtDoc = document.getElementById('txtDoc');
+
+					if(txtDoc.innerHTML == "")
+					{
+						lPane.style.right = "0px";
+						rPane.style.display = 'none';
+					}
+					else
+					{	
+						rPane.style.display = 'block';
+						var splitX = document.getElementById('txtDoc').scrollWidth + 200;
+						rPane.style.left = (window.innerWidth - splitX) + "px";
+						lPane.style.right = splitX + "px";
+					}
+					centerButtons();
+				}
+				adjustPanes();
+				window.onresize = adjustPanes;
+			</script>
+		</div>
+	<body>
+</html>
