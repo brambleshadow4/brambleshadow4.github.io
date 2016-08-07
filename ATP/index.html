@@ -89,7 +89,7 @@
 							if (this.readyState == 4 && this.status == "200")
 							{
 								var num = /ATP(\d+)\.txt/.exec(this.responseURL)[1];
-								files["ATP"+num+".txt"] = this.responseText.split("\f\r\n");
+								files["ATP"+num+".txt"] = this.responseText.split("\f\r?\n");
 
 								var title = /About Them Ponies\r?\n([\s\S]*?)\r?\n\r?\n/.exec(this.responseText)[1];
 								title = title.replace(/\s+/g," ");
@@ -134,11 +134,17 @@
 						{
 							if (this.readyState == 4 && this.status == "200")
 							{
-								files["ATP"+file+".txt"] = this.responseText;
+								files["ATP"+file+".txt"] = this.responseText.split("\f\r?\n");;
 
 								var title = /About Them Ponies\r?\n([\s\S]*?)\r?\n\r?\n/.exec(this.responseText)[1];
 								title = title.replace(/\s+/g," ");
-								document.getElementById('files').innerHTML += "<tr atp='" + file + "'><td>ATP " + file + "</td><td><a href='ATP" + file + ".txt'>" + title + "</a></td></tr>";
+
+								var newRow = document.createElement('tr');
+								newRow.setAttribute('atp',num);
+								newRow.innerHTML += "<td>ATP " + num + "</td><td><a href='ATP"+num+".txt' onclick='open(this)'>" + title + "</a></td>";
+								bindLink(newRow);
+								document.getElementById('files').appendChild(newRow);
+
 								file++;
 
 								var trs = document.getElementsByTagName('tr');
