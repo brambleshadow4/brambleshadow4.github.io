@@ -140,6 +140,10 @@
 								title = title.replace(/\s+/g," ");
 								document.getElementById('files').innerHTML += "<tr atp='" + file + "'><td>ATP " + file + "</td><td><a href='ATP" + file + ".txt'>" + title + "</a></td></tr>";
 								file++;
+
+								var trs = document.getElementsByTagName('tr');
+								bindLink(trs[trs.length-1]);
+
 								getNextDoc();
 							}
 						}
