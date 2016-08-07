@@ -4,6 +4,15 @@
 		<title>About Them Ponies</title>
 		<style>
 			
+			#autoload{width: 60px;}
+
+			pre{
+				border: solid black;
+				display: block;
+				padding: 1em;
+				text-align: left;
+			}
+
 			#pane-left{
 				position: absolute;
 				left: 0px;
@@ -27,32 +36,31 @@
 
 			#pane-right div{
 				display: inline-block;
+				position: relative;
+				vertical-align: top;
 			}
 			#next, #previous{
 				width: 40px;
 				height: 120px;
-				margin: 20px;
+				margin: 10px;
 				position: absolute;
+				top: 0px;
 			}
-			#next {right: 0px;}
-			#previous {left: 0px;}
-			#autoload{width: 60px;}
+			#next {left: 0px;}
+			#previous {right: 0px;}
 
-			pre{
-				border: solid black;
-				display: block;
-				padding: 1em;
-				text-align: left;
-			}
-			table{
+			table
+			{
 				display: inline-block;
 				border-collapse: collapse;
-
 			}
+
 			td{border: solid 1px gray; padding: 5px;}
+
+
 		</style>
 	</head>
-	<body>
+	<body class='horizontal'>
 		<div id='pane-left'>
 			<h1>About Them Ponies</h1>
 			<h2>Post Repository</h2>
@@ -196,9 +204,7 @@
 
 		</div>
 		<div id='pane-right' style=''>
-			<div>
-				<button id='previous' onclick='page--; loadPage()''>&lt;</button>
-			</div>
+			<div><button id='previous' onclick='page--; loadPage()''>&lt;</button></div>
 			<div style='justify-content: top;'>
 				<pre id='txtDoc'></pre>
 				<button onclick='window.open(file);'>View Source</button>
@@ -237,16 +243,28 @@
 					{
 						lPane.style.right = "0px";
 						rPane.style.display = 'none';
+						lPane.style.display = 'block';
+					}
+					else if (innerHeight/innerWidth > 1.2)
+					{	
+						
+						lPane.style.display = "none";
+						rPane.style.left = "0px";
 					}
 					else
-					{	
+					{
 						rPane.style.display = 'block';
 						var splitX = document.getElementById('txtDoc').scrollWidth + 200;
+
+						lPane.style.display = "block";
 						rPane.style.left = (window.innerWidth - splitX) + "px";
 						lPane.style.right = splitX + "px";
+
+						console.log("not");
 					}
 					centerButtons();
 				}
+
 				adjustPanes();
 				window.onresize = adjustPanes;
 			</script>
