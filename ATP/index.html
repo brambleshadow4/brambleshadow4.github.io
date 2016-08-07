@@ -140,8 +140,8 @@
 								title = title.replace(/\s+/g," ");
 
 								var newRow = document.createElement('tr');
-								newRow.setAttribute('atp',num);
-								newRow.innerHTML += "<td>ATP " + num + "</td><td><a href='ATP"+num+".txt' onclick='open(this)'>" + title + "</a></td>";
+								newRow.setAttribute('atp',file);
+								newRow.innerHTML += "<td>ATP " + file + "</td><td><a href='ATP"+file+".txt' onclick='open(this)'>" + title + "</a></td>";
 								bindLink(newRow);
 								document.getElementById('files').appendChild(newRow);
 
