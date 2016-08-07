@@ -177,9 +177,15 @@
 				function loadPage()
 				{
 					if(page > files[file].length-2)
+					{
 						page = files[file].length-2;
+						return false;
+					}
 					if(page < 0)
+					{
 						page = 0;
+						return false;
+					}
 
 					document.getElementById('txtDoc').innerHTML = files[file][page];
 					document.getElementById('pane-right').style.display = "block";
