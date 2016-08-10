@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>The Infinite Maze</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<script type="text/javascript" src='Mazes.js'></script>
+	</head>
+	<body>
+		<style type="text/css">
+			canvas {border: solid black;}		
+
+			input[type='number']{width: 80px;}
+
+			/*@media only screen and (min-width: 768px)
+			{*/
+				.h #info{
+					position: fixed; left: 10px; top: 10px;
+				}
+
+				.v #info {text-align: center;}
+
+				#info select{font-size: 15pt;}
+				#info {font-size: 15pt;}
+			/*}*/
+			
+			
+		</style>
+		<div id="canvasContainer" style="text-align: center;"></div>	
+		<div id='info'>
+			<div id = "coordinateContainer"></div>
+			<p>Maze Function</p>
+			<select  id="mazeFunction" onchange = "highlights = []; drawMaze();">
+				<option>Grid</option>
+				<option>Open</option>
+				<option>Spiral</option>
+				<option>Hash 1</option>
+				<option>Static Tile 5</option>
+				<option>Dynamic Tile 11</option>
+				<option>Square Border Method</option>
+			</select>	
+			<div>
+				<p>Draw path:</p>
+				<div>
+					<label>From</label> (<input type='number' value='0'/>, <input type='number' value='0'//>)
+					<br>
+					<label>To</label> (<input type='number' value='20' />, <input type='number' value='20'//>)
+					<br>
+					<button onclick='pathFind()'>Draw Path</button>
+					<div id='path length'></div>
+				</div>
+
+			</div>
+
+		</div>
+		
+			
+		<script>
+			var cellSize = 20;
+
+			var highlights = [];
+			var position = {'x': 0, 'y': 0};
+			
+			var ctx;
+
+			window.onwheel = function(){
+				//alert();
+			}
+
+			document.body.onselectstart = function() {return false;};
+
+			function fitCanvas()
+			{
+
+
+				while(document.getElementsByTagName("canvas").length > 0){
+					var x = document.getElementsByTagName("canvas")[0];
+					x.parentNode.removeChild(x);
+				}
+				var newCanvas = document.createElement("canvas");
+
+				var canvasSize = window.innerHeight - 30;
+				if(window.innerWidth - 30 < canvasSize)
+					canvasSize = window.innerWidth - 30;
+
+				newCanvas.width = canvasSize;
+				newCanvas.height = canvasSize;
+
+				newCanvas.onmousemove = function(e){
+
+					if(e.buttons == 1){
+						position.x -= e.movementX/cellSize;
+						position.y -= e.movementY/cellSize;
+
+						drawMaze();
+					}
+
+					var x = Math.floor(position.x +.5 + (e.offsetX-newCanvas.width/2)/cellSize);
+					var y = Math.floor(position.y + .5 + (e.offsetY-newCanvas.height/2)/cellSize)*-1;
+					document.getElementById("coordinateContainer").innerHTML = "x = " + x + "<br>y = " + y;
+				}
+
+
+				newCanvas.addEventListener("touchstart",function(e){
+					e.preventDefault();
+					this.setAttribute('touchStartPos',e.touches[0].screenX+","+e.touches[0].screenY);
+				})
+				newCanvas.addEventListener("touchmove", function(e)
+				{
+
+					e.preventDefault();
+
+					var stuff = this.getAttribute('touchStartPos').split(",");
+
+					position.x -= (e.touches[0].screenX-Number(stuff[0]))/cellSize;
+					position.y -= (e.touches[0].screenY-Number(stuff[1]))/cellSize;
+
+					drawMaze();
+
+					this.setAttribute('touchStartPos',e.touches[0].screenX+","+e.touches[0].screenY);
+				});
+
+				document.getElementById("canvasContainer").appendChild(newCanvas);
+
+				ctx = newCanvas.getContext("2d");
+
+				ctx.width = canvasSize;
+				ctx.height = canvasSize;
+
+				ctx.fillStyle = "#FFFFFF";
+				ctx.fillRect(0,0,ctx.width,ctx.height);
+
+			
+
+
+				if(window.innerHeight + 450 > window.innerWidth )
+				{
+					cellSize = 15;
+					document.body.className = "v";
+				}
+				else
+				{
+					cellSize = 20;
+					document.body.className = "h";
+				}
+
+				drawMaze();
+			}
+			fitCanvas();
+			
+			window.addEventListener("resize",fitCanvas);
+
+
+			function drawMaze(){
+				ctx.style = "#FFFFFF";
+				ctx.fillStyle = "#FFFFFF";
+				ctx.fillRect(0,0,ctx.width,ctx.height);
+
+				//represents the upper corner of the center box on the screen;
+
+				var centerX = ctx.width/2 - cellSize/2 - (position.x%1)*cellSize;
+				if(position.x%1 < 0)
+					centerX -= cellSize;
+				var centerY = ctx.height/2 - cellSize/2 - (position.y%1)*cellSize;
+				if(position.y%1 < 0)
+					centerY -= cellSize;
+
+				var gridSpread = Math.floor(ctx.width/cellSize) + 2;
+
+				ctx.beginPath();
+
+				for (var i = -gridSpread; i <= gridSpread; i++) {
+					for (var j = -gridSpread; j <= gridSpread; j++) {
+						
+						var cellInfo = maze(Math.floor(position.x)+j, Math.floor(position.y)+i);
+
+						if(!cellInfo.left){
+							ctx.moveTo(centerX + j*cellSize, centerY + i*cellSize);
+							ctx.lineTo(centerX + j*cellSize, centerY + i*cellSize + cellSize);
+						}
+
+						
+						if(!cellInfo.up){
+							ctx.moveTo(centerX + j*cellSize, centerY + i*cellSize);
+							ctx.lineTo(centerX + j*cellSize + cellSize, centerY + i*cellSize);
+						}
+					};
+				};
+
+				ctx.stroke();
+
+				ctx.fillStyle = "#0055AA";
+				ctx.style = "#0055AA"
+				
+				for (var i = -gridSpread; i <= gridSpread; i++) {
+					for (var j = -gridSpread; j <= gridSpread; j++) {
+						var x = Math.floor(position.x)+j;
+						var y = -Math.floor(position.y)-i;
+
+						if(highlights[cellNum(x,y)])
+						{
+							//ctx.moveTo(centerX + j*cellSize, centerY + i*cellSize);
+							ctx.fillRect(centerX + j*cellSize+cellSize/4, centerY + i*cellSize+cellSize/4,
+								cellSize/2,cellSize/2);
+							//ctx.fillRect(0,0,100,100);
+
+							//ctx.lineTo(centerX + j*cellSize, centerY + i*cellSize + cellSize);
+						}
+
+						
+					};
+				};
+
+				
+			}
+
+			function maze(i,j){
+				j = -j;
+				return mazes[document.getElementById("mazeFunction").value](i,j);
+			}
+
+			function pathFind()
+			{
+				document.getElementById('path length').innerHTML = "This could take a while";
+
+
+				var w = new Worker("PathFinder.js");
+
+				var stuff = [
+					document.getElementById('mazeFunction').value,
+					document.getElementsByTagName('input')[0].value,
+					document.getElementsByTagName('input')[1].value,
+					document.getElementsByTagName('input')[2].value,
+					document.getElementsByTagName('input')[3].value];
+
+
+				w.postMessage(stuff);
+
+				w.onmessage = function(event)
+				{
+					if(event.data.highlights)
+					{
+						highlights = event.data.highlights;
+						document.getElementById('path length').innerHTML = "length: " + highlights.length;
+
+						highlights[cellNum(
+							document.getElementsByTagName('input')[0].value,
+							document.getElementsByTagName('input')[1].value)] = true;
+						drawMaze();
+					}
+					else
+					{
+						document.getElementById('path length').innerHTML = "No path found";
+					}
+
+					w.terminate();
+				}
+			}
+		</script>
+
+	</body>
+</html>
