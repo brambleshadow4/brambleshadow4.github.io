@@ -105,6 +105,19 @@
 						
 						document.getElementById('files').appendChild(newRow);
 					}
+
+					var getReq = location.search.substring(1);
+					var params = {};
+					getReq = getReq.split("&");
+					while(getReq.length)
+					{
+						var keyValue = getReq.pop().split('=');
+						if(keyValue.length == 2)
+							params[keyValue[0]] = keyValue[1];
+					}
+
+					if(params['id'] && Number(params['id']))
+						ATP(Number(params['id']),0);
 					
 				}
 
