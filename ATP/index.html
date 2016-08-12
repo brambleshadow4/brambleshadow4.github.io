@@ -57,37 +57,74 @@
 
 			td{border: solid 1px gray; padding: 5px;}
 
+			#pane-right #buttons {display: block;}
+			#buttons button
+			{
+				margin-left:2%;
+				margin-right: 2%;
+				margin-top: 10px;
+				width: 28%;
+			}
+			#pane-right #alt-page-buttons {display: block;}
+			#pane-right #alt-page-buttons button{
+				width: 47%;
+			}
+
 		</style>
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	</head>
 	<body class='horizontal'>
 		<div id='pane-left'>
 			<h1>About Them Ponies</h1>
+			<h3>A blog dedicated to the discussion of all things pony</h3>
 			<h2>Post Repository</h2>
-			<p>
-				Autoload the first <input id='autoload' onchange='localStorage["ATP-autoload"] = this.value' type='number'/> posts <button onclick='load(true);'>Refresh Files</button>
-			</p>
+			
 			<table><tbody id='files'></tbody>
 			</table>
 
 			<script>
-				var files;
-				var file = "";
+				var files = {};
+				var post = 1;
 				var page = 0;
-				function load(forceRefresh)
-				{	
-					document.getElementById('files').innerHTML = "";
+				
+				function loadPosts(data)
+				{
+					files["posts.json"] = JSON.parse(data);
+					files["posts.json"].unshift(null);
 
-					var file = 0;
-					if(!isNaN(Number(localStorage["ATP-autoload"])))
-						file = Number(localStorage["ATP-autoload"]);
-					document.getElementById('autoload').value = file;
+					var posts = JSON.parse(data);
 
-					for (var i = 0; i < file; i++)
+					while(posts.length)
 					{
-						var request = new XMLHttpRequest();
-						var fileName = "ATP"+(i+1)+".txt";
-						if(forceRefresh)
-							fileName += "?d="+ new Date().getTime();
+						var post = posts.shift();
+						var newRow = document.createElement('tr');
+						newRow.setAttribute('atp',post.id);
+						newRow.innerHTML += "<td>ATP " + post.id + "</td><td><a href='ATP"+post.id
+							+".txt' onclick='ATP("+post.id+",0); return false;'>" + post.title + "</a></td>";
+						
+						document.getElementById('files').appendChild(newRow);
+					}
+					
+				}
+
+				var postData;
+				var request = new XMLHttpRequest();	
+				request.open("GET","posts.json",true);
+				request.send();
+				request.onreadystatechange = function()
+				{
+					if (this.readyState == 4 && this.status == "200")
+						loadPosts(this.responseText);
+				}
+
+				function ATP(number,newPage)
+				{	
+					//alert("ATP running");	
+					var fileName = "ATP" + number + ".txt";
+					if(!files[fileName])
+					{
+						var openOnLoad = !(newPage == undefined || newPage === false);
 						request.open("GET",fileName,true);
 						request.send();
 
@@ -98,137 +135,97 @@
 								var num = /ATP(\d+)\.txt/.exec(this.responseURL)[1];
 								files["ATP"+num+".txt"] = this.responseText.split(/\f\r?\n/);
 
-								var title = /About Them Ponies\r?\n([\s\S]*?)\r?\n\r?\n/.exec(this.responseText)[1];
-								title = title.replace(/\s+/g," ");
-
-								var newRow = document.createElement('tr');
-								newRow.setAttribute('atp',num);
-								newRow.innerHTML += "<td>ATP " + num + "</td><td><a href='ATP"+num+".txt' onclick='open(this)'>" + title + "</a></td>";
-								bindLink(newRow);
-								var rows = document.getElementsByTagName('tr');
-
-								for (var i = 0; i < rows.length; i++)
-								{
-									if(Number(rows[i].getAttribute('atp')) > num)
-									{
-										document.getElementById('files').insertBefore(newRow,rows[i]);
-										i = rows.length+1;
-										newRow = "added";
-									}
-								}
-								if(newRow != "added")
-									document.getElementById('files').appendChild(newRow);
-
+								if(openOnLoad) ATP(num,0);
 							}
 						}
 					}
-
-					file++;
-					
-					files = {};
-
-					function getNextDoc()
+					else if(newPage != undefined && newPage !== false)
 					{
-						var request = new XMLHttpRequest();
-						var fileName = "ATP"+file+".txt";
-						if(forceRefresh)
-							fileName += "?d="+ new Date().getTime();
-
-						request.open("GET",fileName /*+"?d="+ new Date().getTime()*/,true);
-						request.send();
-
-						request.onreadystatechange = function()
+						post = number;
+						page = newPage;
+						if(page > files["ATP"+post+".txt"].length-2)
 						{
-							if (this.readyState == 4 && this.status == "200")
-							{
-								files["ATP"+file+".txt"] = this.responseText.split(/\f\r?\n/);;
-
-								var title = /About Them Ponies\r?\n([\s\S]*?)\r?\n\r?\n/.exec(this.responseText)[1];
-								title = title.replace(/\s+/g," ");
-
-								var newRow = document.createElement('tr');
-								newRow.setAttribute('atp',file);
-								newRow.innerHTML += "<td>ATP " + file + "</td><td><a href='ATP"+file+".txt' onclick='open(this)'>" + title + "</a></td>";
-								bindLink(newRow);
-								document.getElementById('files').appendChild(newRow);
-
-								file++;
-
-								var trs = document.getElementsByTagName('tr');
-								bindLink(trs[trs.length-1]);
-
-								getNextDoc();
-							}
-						}
-					}
-
-					getNextDoc();
-				}
-				load();
-
-				function bindLink(element)
-				{
-					var aTags = element.getElementsByTagName('a');
-					for (var i = 0; i < aTags.length; i++)
-					{
-						aTags[i].onclick = function()
-						{
-							page = 0;
-							file = this.getAttribute('href');
-							loadPage();
+							page = files["ATP"+post+".txt"].length-2;
 							return false;
 						}
-					}
+						if(page < 0)
+						{
+							page = 0;
+							return false;
+						}
+
+						document.getElementById('txtDoc').innerHTML = files["ATP"+post+".txt"][page];
+						document.getElementById('pane-right').style.display = "block";
+						document.getElementById('pane-right').scrollTop = 0;
+						adjustPanes();
+					} 
 				}
 
-				function loadPage()
+				function download()
 				{
-					if(page > files[file].length-2)
+					var downloadLink = document.createElement('a');
+
+					var text = "";
+					for (var i = 0; i < files["ATP"+post+".txt"].length; i++)
 					{
-						page = files[file].length-2;
-						return false;
-					}
-					if(page < 0)
-					{
-						page = 0;
-						return false;
+						text += files["ATP"+post+".txt"][i];
+						if(i+1 != files["ATP"+post+".txt"].length) text+="\f\r\n";
 					}
 
-					document.getElementById('txtDoc').innerHTML = files[file][page];
-					document.getElementById('pane-right').style.display = "block";
-					document.getElementById('pane-right').scrollTop = 0;
-					adjustPanes();
+					var blob = new Blob(["\uFEFF",text],{type: "octet/stream"});
+					downloadLink.href = window.URL.createObjectURL(blob);
+					downloadLink.download = "ATP"+post+".txt";
+
+					document.body.appendChild(downloadLink);
+					downloadLink.click();
+					document.body.removeChild(downloadLink);
 				}
+
 			</script>
 
 		</div>
 		<div id='pane-right' style=''>
-			<div><button id='previous' onclick='page--; loadPage()''>&lt;</button></div>
+			<div><button id='previous' onclick='ATP(post,page-1)'>&lt;</button></div>
 			<div style='justify-content: top;'>
 				<pre id='txtDoc'></pre>
-				<button onclick='window.open(file);'>View Source</button>
-				<button onclick='document.getElementById("txtDoc").innerHTML=""; adjustPanes();'>Close</button>
+				<div id='alt-page-buttons' style='display: none'>
+					<button onclick='ATP(post,page-1)'>&lt; Previous</button>
+					<button onclick='ATP(post,page+1)'>Next &gt;</button>
+				</div>
+				<div id='buttons'>
+					<button onclick='download()'>Download</button>
+					<button onclick='window.open("ATP"+post+".txt");'>View Source</button>
+					<button onclick='window.open(files["posts.json"][post].tumblr)'>View Tumblr</button>
+					<br />
+					<button onclick='document.getElementById("txtDoc").innerHTML=""; adjustPanes();'>Close</button>
+				</div>
 			</div>
-			<div><button id='next' onclick='page++; loadPage()'>&gt;</button></div>
+			<div><button id='next' onclick='ATP(post,page+1)'>&gt;</button></div>
 
 			<script>
 				
-				function centerButtons(){
-					var pane = document.getElementById('pane-right');
-					var button1 = document.getElementById('next');
-					var button2 = document.getElementById('previous');
+				function centerButtons()
+				{
+					
+					if(document.body.className == 'split pane')
+					{
+						var pane = document.getElementById('pane-right');
+						var button1 = document.getElementById('next');
+						var button2 = document.getElementById('previous');
 
-					heightLimit = window.innerHeight;
-					if(document.getElementById('txtDoc').clientHeight < heightLimit)
-						heightLimit = document.getElementById('txtDoc').clientHeight;
+						button1.style.display = "inline-block";
+						button2.style.display = "inline-block";
 
+						heightLimit = window.innerHeight;
+						if(document.getElementById('txtDoc').clientHeight < heightLimit)
+							heightLimit = document.getElementById('txtDoc').clientHeight;
 
-					button1.style.top = ((heightLimit-button1.clientHeight)/2+pane.scrollTop)+"px";
-					button2.style.top = ((heightLimit-button2.clientHeight)/2+pane.scrollTop)+"px";
+						button1.style.top = ((heightLimit-button1.clientHeight)/2+pane.scrollTop)+"px";
+						button2.style.top = ((heightLimit-button2.clientHeight)/2+pane.scrollTop)+"px";
+					}	
 				}
 
 				document.getElementById('pane-right').onscroll = centerButtons;
-				
 				
 				centerButtons();
 
@@ -240,28 +237,49 @@
 
 					if(txtDoc.innerHTML == "")
 					{
+						//single panel left view
 						lPane.style.right = "0px";
 						rPane.style.display = 'none';
 						lPane.style.display = 'block';
 					}
-					else if (innerHeight/innerWidth > 1.2)
-					{	
-						
-						lPane.style.display = "none";
-						rPane.style.left = "0px";
-					}
 					else
-					{
+					{	
 						rPane.style.display = 'block';
 						var splitX = document.getElementById('txtDoc').scrollWidth + 200;
 
-						lPane.style.display = "block";
-						rPane.style.left = (window.innerWidth - splitX) + "px";
-						lPane.style.right = splitX + "px";
+						document.getElementById('txtDoc').style = "";
 
-						console.log("not");
+
+						if(window.innerWidth - splitX > 200)
+						{
+							document.body.className = 'split pane';
+							lPane.style.display = "block";
+							rPane.style.left = (window.innerWidth - splitX) + "px";
+							lPane.style.right = splitX + "px";
+							centerButtons();
+
+							document.getElementById('alt-page-buttons').style.display = "none";
+						}
+						else
+						{
+							//mobile view	
+							document.body.className = "single pane";
+							document.getElementById('next').style.display = "none";
+							document.getElementById('previous').style.display = "none";
+
+							lPane.style.display = "none";
+							rPane.style.left = "0px";
+
+							document.getElementById('alt-page-buttons').style.display = "block";
+
+							var defaultFontSize = 12;
+							while(document.getElementById('txtDoc').scrollWidth + 30 > window.innerWidth)
+							{
+								defaultFontSize -= .1;
+								document.getElementById('txtDoc').style.fontSize = defaultFontSize + "pt";
+							}
+						}						
 					}
-					centerButtons();
 				}
 
 				adjustPanes();
