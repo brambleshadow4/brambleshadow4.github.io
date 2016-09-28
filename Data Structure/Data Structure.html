@@ -2086,7 +2086,7 @@
 		//Put drawing code in here
 		if(!d.info)
 		{
-			TILE.Map.Draw(Vect2(200,200).add(d.offset));
+			/*TILE.Map.Draw(Vect2(200,200).add(d.offset));
 
 			if(!TILE.Map.up.blank)
 			{
@@ -2274,7 +2274,121 @@
 						i = 100;
 					}
 				}
+			}*/
+
+
+			var tiles = [];
+			for (var i = 0; i < 13; i++)
+			{
+				tiles[i] = [];
+				for (var j = 0; j < 13; j++)
+				{
+					tiles[i][j] = "empty";
+				}
 			}
+
+			tiles[6][6] = TILE.Map;
+			var drawQueue = [{"i":6,"j":6,'d':-1}];
+
+			while(drawQueue.length)
+			{
+				var pos = drawQueue.shift();
+
+				var currentDraw = tiles[pos.i][pos.j];
+				
+				currentDraw.Draw(Vect2(-40+40*pos.i,-40+40*pos.j).add(d.offset));
+
+				if(currentDraw.up.blank && pos.j != 0 && tiles[pos.i][pos.j-1].down != currentDraw)
+				{
+					//draw up bar
+					if(currentDraw.drawTile.substring(0,3) =='neo')
+						GAME.drawSprite("bari-u.png", Vect2(-40+40*pos.i,-40+40*pos.j).add(d.offset));
+					else
+						GAME.drawSprite("bar-u.png", Vect2(-40+40*pos.i,-40+40*pos.j).add(d.offset));
+				}
+				else if(pos.j == 0 || ( tiles[pos.i][pos.j-1] != 'empty' && tiles[pos.i][pos.j-1].down != currentDraw) )
+				{
+					//draw up fade\
+					if(currentDraw.drawTile.substring(0,3) =='neo')
+						GAME.drawSprite("openi-u.png", Vect2(-40+40*pos.i,-40+40*pos.j).add(d.offset));
+					else
+						GAME.drawSprite("open-u.png", Vect2(-40+40*pos.i,-40+40*pos.j).add(d.offset));
+				}
+				else if (tiles[pos.i][pos.j-1] == 'empty')
+				{
+					//add tile above to drawQueue
+					drawQueue.push({'i':pos.i, 'j':pos.j-1,'d':0});
+					tiles[pos.i][pos.j-1] = currentDraw.up;
+				}
+
+				if(currentDraw.down.blank && pos.j != 12 && tiles[pos.i][pos.j+1].up != currentDraw)
+				{
+					//draw up bar
+					if(currentDraw.drawTile.substring(0,3) =='neo')
+						GAME.drawSprite("bari-d.png", Vect2(-40+40*pos.i,-40+40*pos.j).add(d.offset));
+					else
+						GAME.drawSprite("bar-d.png", Vect2(-40+40*pos.i,-40+40*pos.j).add(d.offset));
+				}
+				else if(pos.j == 12 || (tiles[pos.i][pos.j+1] != 'empty' && tiles[pos.i][pos.j+1].up != currentDraw) )
+				{
+					//draw up fade
+					if(currentDraw.drawTile.substring(0,3) =='neo')
+						GAME.drawSprite("openi-d.png", Vect2(-40+40*pos.i,-40+40*pos.j).add(d.offset));
+					else
+						GAME.drawSprite("open-d.png", Vect2(-40+40*pos.i,-40+40*pos.j).add(d.offset));
+				}
+				else if (tiles[pos.i][pos.j+1] == 'empty')
+				{
+					//add tile above to drawQueue
+					drawQueue.push({'i':pos.i, 'j':pos.j+1,"d":2});
+					tiles[pos.i][pos.j+1] = currentDraw.down;
+				}
+
+				if(currentDraw.left.blank && pos.i != 0 && tiles[pos.i-1][pos.j].right != currentDraw)
+				{
+					//draw bar
+					if(currentDraw.drawTile.substring(0,3) =='neo')
+						GAME.drawSprite("bari-l.png", Vect2(-40+40*pos.i,-40+40*pos.j).add(d.offset));
+					else
+						GAME.drawSprite("bar-l.png", Vect2(-40+40*pos.i,-40+40*pos.j).add(d.offset));
+				}
+				else if(pos.i == 0 || ( tiles[pos.i-1][pos.j] != 'empty' && tiles[pos.i-1][pos.j].right != currentDraw) )
+				{
+					if(currentDraw.drawTile.substring(0,3) =='neo')
+						GAME.drawSprite("openi-l.png", Vect2(-40+40*pos.i,-40+40*pos.j).add(d.offset));
+					else
+						GAME.drawSprite("open-l.png", Vect2(-40+40*pos.i,-40+40*pos.j).add(d.offset));
+				}
+				else if (tiles[pos.i-1][pos.j] == 'empty')
+				{
+					//add tile above to drawQueue
+					drawQueue.push({'i':pos.i-1, 'j':pos.j,'d':3});
+					tiles[pos.i-1][pos.j] = currentDraw.left;
+				}
+
+				if(currentDraw.right.blank && pos.i != 12 && tiles[pos.i+1][pos.j].left != currentDraw)
+				{
+					//draw bar
+					if(currentDraw.drawTile.substring(0,3) =='neo')
+						GAME.drawSprite("bari-r.png", Vect2(-40+40*pos.i,-40+40*pos.j).add(d.offset));
+					else
+						GAME.drawSprite("bar-r.png", Vect2(-40+40*pos.i,-40+40*pos.j).add(d.offset));
+				}
+				else if(pos.i == 12 || ( tiles[pos.i+1][pos.j] != 'empty' && tiles[pos.i+1][pos.j].left != currentDraw) )
+				{
+					if(currentDraw.drawTile.substring(0,3) =='neo')
+						GAME.drawSprite("openi-r.png", Vect2(-40+40*pos.i,-40+40*pos.j).add(d.offset));
+					else
+						GAME.drawSprite("open-r.png", Vect2(-40+40*pos.i,-40+40*pos.j).add(d.offset));
+				}
+				else if (tiles[pos.i+1][pos.j] == 'empty')
+				{
+					//add tile above to drawQueue
+					drawQueue.push({'i':pos.i+1, 'j':pos.j,'d':3});
+					tiles[pos.i+1][pos.j] = currentDraw.right;
+				}
+			}
+
 
 			GAME.drawRect(Vect2(210,210),Vect2(20,20),"#0000FF");
 
