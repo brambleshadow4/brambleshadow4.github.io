@@ -399,9 +399,11 @@
 							this.item = "lavastone2";
 						}
 					}
+
+					this.lastDraw += elapsedTime;
 				}
 
-				this.lastDraw += elapsedTime;
+				//
 			}
 
 			return n;
@@ -2082,7 +2084,10 @@
 
 	function Draw()
 	{
-		GAME.clearDraw("#000000");
+		//if(TILE.Map.drawTile.substring(0,3) =='neo')
+		//	GAME.clearDraw("#FFFFFF")
+		//else
+			GAME.clearDraw("#000000");
 		//Put drawing code in here
 		if(!d.info)
 		{
