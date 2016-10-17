@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	</head>
+	<body>
+		<p><a href='aboutSTF.html'> Return to home &#10550;</a></p>
+		<h2>TXT Decompiler</h2>
+		<label>TXT File:</label> <input id='file1' onchange="getFile(this);" type='file'  />
+		<div>
+			<textarea readonly id='output' style='width: 80%' rows = '10'></textarea>
+		</div>
+
+		<script>
+			function getFile(inputElement)
+			{
+				var file = inputElement.files[0];
+
+				var reader = new FileReader();
+				reader.readAsText(file);
+				reader.onload = decodeFile;
+			}
+			function decodeFile(e)
+			{
+				var txt = this.result
+				var sections = this.result.split("\u001D");
+				var markup = "";
+
+				for (var j = 0; j < sections.length; j++)
+				{
+					var section = sections[j];
+
+					var lines = section.split(/\r\n|\n|\r/g);
+
+					//may be an empty string before section
+					if(j != 0)
+						lines.shift();
+
+					//erase any headers/footers
+
+					var linesAdj = [];
+					for (var i = 0; i < lines.length; i++)
+					{
+						if(i%56 != 0 && i%56 != 1 && i%56 < 53)
+							linesAdj.push(lines[i]);
+					}
+					lines = linesAdj;
+
+					//console.log(lines.slice());
+
+					// check for heading
+
+					//console.log((lines[0].trim() == "") +" " + (lines[1].trim() != ""));
+					if(lines[0].trim() == "" && lines[1].trim() != "")
+					{
+						lines.shift();
+						
+						markup += "<h1>\r\n";
+
+						var line = lines.shift().trim();
+						while(line != "")
+						{
+							markup += line + "\r\n";
+							line = lines.shift().trim();
+						}
+
+						markup += "</h1>\r\n\r\n";
+					}
+
+					var line = lines.shift();
+
+					//for (var j = 0; j < 5; j++)
+
+					while(line != undefined)
+					{
+						while(lines.length && line.trim() == '')
+						{
+							line = lines.shift();
+						}
+						
+						if(line.substring(0,5) == "    |")
+						{
+							markup += '<blockquote>';
+							while(line.substring(0,5) == "    |")
+							{
+								if(line.substring(5).trim() == "")
+									markup += "\r\n";
+								else
+									markup += line.substring(5).trim() + " ";
+								line = lines.shift();
+							}
+							markup += "</blockquote>\r\n"
+
+						}
+						else if(line.substring(0,11) == "   --------")
+						{
+							markup += "<hr>\r\n";
+							line = lines.shift();
+						}
+						else if(/\ *\d+/.exec(line.substring(0,5)) && line.substring(5,7) == ". ")
+						{
+							markup += '<ol>'
+							while(line.trim() != "")
+							{
+								if(line.substring(5,7) == ". ")
+									markup += "\r\n" + line.substring(7);
+								else
+									markup += line.substring(7)
+								line = lines.shift();
+							}
+							markup += "\r\n</ol>\r\n"
+						}
+						else if(line.substring(0,7) == "     - ")
+						{
+							markup += '<ul>';
+							while(line.trim() != "")
+							{
+								if(line.substring(5,6) == "-")
+									markup += "\r\n" + line.substring(7);
+								else
+									markup += line.substring(7)
+								line = lines.shift();
+							}
+							markup += "\r\n</ul>\r\n";
+						}
+						else
+						{
+							while(line != undefined && line.trim() != "" )
+							{
+								markup += line.trim() + " ";
+								line = lines.shift();
+							}
+							markup += "\r\n";
+							line = lines.shift();
+						}
+
+						markup+="\r\n";
+					}
+					
+				}
+
+				document.getElementById('output').innerHTML = markup;
+			}
+			
+		</script>
+	</body>	
+</html>

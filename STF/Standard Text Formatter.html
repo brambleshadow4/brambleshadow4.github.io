@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset='UTF-8' />
+	</head>
+	<body>
+		<style>
+			body{text-align: center;}
+			form{display: inline-block;}
+			fieldset div{margin: 5px;}
+
+			#output{display: inline-block;}
+			#form {display: inline-block;}
+
+			.two-col #output {position: absolute; right:0px; margin: 20px;}
+			.two-col #form {position: absolute; left:0px; margin: 20px;}
+
+		</style>
+		<div id='form'>
+			<p><a href='aboutSTF.html'> Return to home &#10550;</a></p>
+			<h1>Create Standard Txt Document</h1>
+			<form>
+				<fieldset>
+					<legend>Header &amp; Footer</legend>
+					<div>
+						<label>Heading:</label> <input id='heading' type='text' />
+					</div>
+					<div>
+						<label>Code:</label> <input id='code' type='text' />
+					</div>
+					<div>
+						<label>Author:</label> <input id='author' type='text' />
+					</div>
+					<div>
+						<label>Date:</label> <input id='date' type='date' />
+					</div>
+				</fieldset>
+				<fieldset>
+					<legend>Coverpage</legend>
+					<div>
+						<label>Titles:</label>
+						<div>
+							<textarea id='cover' cols='72' rows='5'></textarea>
+						</div>
+					</div>
+				</fieldset>
+				<br>
+				<fieldset>
+					<legend>Content</legend>
+					<div>
+						<label>Title:</label> <input id='title' type='text'/>
+					</div>
+					<div>
+						<label>Subtitle:</label> <input id='subTitle' type='text'/>
+					</div>
+					<label>Body:</label>
+					<div>
+						<textarea id='body' cols='72' rows='20'></textarea>
+					</div>
+				</fieldset>
+				<br>
+				<button type='button' onclick='createTxt(); layout();'>Create Document</button>
+				<a id='download'>Download Document</a>
+				
+			</form>
+		</div>
+		
+		<script>
+			var pages, heading, code, author, date, title, subTitle, coverpage;
+			var pgPointer;
+			
+			function createTxt()
+			{
+				//get all stuff
+				pages = [];
+				heading = document.getElementById('heading').value;
+				code = document.getElementById('code').value;
+				author = document.getElementById('author').value;
+				date = new Date(document.getElementById('date').value);
+				date = new Date(date.getTime() + date.getTimezoneOffset()*60000);
+				title = document.getElementById('title').value;
+				subTitle = document.getElementById('subTitle').value;
+				body = document.getElementById('body').value;
+
+				coverpage = document.getElementById('cover').value.trim();
+				if(coverpage != undefined && coverpage != '')
+				{
+					addCoverPage(coverpage);
+					coverpage = true;
+				}
+
+				if(title != undefined && title != "")
+					body = "[[h1]]" + title + "\n" + subTitle + "[[/h1]]" + body;
+				
+				//functions will automatically write on a new page
+				pgPointer = 100;
+
+				//reference <a> tags
+				var references = [];
+				var ATag = /<a .*?>.*?<\/a>/.exec(body);
+				while (ATag != null)
+				{
+					var HREF = /href=\S?(?:'(.*?)'|"(.*?)"|’(.*?)’|”(.*?)”)./.exec(ATag[0]);
+
+					if(HREF[1] != undefined)
+						HREF = HREF[1];
+					else if(HREF[2] != undefined)
+						HREF = HREF[2];
+					else if(HREF[3] != undefined)
+						HREF = HREF[3];
+					else if(HREF[4] != undefined)
+						HREF = HREF[4];
+
+					if(HREF != undefined)
+					{
+						references.push(HREF);
+						body = body.replace(/<a .*?>(.*?)<\/a>/,"$1(*"+references.length+")");
+					}
+					// matched text: match[0]
+					// match start: match.index
+					// capturing group n: match[n]
+					ATag = /<a .*?>.*?<\/a>/.exec(body);
+				}
+				
+				//hr tags
+				body = body.replace(/<hr ?\/?>/g,"[[hr]]d[[/hr]]");
+
+
+				//p tags
+				var pRegex = /<p((?: \w+(?:=(?:"[^"]*?"|'[^']*?'))?)*) ?>([\s\S]*?)<\/p>/g;
+				var result = pRegex.exec(body);
+				while(result)
+				{
+					if (result[1].indexOf("center") != -1)
+						body = body.replace(pRegex,"[[center]]$2[[/center]]");
+					else
+						body = body.replace(pRegex,"\n$2\n");
+
+					result = pRegex.exec(body);
+				}
+
+				//converts wanted <tags> to [[tags]]
+				var captureTags = ["blockquote","ul","ol",'hr','center','h1'];
+
+				for (var i = 0; i < captureTags.length; i++)
+				{
+					var rgxString = "<(\\/?" + captureTags[i] + ")>";
+					var rgx = RegExp(rgxString,"g");
+					
+					body = body.replace(rgx,"[[$1]]")
+				}
+
+				//handle <br>
+				body = body.replace(/<br ?\/?>/g,"\n");
+
+				//remove all unwanted tags
+				body = body.replace(/\r|<.*?>/g,"");
+
+				var sections = new Array();
+				var searchResults = [];
+
+				//search for any [[tag]]
+				for (var i = 0; i < captureTags.length; i++)
+				{
+					var rx = RegExp("\\[\\["+captureTags[i]+"\\]\\]([\\s\\S]*?)\\[\\[\\/"
+						+captureTags[i]+"\\]\\]","");
+					searchResults[i] = rx.exec(body);
+				}
+
+				//create sections
+				var firstTagIndex = -1;
+				while(firstTagIndex != body.length)
+				{
+					var firstTagIndex = body.length;
+					for (var i = 0; i < captureTags.length; i++)
+					{
+						if(searchResults[i] && searchResults[i].index < firstTagIndex)
+							firstTagIndex = searchResults[i].index;
+					}
+					
+					//create plain section text before tag
+					var plainText = {"type":"plain"};
+					plainText.text = body.substring(0,firstTagIndex);
+					if(plainText.text.length > 0)
+						sections.push(plainText);
+					body = body.substring(firstTagIndex);
+
+					//create non-plain text section
+					for (var i = 0; i < captureTags.length; i++) 
+					{
+						if(searchResults[i] && searchResults[i].index == firstTagIndex)
+						{
+							var section = {"type":captureTags[i]}
+							var rgx = RegExp("\\[\\["+captureTags[i]+"\\]\\]([\\s\\S]*?)\\[\\[\\/"
+								+captureTags[i]+"\\]\\]","");
+							section.text = rgx.exec(body)[1];
+							if(section.text.length)
+								sections.push(section);
+							body = body.replace(rgx,"");
+						}
+					}
+					
+					//search for another tag
+					for (var i = 0; i < captureTags.length; i++)
+					{
+						var rx = RegExp("\\[\\["+captureTags[i]+"\\]\\]([\\s\\S]*?)\\[\\[\\/"
+							+captureTags[i]+"\\]\\]","");
+						searchResults[i] = rx.exec(body);
+					}
+				}
+
+				//add final plain tag if there's stuff left over
+				if(body.length > 0)
+				{
+					var x = {"type":"plain","text":body};
+					console.log(x);
+					sections.push(x);				
+				}
+
+				
+				//write to page using the correct function
+				console.log(sections.slice());
+				while(sections.length)
+				{
+					var section = sections.shift();
+					if(section.type == 'blockquote')
+						writeBlockquote(section.text);
+					else if (section.type == "center")
+						writePlain(section.text, true);
+					else if (section.type == "ul")
+						writeUnorderedList(section.text);
+					else if (section.type =='ol')
+						writeOrderedList(section.text);
+					else if (section.type =="hr")
+						createHorizontalRow();
+					else if (section.type == "h1")
+						writeTitle(section.text);
+					else
+						writePlain(section.text);
+				}
+
+				if(references.length > 0)
+					addReferencePage(references);
+
+				
+
+
+				//create file & output
+				var txtDoc12 = document.createElement('textarea');
+				txtDoc12.cols='76';
+				txtDoc12.rows='55';
+
+				txtDoc12.innerHTML = combine();
+				document.getElementById('output').innerHTML = "";
+				document.getElementById('output').appendChild(txtDoc12);
+
+				//UTF-8 BOM 0xEF,0xBB,0xBF
+
+				var blob = new Blob(["\uFEFF",combine()],{type: "octet/stream"}); var url = window.URL.createObjectURL(blob);
+
+				document.getElementById('download').href = url;
+				document.getElementById('download').download = code+".txt";
+			}
+
+			function createPage()
+			{
+				var page = [];
+
+				for (var i = 0; i < 55; i++)
+				{
+					page[i] = "";
+				}
+
+				page[0] = code;
+
+				while(page[0].length < (72-heading.length)/2)
+					page[0]+= " ";
+
+				page[0]+= heading;
+
+				var dateString = "";
+
+				if(!isNaN(date.getTime()))
+				{
+					var dateString = date.getDate() + " ";
+					dateString += ["January", "February", "March", "April", "May", "June", "July",
+						"August", "September", "October", "November", "December"][date.getMonth()+0]
+					dateString += " " + date.getFullYear();
+				}
+				
+				while(page[0].length < 72-dateString.length)
+					page[0]+= " "
+
+				page[0]+=dateString;
+
+				page[54]+=author;
+
+				var pageStr = "[Page " + (coverpage?(pages.length):(pages.length+1)) + "]";
+				while(page[54].length < 72-pageStr.length)
+					page[54]+= " "
+				page[54]+=pageStr;
+
+				pages.push(page);
+				pgPointer = 2;
+				return page;
+			}
+
+			//parses all pages and lines into a file
+
+			var groupSeparators = [];
+			function combine()
+			{
+				console.log(groupSeparators);
+				while(groupSeparators[0] == 0)
+					groupSeparators.shift();
+
+				var sep = 0;
+				var text = "";
+				for (var i = 0; i < pages.length; i++)
+				{
+					for (var j = 0; j < pages[i].length; j++) {
+						text += pages[i][j] + "\r\n";
+					}
+
+					if(groupSeparators[sep]-1 == i)
+					{
+						text += "\f" + String.fromCodePoint(29) + "\r\n";
+						sep++;
+					}
+					else
+						text += "\f\r\n";
+				}
+				return text;
+			}
+
+			//add space pading to create center justification
+			function center(text)
+			{
+				var space = "";
+				while (space.length < (72-text.length)/2)
+					space += " ";
+				return space + text
+			}
+
+
+			//adds standard paragphs to document
+			function writePlain(text, isCentered)
+			{
+				function addParagraph(text, isCentered)
+				{
+					var words = text.split(/[ \t]/);
+					var lines = [""];
+
+					if(words[0].length > 69)
+					{
+						words.splice(1,0,words[0].substring(69));
+						words[0] = words[0].substring(0,69);
+						alert(words[0].length);
+					}
+
+					while(words.length > 0)
+					{
+						while (words.length && lines[lines.length-1].length + words[0].length +1 <= 70 )
+						{
+							lines[lines.length-1] = lines[lines.length-1] +" "+ words.shift();
+							
+						}
+						if(words.length)
+							lines.push("");
+					}
+					
+					//skip a line
+					pgPointer++;
+
+					if(pgPointer > 50 && lines.length+pgPointer >= 54 )
+						createPage();
+
+					while(lines.length)
+					{
+						if(pgPointer >= 53)
+							createPage();
+						if(isCentered)
+							pages[pages.length-1][pgPointer] = center(lines.shift());
+						else
+							pages[pages.length-1][pgPointer] = "  " + lines.shift();
+
+						pgPointer++;
+					}			
+				}
+				text = cleanSplit(text);
+				while(text.length)
+					addParagraph(text.shift(),isCentered);
+			}
+
+			//adds blockquote paragrahs to documnet
+			function writeBlockquote(text)
+			{
+				function addParagraph(text,isFirst)
+				{
+					var words = text.split(/[ \t]/);
+					var lines = [""];
+
+					while(words.length > 0)
+					{
+						if(words[0].length > 65)
+						{
+							words.splice(1,0,words[0].substring(65));
+							words[0] = words[0].substring(0,65)
+						}
+						while (words.length && lines[lines.length-1].length + words[0].length +1 <= 66)
+						{
+							lines[lines.length-1] = lines[lines.length-1] +" "+ words.shift();	
+						}
+						if(words.length)
+							lines.push("");
+
+						console.log("loop addParagraph");
+					}
+					
+					if(isFirst)
+					{
+						pgPointer++;
+						if(pgPointer > 49 && pgPointer + lines.length > 51 )
+							createPage();
+					}
+
+					pages[pages.length-1][pgPointer] = "    |";
+					pgPointer++;
+					
+					while(lines.length)
+					{
+						if(pgPointer >= 53)
+							createPage();
+						pages[pages.length-1][pgPointer] = "    | " + lines.shift();
+						pgPointer++;
+					}			
+				}
+				
+				text = cleanSplit(text);
+
+				addParagraph(text.shift(),true);
+				while(text.length)
+					addParagraph(text.shift());
+
+				if(pgPointer > 52)
+					createPage();
+				pages[pages.length-1][pgPointer] = "    |";
+				pgPointer++;
+			}
+
+			//adds unordered list to document
+			function writeUnorderedList(text)
+			{
+				function addListItem(text)
+				{
+					var words = text.split(/[ \t]/);
+					var lines = [""];
+
+					while(words.length > 0)
+					{
+						if(words[0].length > 65)
+						{
+							words.splice(1,0,words[0].substring(65));
+							words[0] = words[0].substring(0,65)
+						}
+						while (words.length && lines[lines.length-1].length + words[0].length +1 <= 66)
+						{
+							lines[lines.length-1] = lines[lines.length-1] +" "+ words.shift();	
+						}
+						if(words.length)
+							lines.push("");
+					}
+
+					if(lines.length+pgPointer >= 54)
+						createPage();
+
+					pages[pages.length-1][pgPointer] = "     -" + lines.shift();
+					pgPointer++;
+					
+					while(lines.length)
+					{
+						pages[pages.length-1][pgPointer] = "      " + lines.shift();
+						pgPointer++;
+					}			
+				}
+				
+				text = text.replace(/<\/li>/g,"\n");
+				text = text.replace(/<li>/g,"");
+				text = cleanSplit(text);
+
+				pgPointer++;
+				while(text.length)
+					addListItem(text.shift());				
+			}
+
+			//adds ordered list to document
+			function writeOrderedList(text)
+			{
+				function addListItem(text)
+				{
+					var words = text.split(/[ \t]/);
+					var lines = [""];
+
+					while(words.length > 0)
+					{
+						if(words[0].length > 65)
+						{
+							words.splice(1,0,words[0].substring(65));
+							words[0] = words[0].substring(0,65)
+						}
+						while (words.length && lines[lines.length-1].length + words[0].length +1 <= 66)
+						{
+							lines[lines.length-1] = lines[lines.length-1] +" "+ words.shift();	
+						}
+						if(words.length)
+							lines.push("");
+					}
+
+					if(lines.length+pgPointer >= 54)
+						createPage();
+
+					var numString = num + ".";
+					while(numString.length <6) 
+						numString = " " + numString;
+
+					pages[pages.length-1][pgPointer] = numString + lines.shift();
+					pgPointer++;
+					
+					while(lines.length)
+					{
+						pages[pages.length-1][pgPointer] = "      " + lines.shift();
+						pgPointer++;
+					}
+					num++;	
+				}
+			
+				var num = 1;	
+				text = text.replace(/<\/li>/g,"\n");
+				text = text.replace(/<li>/g,"");
+				text = cleanSplit(text);
+
+				pgPointer++;
+				while(text.length)
+					addListItem(text.shift());				
+			}
+
+			function writeTitle(text)
+			{
+				if(pgPointer == 2)
+				{
+					groupSeparators.push(pages.length-1);
+				}
+				else
+				{
+					groupSeparators.push(pages.length);
+					createPage();
+				}
+
+				
+				pgPointer=3;
+
+				var text = cleanSplit(text)
+				while(text.length)
+				{
+					pages[pages.length-1][pgPointer] = center(text.shift());
+					pgPointer++;
+				}	
+			}
+
+			//adds a reference page 
+			function addReferencePage(references)
+			{
+				createPage();
+				pgPointer++;
+
+				pages[pages.length-1][pgPointer] = center("References:");
+				pgPointer++;
+
+				var refNum = 1;
+				while(references.length)
+				{
+					var lines = [references.shift()];
+					while(lines[lines.length-1].length > 66)
+					{
+						var excess = lines[lines.length-1].substring(66);
+						lines[lines.length-1] = lines[lines.length-1].substring(0,66);
+						lines.push(excess); 
+					}
+					if(pgPointer +lines.length >= 54)
+						createPage();
+
+					refTag = refNum + ". ";
+					while(refTag.length < 6)
+						refTag = " " + refTag;
+
+					pages[pages.length-1][pgPointer] = refTag + lines.shift();
+					pgPointer++;
+
+					while(lines.length)
+					{
+						pages[pages.length-1][pgPointer] = "      " + lines.shift();
+						pgPointer++;
+					}
+					refNum++;
+				}
+			}
+
+			function createHorizontalRow()
+			{
+				pgPointer++;
+				if(pgPointer >= 53)
+					createPage();
+				pages[pages.length-1][pgPointer] = "   ------------------------------------------------------------------   ";
+				pgPointer++;
+			}
+
+			function addCoverPage(text)
+			{
+				var lines = text.split(/\r\n|\n|\r/g);
+
+				for (var i = 0; i < lines.length; i++)
+				{
+					lines[i] = lines[i].trim();
+				}
+
+				var page = [];
+
+				var spacing = Math.floor((55 - lines.length)/2);
+
+				for (var i = 0; i < 55; i++)
+				{
+					page[i] = "";
+				}
+				for (var i = 0; i < lines.length; i++)
+				{
+					page[i+spacing] = center(lines[i]);
+				}
+
+				pages.splice(0,0,page);
+				return page;
+			}
+
+			//Helper function: splits text into paragraphs.
+			function cleanSplit(text)
+			{
+				var lines = text.split("\n");
+				var iterations = lines.length
+				for (var i = 0; i < iterations; i++)
+				{
+					if(lines[0].trim() == "")
+						lines.shift();
+					else
+						lines.push(lines.shift().trim());
+				}
+				return lines;
+			}
+
+		</script>
+		<br>
+		<div id='output'></div>
+
+		<script>
+			function layout()
+			{
+				var widthTotal = document.getElementsByTagName('form')[0].scrollWidth 
+					+ document.getElementById('output').scrollWidth+80;
+
+				if(widthTotal < window.innerWidth && document.getElementById('output').innerHTML != "")
+					document.body.className = "two-col";
+				else
+					document.body.className = "";
+
+				console.log(widthTotal);
+				console.log(document.body.className);
+			}
+
+			layout();
+			window.addEventListener('resize',layout);
+		</script>
+	</body>
+</html>

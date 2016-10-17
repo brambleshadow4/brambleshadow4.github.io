@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	</head>
+	<body>
+		<h1>Standard Text Format</h1>
+		<div style='font-size: 18pt;'>
+			<a href='Standard Text Formatter.html'>Formatter/Compiler</a>
+			<a href='Standard Text Decompiler.html'>Decompiler</a>
+			<a href='Standard Text Reader.html'>Reader</a>
+		</div>
+		<h2>About</h2>
+		<p>One day during the summer of 2016, I was at my internship looking up documentation when I stumbled upon something called the RFC 2119. Beyond the pure joy of discovering +7000 documents regarding various standards/ideas put forth by the IETF, I fell in love with the simple, elegant layout of their .txt files, so much so that I then began work on writing a script to format any text into a similar layout. </p>
+
+		<p>Thus, the "Standard Text Format" was formed, and along with the initial script, I wrote two more: one to undo the formatting done by the formatter (essential for modifying the txts after creation), and another to help read through/navigate txt files hundreds of pages long (it also lets you make bookmarks for quick reference). None of these scripts are perfect, and there may be  bugs and inconsistencies across them, but for the most part, they work quite well, so I hope you enjoy making your txt files prettier. 
+
+		<h2>Notes on the formatter:</h2>  
+
+		<p>
+			The formatter works by splitting the text into paragraphs by line breaks. It doesn't matter if there is 1 line break or 15; the program will always ensure paragraphs are two line breaks apart.  
+		</p>
+		<p>
+			Not everything will be formatted into paragraphs though. Aside from the header/code/date/author fields which are layed out automatically, it is possible to specify that a different layout should be used via various HTML tags. Currently, the following tags are supported:
+		<p>
+		<ul>
+			<li>&lt;h1&gt;</li>
+			<li>&lt;blockquote&gt;</li>
+			<li>&lt;hr&gt;</li>
+			<li>&lt;ol&gt;</li>
+			<li>&lt;ul&gt;</li>
+		</ul>
+		<p>
+			h1 tags create new sections/titles within the document. They skip to the next page, and center the text at the top. Line breaks within an h1 tag cause the text to be on multiple lines.
+		<p>
+		<p>
+			blockquote tags cause the text inside to be indented more with a vertical line of pipe (|) characters separating the section from the rest of the text. Line breaks within a blockquote tag allow for multiple paragraphs within a blockquote. 
+		<p>
+		<p>
+			The hr tag inserts a horizontal row into the text at that point 
+		<p>
+		<p>
+			ol tags create an ordered list starting with 1, 2,... line breaks are used instead of li tags to differentiate items. 
+		<p>
+		<p>
+			ol tags create an hyphen-bulleted list. Line breaks are used instead of li tags to differentiate items. 
+		<p>
+		<p>
+			Any of the above tags can also be used with double bracket notation [[tag]] instead of pointy bracket &lt;tag&gt; notation as the tags are removed and replaced with the bracket notation before processing.
+		</p>
+
+	</body>
+</html>

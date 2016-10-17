@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Txt Reader</title>
+		<style>
+			
+			body{text-align: center}
+			#autoload{width: 60px;}
+
+			pre{
+				border: solid black;
+				display: block;
+				padding: 1em;
+				text-align: left;
+			}
+
+			#opened div{
+				display: inline-block;
+				position: relative;
+				vertical-align: top;
+				 height: 100%
+			}
+
+			#next, #previous{
+				width: 40px;
+				height: 120px;
+				margin: 10px;
+				position: absolute;
+				top: 0px;
+			}
+
+			#next {left: 0px;}
+			#previous {right: 0px;}
+
+			table
+			{
+				display: inline-block;
+				border-collapse: collapse;
+			}
+
+			td{border: solid 1px gray; padding: 5px;}
+
+			#buttons {display: block;}
+			#buttons button
+			{
+				margin-left:2%;
+				margin-right: 2%;
+				margin-top: 10px;
+				width: 28%;
+			}
+			#alt-page-buttons {display: block; }
+			#alt-page-buttons button{
+				width: 47%;
+			}
+
+			button{cursor: pointer;}
+
+		</style>
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	</head>
+	<body class='horizontal'>
+		<div id='closed'>
+			<p><a href='aboutSTF.html'> Return to home &#10550;</a></p>
+			<h1 style='text-decoration: underline; font-family: serif'>Jeremy's txt Reader</h1>
+			<div style='border: .5px dotted black; display: inline-block; padding: 5px'>
+				<label>TXT File:</label> <input id='file1' onchange="getFile(this);" type='file'  />
+			</div>
+		</div>
+
+		<div id='opened' style='display: none'>
+			<div><button id='previous' onclick='viewPage(page-1)'>&lt;</button></div>
+			<div style='justify-content: top;'>
+				<pre id='txtDoc'></pre>
+				<div id='alt-page-buttons' style='display: none'>
+					<button onclick='viewPage(page-1)'>&lt; Previous</button>
+					<button onclick='viewPage(page+1)'>Next &gt;</button>
+					
+				</div>
+				<button id='jump' style='width: 45%'>Jump to <input style='width: 50px' type='number'>/<span id='max'></span></button>
+				<button style='width: 45%' onclick = 'bookmarks()'>Bookmarks</button>
+				<button onclick='closeB();' style='display:inline-block; width: 90%'>Close</button>
+				
+			</div>
+			<div>
+				<button id='next' onclick='viewPage(page+1)'>&gt;</button>
+			</div>
+
+			<script>
+				
+				function centerButtons()
+				{	
+					if(window.innerWidth > txtDoc.clientWidth + 145)
+					{
+						var body = document.getElementsByTagName('body')[0];
+						var button1 = document.getElementById('next');
+						var button2 = document.getElementById('previous');
+
+						button1.style.display = "inline-block";
+						button2.style.display = "inline-block";
+
+						heightLimit = window.innerHeight;
+						if(document.getElementById('txtDoc').clientHeight < heightLimit)
+							heightLimit = document.getElementById('txtDoc').clientHeight;
+
+						button1.style.top = ((heightLimit-button1.clientHeight)/2 + body.scrollTop)+"px";
+						button2.style.top = ((heightLimit-button2.clientHeight)/2 + body.scrollTop)+"px";
+					}
+				}
+
+				document.getElementsByTagName('body')[0].onscroll = centerButtons;
+				
+				centerButtons();
+
+				function resizeDoc()
+				{
+					var txtDoc = document.getElementById('txtDoc');
+
+					txtDoc.style = "";
+
+					if(window.innerWidth > txtDoc.clientWidth + 145)
+					{	
+						centerButtons();
+
+						document.getElementById('alt-page-buttons').style.display = "none";
+					}
+					else
+					{
+						//mobile view	
+						document.getElementById('next').style.display = "none";
+						document.getElementById('previous').style.display = "none";
+						document.getElementById('alt-page-buttons').style.display = "block";
+
+						var defaultFontSize = 12;
+						while(document.getElementById('txtDoc').scrollWidth + 30 > window.innerWidth)
+						{
+							defaultFontSize -= .1;
+							document.getElementById('txtDoc').style.fontSize = defaultFontSize + "pt";
+						}
+					}						
+					
+				}
+
+				resizeDoc();
+				window.onresize = resizeDoc;
+			</script>
+		</div>
+
+
+		<script>
+			var fileTxt;
+			var pages = [];
+			var page = 0;
+		
+			function getFile(inputElement)
+			{
+				var file = inputElement.files[0];
+
+				var reader = new FileReader();
+				reader.readAsText(file);
+				reader.onload = loadFile;
+			}
+
+			function loadFile()
+			{
+				fileTxt = this.result;
+				pages = fileTxt.split(/\f\u001D?\r?\n?/);
+				while(pages[pages.length-1].trim() == 0)
+					pages.pop();
+
+				var pgCheck = /\[Page (\d+)\]/.exec(pages[pages.length-1])[1]
+
+				if(pgCheck == undefined)
+					pgCheck = pages.length-1;
+				document.getElementById('max').innerHTML = pgCheck;
+
+				document.getElementById('opened').style.display = "block";
+				document.getElementById('closed').style.display = "none";
+				viewPage(0);
+			}
+
+			function viewPage(num)
+			{	
+				page = num;
+				if(page >= pages.length)
+				{
+					page = pages.length-1;
+					return false;
+				}
+
+				if(page < 0)
+				{
+					page = 0;
+					return false;
+				}
+
+				//adds spaces if first line isn't long enough
+				var pageTxt = pages[page];
+				var firstLine = /^(.*)(\r\n|\n|\r)/.exec(pageTxt);
+				var firstLineC = firstLine[1]
+				while(firstLineC.length < 72)
+					firstLineC += " ";
+				pageTxt = pageTxt.replace(firstLine[0],firstLineC + firstLine[2]);
+
+				document.getElementById('txtDoc').innerHTML = pageTxt;
+
+				resizeDoc();
+
+				document.getElementsByTagName('body')[0].scrollIntoView();
+			}
+
+			function closeB()
+			{
+				document.getElementById('file1').value = "";
+				document.getElementById('opened').style.display = "none";
+				document.getElementById('closed').style.display = "block";
+			}
+
+			document.getElementById('jump').onclick = function(e)
+			{
+				if(e.target == this)
+				{
+					var num = this.getElementsByTagName('input')[0].value;
+					if(num != undefined)
+					{
+
+						if(num >= pages.length)
+							viewPage(pages.length-1);
+						else
+						{
+							var pgCheck = /\[Page (\d+)\]/.exec(pages[num]);
+
+							if(pgCheck != null && Number(pgCheck[1]) != num)
+								num -= Number(pgCheck[1]) - num;
+
+							num = Number(num);
+
+							if(num >= 0)
+								viewPage(num);
+							else
+								viewPage(0);
+
+							
+						}
+						
+					}
+				}
+				else
+					e.preventDefault();
+			}
+
+			function bookmarks()
+			{
+				try
+				{
+					var blackScreen = document.getElementById('screen');
+					blackScreen.parentNode.removeChild(blackScreen);
+					var menu = document.getElementById('bookmark-menu')
+					menu.parentNode.removeChild(menu);
+				}
+				catch(e){}
+
+
+				var blackScreen = document.createElement('div');
+				blackScreen.id = "screen";
+				blackScreen.style.width = window.innerWidth + "px";
+				blackScreen.style.height = window.innerHeight + "px";
+				blackScreen.style.backgroundColor = "rgba(0,0,0,.7)";
+
+				blackScreen.style.position = "fixed";
+				blackScreen.style.top = "0px";
+				blackScreen.style.left = "0px";
+
+				document.body.appendChild(blackScreen);
+
+				var menu = document.createElement('div');
+				menu.id='bookmark-menu';
+
+				var bookmarks = localStorage["TXTbookmarks"];
+
+				try{
+					bookmarks = JSON.parse(bookmarks);
+					// {txt, page, name}
+				}
+				catch(e)
+				{
+					bookmarks = [];
+				}
+
+				for (var i = 0; i < bookmarks.length; i++)
+				{
+					var mark = document.createElement('div');
+					mark.setAttribute('index',i);
+					mark.setAttribute('page',bookmarks[i].page);
+
+					var link = document.createElement('a');
+					link.href = "#";
+					link.innerHTML = bookmarks[i].name + " - " + bookmarks[i].txt + " pg " + bookmarks[i].page;
+					link.onclick = function()
+					{
+						viewPage(Number(this.parentNode.getAttribute('page')));
+						return false;
+					}
+					mark.appendChild(link);	
+
+					var spacer = document.createElement('span');
+					spacer.innerHTML = " ";
+					mark.appendChild(spacer)
+
+				
+					var remove = document.createElement('a');
+					remove.href = '#';
+					remove.innerHTML = "remove";
+					remove.onclick = function()
+					{
+						var index = this.parentNode.getAttribute('index');
+
+						var bookmarks = localStorage["TXTbookmarks"];
+						bookmarks = JSON.parse(bookmarks);
+						bookmarks.splice(index,1);
+
+						localStorage["TXTbookmarks"] = JSON.stringify(bookmarks);
+
+						window.bookmarks();
+
+						return false;
+					}
+
+					mark.appendChild(remove);
+					menu.appendChild(mark);
+				}
+
+				var addBookmark = document.createElement('button');
+				addBookmark.innerHTML = "Create new bookmark";
+				addBookmark.onclick = function()
+				{
+					var pgToSave = -1;
+
+					var pgCheck = /\[Page (\d+)\]/.exec(document.getElementById('txtDoc').innerHTML);
+
+					if(pgCheck != undefined)
+						pgToSave = pgCheck[1];
+					else
+						pgToSave = page;
+
+					var bookmarks = localStorage["TXTbookmarks"];
+
+					try{bookmarks = JSON.parse(bookmarks);}
+					catch(e){bookmarks = [];}
+
+					var docName = /\\([^\\]+)\.[^\\]+$/.exec(document.getElementById('file1').value)[1];
+
+					bookmarks.push({"txt":docName,"page":pgToSave,"name":prompt("Bookmark Name")});
+
+					localStorage["TXTbookmarks"] = JSON.stringify(bookmarks);
+
+					window.bookmarks();
+
+				}
+				menu.appendChild(addBookmark);
+
+				var closeButton = document.createElement('button');
+				closeButton.innerHTML = "Close";
+				closeButton.onclick = function()
+				{
+					var blackScreen = document.getElementById('screen');
+					blackScreen.parentNode.removeChild(blackScreen);
+					var menu = this.parentNode;
+					menu.parentNode.removeChild(menu);
+				}
+				menu.appendChild(closeButton);
+
+				menu.style.padding = "20px";
+				menu.style.backgroundColor = "white";
+
+				menu.style.position = "fixed";
+
+				document.body.appendChild(menu);
+
+
+				menu.style.top = (window.innerHeight - menu.clientHeight)/2 + "px";
+				menu.style.left = (window.innerWidth - menu.clientWidth)/2 + "px";
+
+				
+				
+
+			}
+		</script>
+	<body>
+</html>
