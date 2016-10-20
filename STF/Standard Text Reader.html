@@ -53,6 +53,10 @@
 				width: 47%;
 			}
 
+			.c {text-align: center;}
+			.l {text-align: left;}
+			.r {text-align: right;}
+
 			button{cursor: pointer;}
 
 		</style>
@@ -64,8 +68,24 @@
 			<p><a href='aboutSTF.html'> Return to home &#10550;</a></p>
 			<h1 style='text-decoration: underline; font-family: serif'>Jeremy's txt Reader</h1>
 			<div style='border: .5px dotted black; display: inline-block; padding: 5px'>
-				<label>TXT File:</label> <input id='file1' onchange="getFile(this);" type='file'  />
+				<label>O&#818;pen TXT File:</label> <input id='file1' onchange="getFile(this);" type='file'  />
 			</div>
+
+			<br><br>
+			<p>
+				<table style='font-family: monospace; font-size: 12pt;'>
+					<tr><th class='c' colspan=2>Keyboard Shortcuts</th></tr>
+					<tr><td class='r'>O</td><td class='l'>Open File</td></tr>
+					<tr><td class='r'>C</td><td class='l'>Close File</td></tr>
+					<tr><td class='r'>J</td><td class='l'>Jump to</td></tr>
+					<tr><td class='r'>B</td><td class='l'>Bookmarks</td></tr>
+					<tr><td class='r'>Left Arrow</td><td class='l'>Previous Page</td></tr>
+					<tr><td class='r'>Right Arrow</td><td class='l'>Next Page</td></tr>
+					<tr><td class='r'>Up Arrow</td><td class='l'>Scroll Up</td></tr>
+					<tr><td class='r'>Down Arrow</td><td class='l'>Scroll Down</td></tr>
+					
+				</table>
+			</p>
 		</div>
 
 		<div id='opened' style='display: none'>
@@ -77,9 +97,9 @@
 					<button onclick='viewPage(page+1)'>Next &gt;</button>
 					
 				</div>
-				<button id='jump' style='width: 45%'>Jump to <input style='width: 50px' type='number'>/<span id='max'></span></button>
-				<button style='width: 45%' onclick = 'bookmarks()'>Bookmarks</button>
-				<button onclick='closeB();' style='display:inline-block; width: 90%'>Close</button>
+				<button id='jump' style='width: 45%'>J&#818;ump to <input style='width: 50px' type='number'>/<span id='max'></span></button>
+				<button style='width: 45%' onclick = 'bookmarks()'>B&#818;ookmarks</button>
+				<button onclick='closeB();' style='display:inline-block; width: 90%'>C&#818;lose</button>
 				
 			</div>
 			<div>
@@ -140,6 +160,125 @@
 					}						
 					
 				}
+
+				function keyboardShortcuts(e)
+				{
+					console.log(e.keyCode);
+
+					var smallMode = document.getElementById('alt-page-buttons').style.display != "none";
+
+
+					var bookmarkBar = document.getElementById('bookmark-menu') != null;
+
+					if(bookmarkBar)
+					{
+
+						// Right key
+						if(e.keyCode >= 37 && e.keyCode <= 40)
+						{
+							e.preventDefault();
+
+							var elements = [];
+							var links = document.getElementById('bookmark-menu').getElementsByTagName('a');
+
+							for (var i = 0; i < links.length; i++)
+							{
+								elements.push(links[i]);
+							}
+
+							elements.push(document.getElementById('bookmark-menu').getElementsByTagName('button')[0]);
+							elements.push(document.getElementById('bookmark-menu').getElementsByTagName('button')[1]);
+
+							var index = elements.indexOf(document.activeElement)
+
+							if(index == -1)
+							{
+								index = 0;
+							}
+							else if(e.keyCode == 37)
+								index--;
+							else if(e.keyCode == 38)
+								index-=2;
+							else if(e.keyCode == 39)
+								index++;
+							else if(e.keyCode == 40)
+								index+=2;
+
+							if(index >= elements.length)
+								index -= elements.length;
+							if(index < 0)
+								index += elements.length;
+
+
+							elements[index].focus();
+							
+						}
+
+						// Left Key
+						if(e.keyCode == 37)
+						{
+							
+						}
+					}
+					else
+					{
+						// Right key
+						if(e.keyCode == 39)
+						{
+							
+							if(smallMode)
+								document.getElementById('alt-page-buttons').getElementsByTagName('button')[1].focus();
+							else
+								document.getElementById('next').focus();
+							viewPage(page+1);
+						}
+
+						// Left Key
+						if(e.keyCode == 37)
+						{
+							if(smallMode)
+								document.getElementById('alt-page-buttons').getElementsByTagName('button')[0].focus();
+							else
+								document.getElementById('previous').focus();
+							viewPage(page-1);
+						}
+
+						//J
+						if(e.keyCode == 74)
+						{
+							document.getElementById('jump').getElementsByTagName('input')[0].focus();
+						}
+
+						//B
+						if(e.keyCode == 66)
+						{
+							bookmarks();
+							document.getElementById('bookmark-menu').getElementsByTagName('a')[0].focus();
+						}
+
+						//C
+						if(e.keyCode == 67)
+						{
+							closeB();
+						}
+
+						//O
+						if(e.keyCode == 79)
+						{
+							document.getElementById('file1').click();
+						}
+
+						var numberInput = document.getElementById('jump').getElementsByTagName('input')[0];
+						if(e.keyCode == 13 && numberInput == document.activeElement)
+						{
+							numberInput.parentNode.focus();
+							numberInput.parentNode.click();
+						}
+					}
+				}
+
+				var lastkeydown = -1;
+				document.addEventListener('keydown', keyboardShortcuts);
 
 				resizeDoc();
 				window.onresize = resizeDoc;
@@ -299,6 +438,12 @@
 					link.onclick = function()
 					{
 						viewPage(Number(this.parentNode.getAttribute('page')));
+
+						var blackScreen = document.getElementById('screen');
+						blackScreen.parentNode.removeChild(blackScreen);
+						var menu = document.getElementById('bookmark-menu');
+						menu.parentNode.removeChild(menu);
+
 						return false;
 					}
 					mark.appendChild(link);	
@@ -321,7 +466,10 @@
 
 						localStorage["TXTbookmarks"] = JSON.stringify(bookmarks);
 
-						window.bookmarks();
+						var blackScreen = document.getElementById('screen');
+						blackScreen.parentNode.removeChild(blackScreen);
+						var menu = document.getElementById('bookmark-menu');
+						menu.parentNode.removeChild(menu);
 
 						return false;
 					}
@@ -354,7 +502,10 @@
 
 					localStorage["TXTbookmarks"] = JSON.stringify(bookmarks);
 
-					window.bookmarks();
+					var blackScreen = document.getElementById('screen');
+					blackScreen.parentNode.removeChild(blackScreen);
+					var menu = document.getElementById('bookmark-menu');
+					menu.parentNode.removeChild(menu);
 
 				}
 				menu.appendChild(addBookmark);
@@ -365,7 +516,7 @@
 				{
 					var blackScreen = document.getElementById('screen');
 					blackScreen.parentNode.removeChild(blackScreen);
-					var menu = this.parentNode;
+					var menu = document.getElementById('bookmark-menu');
 					menu.parentNode.removeChild(menu);
 				}
 				menu.appendChild(closeButton);
@@ -377,13 +528,8 @@
 
 				document.body.appendChild(menu);
 
-
 				menu.style.top = (window.innerHeight - menu.clientHeight)/2 + "px";
 				menu.style.left = (window.innerWidth - menu.clientWidth)/2 + "px";
-
-				
-				
-
 			}
 		</script>
 	<body>
