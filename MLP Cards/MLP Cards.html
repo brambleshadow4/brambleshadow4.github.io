@@ -1095,7 +1095,12 @@
 						var PriceBox = document.createElement("div");
 						PriceBox.className = "price";
 						//PriceBox.innerHTML = Math.floor(Math.random()*31) + min_price[CardList[i].style];
-						PriceBox.innerHTML = Math.floor(Math.random()*(max_price[CardList[i].style] - min_price[CardList[i].style]+1)) + min_price[CardList[i].style];
+
+						//makes prices initially random
+						//PriceBox.innerHTML = Math.floor(Math.random()*(max_price[CardList[i].style] - min_price[CardList[i].style]+1)) + min_price[CardList[i].style];
+						//makes prices lowest - discourages spamming market
+						PriceBox.innerHTML = min_price[CardList[i].style];
+
 						buyDiv.appendChild(PriceBox);
 					
 						var insertIndex = 0;

@@ -25,18 +25,17 @@
 				width: 40px;
 				height: 120px;
 				margin: 10px;
-				position: absolute;
+				position: fixed;
 				top: 0px;
 			}
-
-			#next {left: 0px;}
-			#previous {right: 0px;}
 
 			table
 			{
 				display: inline-block;
 				border-collapse: collapse;
 			}
+
+
 
 			td{border: solid 1px gray; padding: 5px;}
 
@@ -83,7 +82,6 @@
 					<tr><td class='r'>Right Arrow</td><td class='l'>Next Page</td></tr>
 					<tr><td class='r'>Up Arrow</td><td class='l'>Scroll Up</td></tr>
 					<tr><td class='r'>Down Arrow</td><td class='l'>Scroll Down</td></tr>
-					
 				</table>
 			</p>
 		</div>
@@ -95,7 +93,6 @@
 				<div id='alt-page-buttons' style='display: none'>
 					<button onclick='viewPage(page-1)'>&lt; Previous</button>
 					<button onclick='viewPage(page+1)'>Next &gt;</button>
-					
 				</div>
 				<button id='jump' style='width: 45%'>J&#818;ump to <input style='width: 50px' type='number'>/<span id='max'></span></button>
 				<button style='width: 45%' onclick = 'bookmarks()'>B&#818;ookmarks</button>
@@ -110,6 +107,23 @@
 				
 				function centerButtons()
 				{	
+					var txtDoc = document.getElementById('txtDoc');
+
+					var margin = (window.innerWidth - txtDoc.parentNode.clientWidth)/2;
+					margin -= 75;
+
+					document.getElementById('next').style.right = margin + "px";
+					document.getElementById('previous').style.left = margin + "px";
+
+					margin = window.innerHeight/2;
+					margin -= 60;
+
+					document.getElementById('next').style.top = margin + "px";
+					document.getElementById('previous').style.top = margin + "px";
+
+
+					/*var txtDoc = document.getElementById('txtDoc');
+
 					if(window.innerWidth > txtDoc.clientWidth + 145)
 					{
 						var body = document.getElementsByTagName('body')[0];
@@ -120,15 +134,15 @@
 						button2.style.display = "inline-block";
 
 						heightLimit = window.innerHeight;
-						if(document.getElementById('txtDoc').clientHeight < heightLimit)
-							heightLimit = document.getElementById('txtDoc').clientHeight;
+						if(txtDoc.clientHeight < heightLimit)
+							heightLimit = txtDoc.clientHeight;
 
 						button1.style.top = ((heightLimit-button1.clientHeight)/2 + body.scrollTop)+"px";
 						button2.style.top = ((heightLimit-button2.clientHeight)/2 + body.scrollTop)+"px";
-					}
+					}*/
 				}
 
-				document.getElementsByTagName('body')[0].onscroll = centerButtons;
+				//document.getElementsByTagName('body')[0].onscroll = centerButtons;
 				
 				centerButtons();
 
@@ -157,13 +171,13 @@
 							defaultFontSize -= .1;
 							document.getElementById('txtDoc').style.fontSize = defaultFontSize + "pt";
 						}
-					}						
-					
+					}					
 				}
 
 				function keyboardShortcuts(e)
 				{
-					console.log(e.keyCode);
+					//console.log(e.keyCode);
+					//console.log(e);
 
 					var smallMode = document.getElementById('alt-page-buttons').style.display != "none";
 
@@ -172,7 +186,6 @@
 
 					if(bookmarkBar)
 					{
-
 						// Right key
 						if(e.keyCode >= 37 && e.keyCode <= 40)
 						{
@@ -220,7 +233,7 @@
 							
 						}
 					}
-					else
+					else if(!e.ctrlKey)
 					{
 						// Right key
 						if(e.keyCode == 39)
