@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset='utf-8'>
+		<link rel="stylesheet" type="text/css" href="plankpuzzles.css">
+		<script src='plankpuzzles.js'></script>
+	</head>
+	<body steyl="text-align: center;">
+		<div style="margin: auto; max-width: 800px">
+			<h1>Introduction</h1>
+			<h2><a href='http://www.clickmazes.com/planks/ixplanks.htm'>Clickmazes.com</a></h2>
+
+			<p>A long while ago, I discovered the above site, and I was greatly intrigued by all its wonderful plank puzzles (and much more!). However, all the mazes on the site are powered by Java Applets, which unfortunately have become out of favor with web standards and are almost impossible to run these days. However, I still love these puzzles, so I decided to re-implement the applet using HTML5 and JavaScript to (hopefully) give these puzzles some new life. </p>
+
+			<p>Plank puzzle concept and maze designs were originally conceived by Andrea Gilbert. The original JAVA applet was programmed by Graham Rogers. My HTML5 implementation copies that design, though 100% of the code here is my own.</p>
+
+			<p>To play: use your mouse to pick up and drop the planks to navigate across the screen from left to right. You can only pick up planks connected to where you are (highlighted in yellow), and you can only place planks into gaps that are the same size.</p>
+
+			<x-plank-puzzle-window height='450' width='450'>
+				<!--<x-plank-puzzle name='Line' fmt='1' positions = "5100400010" nodes = '501234'></x-plank-puzzle>
+				<x-plank-puzzle name="Plank Sizes" fmt='1' positions="B904A40414212410143234" nodes='3159325833573456A012346789A3456335732583159'></x-plank-puzzle>-->
+				<x-plank-puzzle name='Easy' fmt='1' positions = "75026402121012" nodes = "31241420114246"></x-plank-puzzle>
+				<!--<x-plank-puzzle name='Overlap?' fmt='1' positions = "75026202125262135311313151" nodes = "4124531354015621541245"></x-plank-puzzle>-->
+
+			</x-plank-puzzle-window>	
+
+			<p>The following puzzles can be downloaded online from <a href='http://www.puzzles.com/rivercrossing/bonus.htm'>Think Fun</a>.</p>
+			<x-plank-puzzle-window height='450' width='450'>
+				<x-plank-puzzle name='Beginner 1' fmt='1' positions = "750163011111212151" nodes = '040125214412560'></x-plank-puzzle>
+				<x-plank-puzzle name='Beginner 2' fmt='1' positions = "750064001010121222" nodes = '301432452122343356'></x-plank-puzzle>
+				<x-plank-puzzle name='Intermediate 1' fmt='1' positions = "75016301313130" nodes = '312330340412363145'></x-plank-puzzle>
+				<x-plank-puzzle name='Intermediate 2' fmt='1' positions = "7502610222142444544042" nodes = '31244135630241341245'></x-plank-puzzle>
+				<x-plank-puzzle name='Advanced 1' fmt='1' positions = "750361031313112444" nodes = '133156323440135224'></x-plank-puzzle>
+				<x-plank-puzzle name='Advanced 2' fmt='1' positions = "7501620121212212133033" nodes = '31354024541246313513'></x-plank-puzzle>
+				<x-plank-puzzle name='Expert 1' fmt='1' positions = "750163011122324144" nodes = '2255012342233256214'></x-plank-puzzle>
+				<x-plank-puzzle name='Expert 2' fmt='1' positions = "7501630111215112141232" nodes = '23540125213324641345'></x-plank-puzzle>
+				<x-plank-puzzle name='Expert 3' fmt='1' positions = "7501610111232032345052" nodes = '3125401462353124213'></x-plank-puzzle>
+				<x-plank-puzzle name='Expert 4' fmt='1' positions = "7503620323235311124050" nodes = '334521231363025235'></x-plank-puzzle>
+			</x-plank-puzzle-window>
+
+			<h3>About the implementation: notable differences between HTML5 and Java versions</h3>
+			<ul>
+					<li>Color scheme: I chose to use blue instead of green, although this is configurable at the top of <code>plankpuzzles.js</code></li>
+					<li>Plank highlighting: Instead of highlighting the stumps that are within reach, the HTML version highlights the planks instead; all yellow planks can be moved, but brown planks are out of reach.</li>
+					<li>Saving/Loading: I changed the interface, hopefully making it more intuitive to use.</li>
+					<li>Loading: Now loads the exact position that was saved; no need to push redo to get back to the last move</li>
+					<li>Hex Swamps: Currently unimplemented; it will take some extra work (writing different draw/pick up/drop code) to add them.</li>
+					<li>Secret Puzzle Codes: This is not implemented; the feature in the old applet was hackable (likewise for an HTML5 version) making it obsolete, and I don't know how the codes were generated to begin with.</li>
+					<li>Puzzle Names: Can be anything. If too long, the window will clip the name with an ellipsis; on hover full name will show</li>
+			</ul>
+
+			<h3>Embedding the puzzles in webpages</h3>
+			<p>The plank puzzle window is easily embedded as a block element in any web page using the following html</p>
+			<code><pre>	&lt;x-plank-puzzle-window height='450' width='450'&gt;&lt;/x-plank-puzzle-window&gt;</pre></code>
+			<p>The height and width attributes specify the height and width of the rectangle used to render the puzzle and controls. They can be set to any value, although for best results, it should be a reasonably large rectangle; bigger is better.</p>
+
+			<p>To specify the puzzle(s), add x-plank-puzzle elements inside the x-plank-puzzle-window</p>
+
+			<code><pre>	&lt;x-plank-puzzle-window height='450' width='450'&gt;<br>		&lt;x-plank-puzzle name='Puzzle Name' fmt='1' positions="###" nodes='###'>&lt;/x-plank-puzzle>
+	&lt;/x-plank-puzzle-window&gt;</pre></code>
+
+			<p>The HTML 5 implementation is based from and designed to be interchangeable with the "Plank format 1" of the older Java applet; the "positions" and "nodes" attributes are the same values given </p>
+			
+			<p>Both custom elements depend on two HTML linkable files: <code>plankpuzzles.css</code> and <code>plankpuzzles.js</code>. In order for the puzzles to successfully load, the javaScript file must either be included below all instances of x-plank-puzzle-window or the function <code>PlankPuzzles.appInitialize()</code> must be called after the HTML body has loaded.</p>
+
+
+			<script>PlankPuzzles.appInitialize()</script>
+			
+				
+		</div>
+		
+	</body>
+</html>
