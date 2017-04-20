@@ -70,8 +70,6 @@
 
 			function fitCanvas()
 			{
-
-
 				while(document.getElementsByTagName("canvas").length > 0){
 					var x = document.getElementsByTagName("canvas")[0];
 					x.parentNode.removeChild(x);
@@ -106,7 +104,6 @@
 				})
 				newCanvas.addEventListener("touchmove", function(e)
 				{
-
 					e.preventDefault();
 
 					var stuff = this.getAttribute('touchStartPos').split(",");
@@ -232,15 +229,16 @@
 					document.getElementsByTagName('input')[2].value,
 					document.getElementsByTagName('input')[3].value];
 
-
 				w.postMessage(stuff);
 
 				w.onmessage = function(event)
 				{
 					if(event.data.highlights)
 					{
+						
 						highlights = event.data.highlights;
-						document.getElementById('path length').innerHTML = "length: " + highlights.length;
+						console.log(highlights)
+						document.getElementById('path length').innerHTML = "length: " + event.data.length;
 
 						highlights[cellNum(
 							document.getElementsByTagName('input')[0].value,

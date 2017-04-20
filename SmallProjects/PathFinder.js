@@ -49,6 +49,7 @@ self.addEventListener('message', function(e)
 	if(foundGoal)
 	{
 		highlights = [];
+		length = 0;
 		while(x != sx || y != sy)
 		{
 			var index = cellNum(x,y)
@@ -56,8 +57,9 @@ self.addEventListener('message', function(e)
 
 			x = settled[index].px;
 			y = settled[index].py;
+			length++;
 		}
-		postMessage({"highlights": highlights});
+		postMessage({"highlights": highlights, "length":length});
 		
 	}
 	else
