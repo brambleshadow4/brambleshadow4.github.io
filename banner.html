@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<style>
+			@font-face{
+			  	font-family: Keryodchi;
+			    src: url(Keryodchi.otf);
+			}
+
+			body{background-color: black}</style>
+	</head>
+	<body>
+		<svg viewbox ="0 0 620 100">
+			<text x="310" y="50" text-anchor="middle" font-size="36pt" font-family='Keryodchi'  stroke-width=".5px" fill="#FFFFFF" outline=''>brambleshadow4.github.io</text>
+			<text x="310" y="80" text-anchor="middle" font-size="12pt" font-family='Keryodchi'  stroke-width=".5px" fill="#FFFFFF" outline=''></text>
+		</svg>
+
+		<script>
+			if(!sessionStorage["splash"])
+			{
+				var request = new XMLHttpRequest();	
+				request.open("GET","splash.txt",true);
+				request.send();
+				request.onreadystatechange = function()
+				{
+					if (this.readyState == 4 /*&& this.status == "200"*/)
+					{
+						var splashes = this.responseText.split(/\n\r|\n/);
+						var x = splashes[Math.floor(Math.random()*splashes.length)];
+						sessionStorage["splash"] = x;
+						document.getElementsByTagNameNS("http://www.w3.org/2000/svg","text")[1].innerHTML = x;
+					}	
+				}
+			}
+			else
+				document.getElementsByTagNameNS("http://www.w3.org/2000/svg","text")[1].innerHTML = sessionStorage["splash"];
+			
+			function z()
+			{
+				document.body.style.paddingTop = (innerHeight - innerWidth*100/620)/2 + "px"
+			}
+			window.onresize = z;
+			z();
+		</script>
+	</body>
+</html>
