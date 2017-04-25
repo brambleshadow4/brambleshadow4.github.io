@@ -3,14 +3,10 @@
 	<head>
 		<title>brambleshadow4.github.io</title>
 		<style>
-
-			@font-face{
-			  	font-family: Keryodchi;
-			    src: url(Keryodchi.otf);
-			}
-
-			body{background-color: black}
-			nav{
+			body{margin: 0px;}
+			
+			nav, nav.minimized:hover{
+				display: block;
 				position: absolute;
 				left: 0px;
 				top: 0px;
@@ -18,96 +14,100 @@
 				background-color: gray;
 				padding: 20px;
 
+				width: initial;
+				z-index: 10;
+				overflow: hidden;
 				overflow-y: scroll;
 
 				font-size: 12pt;
 			}
+			
+			nav.minimized * {display: none}
+			nav.minimized {overflow: hidden; padding: 3px;}
 
-			nav h2{margin: 0px; font-size: 100%}
-			nav div {
+			nav h2, nav.minimized:hover h2
+			{
+				display: block; margin: 0px; font-size: 100%
+			}
+			nav div, nav.minimized:hover div
+			{
+				display: block;
 				margin-left: 20px;
 			}
-			nav a {display: block; color: black}
-
-			#backdrop
-			{
+			nav a, nav.minimized:hover a{display: block; color: black}
+			nav.minimized:hover button {display: inline;}
+			nav.minimized:hover br {display: block;}
+			iframe{
+				height: 100%;
 				position: absolute;
 				right: 0px;
+				border: none;
 			}
+
 		</style>
 	</head>
 	<nav>
+		
 		<h2>Games</h2>
 		<div>
-			<a href='Data Structure/Data Structure.html'>Data Structure</a>
-			<a href='SuperRainbowDash/index.html'>Super Rainbow Dash</a>
-			<a href='Avoid/Avoid.html'>Avoid</a>
-			<a href='SmallProjects/speed.html'>Speed AI</a>
-			<a href='HexagonBattles.html'>Hex Battles</a>
-			<a href="SmallProjects/Note Guessing Game.html">Note Guessing Game</a>
-			<a href='SmallProjects/4D Tic Tac Toe.html'>4D Tic Tac Toe</a>
+			<a target='mainframe' href='Data Structure/Data Structure.html'>Data Structure</a>
+			<a target='mainframe' href='SuperRainbowDash/index.html'>Super Rainbow Dash</a>
+			<a target='mainframe' href='Avoid/Avoid.html'>Avoid</a>
+			<a target='mainframe' href='SmallProjects/speed.html'>Speed AI</a>
+			<a target='mainframe' href='HexagonBattles.html'>Hex Battles</a>
+			<a target='mainframe' href="SmallProjects/Note Guessing Game.html">Note Guessing Game</a>
+			<a target='mainframe' href='SmallProjects/4D Tic Tac Toe.html'>4D Tic Tac Toe</a>
 		</div>
 		<h2>Mazes</h2>
 		<div>
-			<a href='SmallProjects/maze.html'>Maze Generator</a>
-			<a href='SmallProjects/Infinite Maze.html'>Infinite Maze</a>
-			<a href='Plank Puzzles/Demo.html'>Plank Puzzles</a>
+			<a target='mainframe' href='SmallProjects/maze.html'>Maze Generator</a>
+			<a target='mainframe' href='SmallProjects/Infinite Maze.html'>Infinite Maze</a>
+			<a target='mainframe' href='Plank Puzzles/Demo.html'>Plank Puzzles</a>
 		</div>
 		<h2>Standard Text Formatting</h2>
 		<div>
-			<a href='STF/aboutSTF.html'>About</a>
-			<a href='STF/Standard Text Formatter.html'>Formatter/Compiler</a>
-			<a href='STF/Standard Text Reader.html'>Reader</a>
-			<a href='STF/Standard Text Decompiler.html'>Decompiler</a>
+			<a target='mainframe' href='STF/aboutSTF.html'>About</a>
+			<a target='mainframe' href='STF/Standard Text Formatter.html'>Formatter/Compiler</a>
+			<a target='mainframe' href='STF/Standard Text Reader.html'>Reader</a>
+			<a target='mainframe' href='STF/Standard Text Decompiler.html'>Decompiler</a>
 		</div>
-		<a href='ATP/index.html'>About them Ponies</a>
-		<a href='MLP Cards/MLP Cards.html'>MLP Trading Cards</a>
+		<a target='mainframe' href='ATP/index.html'>About them Ponies</a>
+		<a target='mainframe' href='MLP Cards/MLP Cards.html'>MLP Trading Cards</a>
 		<h2>Misc</h2>
 		<div>
-			<a href="SmallProjects/Name Generator.html">Name Generator</a>
-			<a href="SmallProjects/Proper Color Blur.html">Color Gradients</a>
-			
+			<a target='mainframe' href="SmallProjects/Name Generator.html">Name Generator</a>
+			<a target='mainframe' href="SmallProjects/Proper Color Blur.html">Color Gradients</a>
 		</div>
+		<br>
+		<button onclick='lockToggle()'>Lock/Unlock Nav</button>
+		<button id='visit' onclick='location = document.getElementsByTagName("iframe")[0].contentWindow.location'>Load Src</button>
 		
 	</nav>
-	<div id='backdrop'>
-		<svg viewbox ="0 0 620 100">
-			<text x="310" y="50" text-anchor="middle" font-size="36pt" font-family='Keryodchi'  stroke-width=".5px" fill="#FFFFFF" outline=''>brambleshadow4.github.io</text>
-			<text x="310" y="80" text-anchor="middle" font-size="12pt" font-family='Keryodchi'  stroke-width=".5px" fill="#FFFFFF" outline=''></text>
-		</svg>
-	</div>
-	<script>
-		
-		if(!sessionStorage["splash"])
-		{
-			var request = new XMLHttpRequest();	
-			request.open("GET","splash.txt",true);
-			request.send();
-			request.onreadystatechange = function()
-			{
-				if (this.readyState == 4 /*&& this.status == "200"*/)
-				{
-					var splashes = this.responseText.split(/\n\r|\n/);
-					var x = splashes[Math.floor(Math.random()*splashes.length)];
-					sessionStorage["splash"] = x;
-					document.getElementsByTagNameNS("http://www.w3.org/2000/svg","text")[1].innerHTML = x;
-				}	
-			}
-		}
-		else
-			document.getElementsByTagNameNS("http://www.w3.org/2000/svg","text")[1].innerHTML = sessionStorage["splash"];
+	
+	<iframe name='mainframe' src='banner.html'></iframe>
 
+	<script>
+		function lockToggle()
+		{
+			var nav = document.getElementsByTagName("nav")[0];
+			if(nav.className == undefined || nav.className == "")
+				nav.className="minimized"; 
+			else
+				nav.className = "";
+			z();
+		}
 		function z()
 		{
 			var nav = document.getElementsByTagName('nav')[0];
-			var bd = document.getElementById('backdrop');
-			var w = innerWidth - nav.clientWidth
-			bd.style.width =  w + "px"
-			
-			bd.style.paddingTop = (innerHeight - w*160/620)/2 + "px";
-			
-			console.log()
-			
+			var frame = document.getElementsByTagName('iframe')[0];
+
+			if(nav.className != "minimized")
+			{
+				var w = innerWidth - nav.offsetWidth
+				frame.style.width =  w + "px";
+			}		
+			else
+				frame.style.width =  innerWidth-3 + "px";
 		}
 		window.onresize = z;
 		z();

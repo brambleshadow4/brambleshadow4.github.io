@@ -31,8 +31,6 @@ mazes["Spiral"] = function(i,j){
 
 mazes["Hash 1"] = function(x,y)
 {	
-	
-
 	var f = this["Hash 1"];
 	if((x+y)%2 == 0)
 	{

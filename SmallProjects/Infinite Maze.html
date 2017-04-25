@@ -237,8 +237,13 @@
 					{
 						
 						highlights = event.data.highlights;
-						console.log(highlights)
-						document.getElementById('path length').innerHTML = "length: " + event.data.length;
+					
+						var short = Math.abs(Number(stuff[1])-Number(stuff[3])) + Math.abs(Number(stuff[2])-Number(stuff[4]));
+
+						var length = event.data.length;
+						;
+						
+						document.getElementById('path length').innerHTML = "length: " + length + "<br>len/shortest: " + length/short;
 
 						highlights[cellNum(
 							document.getElementsByTagName('input')[0].value,
