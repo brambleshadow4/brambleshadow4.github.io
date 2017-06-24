@@ -13,8 +13,9 @@ dataSet._user_ = {};
 	{
 		if(this.readyState == 4)
 		{
+			
 			MLPdata = JSON.parse(req.response);
-
+			console.log("now");
 			for(episode in MLPdata)
 			{
 				episode = MLPdata[episode];
@@ -39,6 +40,10 @@ dataSet._user_ = {};
 						episodeNames.add(words[i],episode.name);
 				}
 			}
+
+			if(BODY_LOADED)
+				runAfterJSONandBody();
+			
 		}
 	}
 //

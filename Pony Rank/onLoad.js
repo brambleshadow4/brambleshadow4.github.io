@@ -1,3 +1,4 @@
+
 DOM('#sorted').ondragenter = function(e)
 {
     if(e.target == this)
@@ -108,14 +109,8 @@ setAllignment();
 window.onresize = setAllignment;
 
 
-function completeLoad()
+function runAfterJSONandBody()
 {
-	if(!MLPdata)
-	{
-		setTimeout(completeLoad,100);
-		return;
-	}
-
 	if(localStorage.MLPPonyRank)
 	{
 		dataSet = JSON.parse(localStorage.MLPPonyRank);
@@ -125,11 +120,18 @@ function completeLoad()
 			if(i != "_user_")
 				createSetTableEntry(i);
 		}
-
 		initializeRankTab();
-
 	}	
 	else
 		createSet(["# name: default_new"]);
+	
 }
-completeLoad();
+
+BODY_LOADED = true;
+
+if(MLPdata.length)
+{
+	runAfterJSONandBody();
+}
+	
+
