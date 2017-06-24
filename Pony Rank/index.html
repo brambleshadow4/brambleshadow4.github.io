@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link href='PonyRank.css' type='text/css' rel='stylesheet' />
+		<script src='Trie.js'></script>
+		<script src='PonyRank.js'></script>
+		<script src='IntStr.js'></script>
+	</head>
+	<body>
+		<div id='background-div'><img id='background-img' src='Ponyville.png' /></div>
+		<div id='header'>
+			<h1>Pony Episode Rankings</h1>
+			<h2>Rank + Analyze your favorite MLP episodes </h2>
+			<nav>
+				<a href="#about" onclick="changeTab(this)">About</a>
+				<a href="#rank" onclick="changeTab(this)">Rank episodes</a>
+				<a href="#import" onclick="changeTab(this)">Manage Data</a>
+				<a href="#stats" onclick="analyze(); changeTab(this);">Analysis</a>
+			</nav>
+		</div>
+		<div class='page' id='about'>
+			<h3>Welcome to Pony Episode Rankings</h3>
+			<img style='float: right; margin: 10px;' alt='Twilight Sparkle' width='200' src='Twilight_Sparkle.png' />
+			<p>If this is your first time here, head on over to the <a href="#rank" onclick="changeTab(this)">Rank episodes</a> tab to get started</p>
+			<p>If you've saved your data from last time, try the <a href="#import" onclick="changeTab(this)">Manage Data</a> tab</p>
+
+			<div style='text-align: left; padding: 15px;'>
+				<h4>Some basic things</h4>
+
+				<p>The episodes are organized into lists from which you can drag + drop episodes.</p>
+				<p>Sorted lists will appear in the right panel, and unsorted lists will appear in the left.</p>
+				<p> You can expand or contract lists by pressing the + or &#8722; buttons at the top of the list.</p>
+				<p> You can also display any lists by itself in the right panel by pressing &#128470; (to undo this, just select "Put ranked lists in right pane" from the drop down menu).</p>
+				<p> Any list's properties can be changed by pressing &#10000;, and new lists can be added via the drop down menu. 
+				</p>
+			</div>
+
+			<div style='clear: both'></div>
+		</div>
+		<div class='page' id='import' style='display: none'>
+			<h3>Import</h3>
+			<div class='div-row'>
+				<div>
+					<p><label>Open File:</label> <input id='FILE:IMPORT' onchange='fileReadyToRead(this)' type='file' /></p>
+					<script>
+						function fileReadyToRead(div)
+						{
+							if(div.files[0])
+							{
+								div.style.borderBottomColor = "green";
+								div.style.backgroundColor = "#AAFFAA";
+							}
+							else 
+								div.style = "";
+						}
+					</script>
+					<div><textarea id='TEXT:IMPORT' rows='6' cols ='50'>Or copy a list of episode names in here!</textarea></div>
+				</div>
+				<div>
+					<button style='font-size: 20pt;' onclick="importStart();">Import<br> Rankings</button>
+				</div>
+			</div>
+			<p style='border-bottom: solid 1px black; padding-bottom: 5px;'>
+				File must be a .txt file listing episodes from best to worst with one episode per line
+			</p>
+			
+			<h3>Data</h3>
+				Currently working with: <span id='set_name'></span><br><br>
+				<table style='border: solid 1px black'>
+					<tbody id='data_sets' >
+						<tr><th>Name</th><th>Timestamp</th><th>Comments</th><th>Action</th></tr>
+					</tbody>
+				</table>
+				<button onclick="createSet([]); changeTab('#rank');">Create new ranking</button>
+				<p>You can edit name + comments in this table by double clicking them.</p>
+				<p><button onclick='compareTwoRankings()'>Compare how similar two rankings are</button></p>
+		</div>
+		<div style='display: none' id='rank'>
+			<div class='toggle-0' style='font-size: 15pt; padding: 10px;'>
+				<div>Drag + Drop episodes from the left to the right to rank them.
+					<select>
+						<option>-- Perform Action --</option>
+						<option>New ranked list</option>
+						<option>New unsorted list</option>
+						<option>Merge ranked lists</option>
+						<option>Put ranked lists in right pane</option>
+						<option>Minimize all lists</option>
+					</select>
+				</div>
+				<div style='display: none'>
+					Choose the better episode
+					<style></style> 
+					<button id='cmp_subject' onclick='sortWizard.bind("below")'></button>
+					<button id='cmp_bound' onclick='sortWizard.bind("above")'></button>
+				</div>
+			</div>
+			<div id='double-list-c'>
+				<div id='unsorted'> </div>
+				<div style='display: none' id='merge'>
+					<span class='msg'>Choose the better episode:</span><br><br>
+					<span class='buttons'></span><br>
+					<button style='font-size: 12pt;' onclick='sortWizard.mergeClose()'>Stop Merging</button>
+				</div>
+				<div id='sorted'></div>
+				
+			</div>
+		</div>
+		
+		<div class='page' id='stats' style='display: none'>
+			<p>The analysis in this section is done by weighting each episode with a certain number of points. Episodes with higher rankings are given more points, and these points are averaged across each category to determine which is the best.</p>
+			<p>Note: Only the longest ranked list is analyzed. </p>
+			<div>
+				<label for='lin'>Use linear weights</label><input onchange="analyze(); setAllignment()" checked name='weight_type' id='lin' type='radio'>
+				<label for='quad' >Use quadratic weights</label><input onchange="analyze(); setAllignment()" name='weight_type' id='quad' type='radio'>
+				<span style='display: none;'><label for='fib' >Use Fibonacci weights</label><input onchange="analyze(); setAllignment()" name='weight_type' id='fib' type='radio'></span>
+				</div>
+			<div>
+				<h3>Best Season</h3>
+				<table>
+					<tbody id='analysis:season'>
+					</tbody>
+				</table>
+				<h3>Character with the best episodes</h3>
+					<table><tbody id='analysis:pony'>
+					</tbody></table>
+				<h3>Best Writer</h3>
+				<table>
+					<tbody id='analysis:writer'>
+					</tbody>
+				</table>	
+			</div>
+		</div>
+		<script src='onLoad.js'></script>
+	</body>
+</html>

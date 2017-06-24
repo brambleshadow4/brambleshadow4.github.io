@@ -1,0 +1,164 @@
+table{margin: auto;}
+body{
+	text-align: center;
+	position: relative;
+	margin: 0px;
+	overflow-x: hidden;
+}
+
+body.tablet {
+	font-size: .8em;
+}
+
+.div-row div
+{
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.popup {
+	background-color: white;
+	border: solid 4px black;
+	z-index: 10;
+	padding: 10px;
+	position: absolute;
+}
+
+#background-div
+{
+	position: absolute;
+	z-index: -1;
+	top: 0px;
+	left: 0px;
+	overflow: hidden;
+}
+#background-img{position: absolute; bottom: 0px;}
+
+#cmp_subject, #cmp_bound, #merge button{font-size: 20pt;}
+.tablet #cmp_subject, .tablet #cmp_bound, .tablet #merge button{font-size: 14pt;}
+
+nav a
+{
+	display: inline-block;
+	font-size: 15pt;
+	border: solid 3px black;
+	border-bottom: none;
+	margin-bottom: 0px;
+	color: black;
+	text-decoration: none;
+	padding-left: 10px;
+	padding-right: 10px;
+	background-color: rgba(176,176,176,.7);
+}
+nav a:hover{
+	background-color: rgb(120,120,120);
+}
+#header h1 {margin-top: 0px; margin-bottom: 3px}
+#header h2 {margin: 3px}
+h3 {font-size: 20pt;}
+h4 {font-size: 16pt;}
+
+.page
+{
+	max-width: 800px;
+	margin: auto;
+	text-align: center;
+	border: solid 3px black;
+	background-color: rgba(176,176,176,.7);
+}
+
+#rank
+{
+	margin-left: 5%;
+	margin-right: 5%;
+	border: solid 3px black;
+	background-color: rgba(176,176,176,.7);  
+}
+#double-list-c
+{
+	position: relative;
+	font-size: 20pt; 
+}
+
+.tablet #double-list-c{font-size: 14pt;}
+#sorted
+{
+	right: 0px;
+	left: 50%;
+}
+#merge
+{
+	left: 0px;
+	right: 50%;
+}
+
+#unsorted
+{
+	left: 0px;
+	right: 50%;
+}
+#sorted, #unsorted, #merge
+{
+	position: absolute;
+	/*top: 100px;*/
+	top: 0px;
+	bottom: 0px;
+	overflow-y: scroll;
+	padding-bottom: 60px; 
+}
+input[type^='file']{
+	border-bottom: solid 2px gray;
+}
+.sorted .episode-drag{counter-increment: episodeRank}
+.sorted .sublist{counter-reset: episodeRank}
+.sorted .episode-drag::before{content: counter(episodeRank) ". "}
+
+.episode-drag
+{
+	/*min-height: 50px;*/
+	cursor: pointer;
+	padding: 5px; 
+	user-select: none;
+	-moz-user-select: none;
+	-webkit-user-select: none;
+}
+
+.sublist .menu-block
+{
+	text-align: left;
+	padding-left: 10px;
+	font-weight: bold;
+	/*font-style: italic;*/
+	font-size: .7em;
+	background-color: rgb(150,150,150)
+}
+
+.tablet .menu-block{font-size: .6em;}
+
+.insert{
+	border: solid 3px #004400;
+	position: relative;
+	display: block;
+	height: 0px;
+	overflow: visible;
+}
+
+#merge span span{
+	font-size: 10pt;
+}
+.menu-block span span{
+	vertical-align: top;
+	padding-left: 7px;
+	user-select: none;
+	-moz-user-select: none;
+}
+.menu-block .maximize{ position: relative; top: -2px;}
+	
+.sublist .episode-drag:nth-of-type(even)
+{
+	background-color: rgba(176,176,176,.7);
+}
+.sublist .episode-drag:nth-of-type(odd)
+{
+	background-color: rgba(160,160,160,.7);
+}

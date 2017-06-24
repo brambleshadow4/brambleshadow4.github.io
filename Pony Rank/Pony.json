@@ -1,0 +1,1297 @@
+[
+    {
+        "id": 1,
+        "season": 1,
+        "episode": 1,
+        "name": "Friendship is Magic",
+        "writer": "Lauren Faust",
+        "focus": "Twilight Sparkle",
+        "dev": "" 
+    },
+    {
+        "id": 3,
+        "season": 1,
+        "episode": 3,
+        "name": "The Ticket Master",
+        "writer": ["Amy Keating Rogers", "Lauren Faust"],
+        "focus": "Twilight Sparkle",
+        "dev": "" 
+    },
+    {
+        "id": 4,
+        "season": 1,
+        "episode": 4,
+        "name": "Applebuck Season",
+        "writer": "Amy Keating Rogers",
+        "focus": "Applejack",
+        "dev": "" 
+    },
+    {
+        "id": 5,
+        "season": 1,
+        "episode": 5,
+        "name": "Griffon the Brush-Off",
+        "writer": "Cindy Morrow",
+        "focus": ["Pinkie Pie","Rainbow Dash"],
+        "dev": "" 
+    },
+    {
+        "id": 6,
+        "season": 1,
+        "episode": 6,
+        "name": "Boast Busters",
+        "writer": "Chris Savino",
+        "focus": "Twilight Sparkle",
+        "dev": ""
+    },
+    {
+        
+        "season": 1,
+        "episode": 7,
+        "name": "Dragonshy",
+        "writer": "Meghan McCarthy",
+        "focus": "Fluttershy",
+        "dev": "" 
+    },
+    {
+        "id": 8,
+        "season": 1,
+        "episode": 8,
+        "name": "Look before you sleep",
+        "writer": "Charlotte Fullerton",
+        "focus": ["Applejack","Rarity"],
+        "dev": "" 
+    },
+    {
+        "id": 9,
+        "season": 1,
+        "episode": 9,
+        "name": "Bridle Gossip",
+        "writer": "Amy Keating Rogers",
+        "focus": "Mane 6",
+        "dev": "" 
+    },
+    {
+        "id": 10,
+        "season": 1,
+        "episode": 10,
+        "name": "Swarm of the Century",
+        "writer": "M. A. Larson",
+        "focus": "Pinkie Pie",
+        "dev": "" 
+    },
+    {
+        "id": 11,
+        "season": 1,
+        "episode": 11,
+        "name": "Winter Wrap Up",
+        "writer": "Cindy Morrow",
+        "focus": "Twilight Sparkle",
+        "dev": "" 
+    },
+    {
+        "id": 12,
+        "season": 1,
+        "episode": 12,
+        "name": "Call of the Cutie",
+        "writer": "Meghan McCarthy",
+        "focus": "Apple Bloom",
+        "dev": "" 
+    },
+    {
+        "id": 13,
+        "season": 1,
+        "episode": 13,
+        "name": "Fall Weather Friends",
+        "writer": "Amy Keating Rogers",
+        "focus": ["Rainbow Dash","Applejack"],
+        "dev": "" 
+    },
+    {
+        "id": 14,
+        "season": 1,
+        "episode": 14,
+        "name": "Suited for Success",
+        "writer": "Charlotte Fullerton",
+        "focus": "Rarity",
+        "dev": "" 
+    },
+    {
+        "id": 15,
+        "season": 1,
+        "episode": 15,
+        "name": "Feeling Pinkie Keen",
+        "writer": "Dave Polsky",
+        "focus": ["Twilight Sparkle","Pinkie Pie"],
+        "dev": "" 
+    },
+    {
+        "id": 16,
+        "season": 1,
+        "episode": 16,
+        "name": "Sonic Rainboom",
+        "writer": "M. A. Larson",
+        "focus": "Rainbow Dash",
+        "dev": "" 
+    },
+    {
+        "id": 17,
+        "season": 1,
+        "episode": 17,
+        "name": "Stare Master",
+        "writer": "Chris Savino",
+        "focus": "Fluttershy",
+        "dev": "" 
+    },
+    {
+        "id": 18,
+        "season": 1,
+        "episode": 18,
+        "name": "The Show Stoppers",
+        "writer": "Cindy Morrow",
+        "focus": ["Apple Bloom","Scootaloo","Sweetie Belle","Cutie Mark Crusaders"],
+        "dev": "" 
+    },
+    {
+        "id": 19,
+        "season": 1,
+        "episode": 19,
+        "name": "A Dog and Pony Show",
+        "writer": "Amy Keating Rogers",
+        "focus": "Rarity",
+        "dev": "" 
+    },
+    {
+        "id": 20,
+        "season": 1,
+        "episode": 20,
+        "name": "Green Isn't Your Color",
+        "writer": "Meghan McCarthy",
+        "focus": ["Fluttershy","Rarity"],
+        "dev": "" 
+    },
+    {
+        "id": 21,
+        "season": 1,
+        "episode": 21,
+        "name": "Over a Barrel",
+        "writer": "Dave Polsky",
+        "focus": ["Mane 6","Twilight Sparkle","Rarity","Pinkie Pie","Rainbow Dash","Applejack","Fluttershy"],
+        "dev": "" 
+    },
+    {
+        "id": 22,
+        "season": 1,
+        "episode": 22,
+        "name": "A Bird in the Hoof",
+        "writer": "Charlotte Fullerton",
+        "focus": ["Twilight Sparkle","Fluttershy"],
+        "dev": "" 
+    },
+    {
+        "id": 23,
+        "season": 1,
+        "episode": 23,
+        "name": "The Cutie Mark Chronicles",
+        "writer": "M. A. Larson",
+        "focus": ["Mane 6","Twilight Sparkle","Rarity","Pinkie Pie","Rainbow Dash","Applejack","Fluttershy","Cutie Mark Crusaders","Apple Bloom","Sweetie Belle","Scootaloo"],
+        "dev": "" 
+    },
+    {
+        "id": 24,
+        "season": 1,
+        "episode": 24,
+        "name": "Owl's Well that Ends Well",
+        "writer": "Cindy Morrow",
+        "focus": "Spike",
+        "dev": "" 
+    },
+    {
+        "id": 25,
+        "season": 1,
+        "episode": 25,
+        "name": "Party Of One",
+        "writer": "Meghan McCarthy",
+        "focus": "Pinkie Pie",
+        "dev": "" 
+    },
+    {
+        "id": 26,
+        "season": 1,
+        "episode": 26,
+        "name": "The Best Night Ever",
+        "writer": "Amy Keating Rogers",
+        "focus": ["Mane 6","Twilight Sparkle","Rarity","Pinkie Pie","Rainbow Dash","Applejack","Fluttershy"],
+        "dev": "" 
+    },
+    {
+        "id": 27,
+        "season": 2,
+        "episode": 1,
+        "name": "The Return of Harmony",
+        "writer": "M. A. Larson",
+        "focus": ["Mane 6","Twilight Sparkle","Rarity","Pinkie Pie","Rainbow Dash","Applejack","Fluttershy"],
+        "dev": "" 
+    },
+    {
+        "id": 29,
+        "season": 2,
+        "episode": 3,
+        "name": "Lesson Zero",
+        "writer": "Meghan McCarthy",
+        "focus": "Twilight Sparkle",
+        "dev": "" 
+    },
+    {
+        "id": 30,
+        "season": 2,
+        "episode": 4,
+        "name": "Luna Eclipsed",
+        "writer": "M. A. Larson",
+        "focus": "Princess Luna",
+        "dev": "" 
+    },
+    {
+        "id": 31,
+        "season": 2,
+        "episode": 5,
+        "name": "Sisterhooves Social",
+        "writer": "Cindy Morrow",
+        "focus": ["Rarity","Sweetie Belle"],
+        "dev": "" 
+    },
+    {
+        "id": 32,
+        "season": 2,
+        "episode": 6,
+        "name": "The Cutie Pox",
+        "writer": "Amy Keating Rogers",
+        "focus": "Apple Bloom",
+        "dev": "" 
+    },
+    {
+        "id": 33,
+        "season": 2,
+        "episode": 7,
+        "name": "May the Best Pet Win",
+        "writer": "Charlotte Fullerton",
+        "focus": "Rainbow Dash",
+        "dev": "" 
+    },
+    {
+        "id": 34,
+        "season": 2,
+        "episode": 8,
+        "name": "The Mysterious Mare Do Well",
+        "writer": "Merriwether Williams",
+        "focus": "Rainbow Dash",
+        "dev": "" 
+    },
+    {
+        "id": 35,
+        "season": 2,
+        "episode": 9,
+        "name": "Sweet and Elite",
+        "writer": "Meghan McCarthy",
+        "focus": "Rarity",
+        "dev": "" 
+    },
+    {
+        "id": 36,
+        "season": 2,
+        "episode": 10,
+        "name": "Secret of My Excess",
+        "writer": "M. A. Larson",
+        "focus": "Spike",
+        "dev": "" 
+    },
+    {
+        "id": 37,
+        "season": 2,
+        "episode": 11,
+        "name": "Hearth's Warming Eve",
+        "writer": "Merriwether Williams",
+        "focus": ["Mane 6","Twilight Sparkle","Rarity","Pinkie Pie","Rainbow Dash","Applejack","Fluttershy"],
+        "dev": "" 
+    },
+    {
+        "id": 38,
+        "season": 2,
+        "episode": 12,
+        "name": "Family Appreciation Day",
+        "writer": "Cindy Morrow",
+        "focus": "Apple Bloom",
+        "dev": "" 
+    },
+    {
+        "id": 39,
+        "season": 2,
+        "episode": 13,
+        "name": "Baby Cakes",
+        "writer": "Charlotte Fullerton",
+        "focus": "Pinkie Pie",
+        "dev": "" 
+    },
+    {
+        "id": 40,
+        "season": 2,
+        "episode": 14,
+        "name": "The Last Roundup",
+        "writer": "Amy Keating Rogers",
+        "focus": ["Mane 6","Applejack"],
+        "dev": "" 
+    },
+    {
+        "id": 41,
+        "season": 2,
+        "episode": 15,
+        "name": "The Super Speedy Cider Squeezy 6000",
+        "writer": "M. A. Larson",
+        "focus": ["Mane 6","Twilight Sparkle","Rarity","Pinkie Pie","Rainbow Dash","Applejack","Fluttershy"],
+        "dev": "" 
+    },
+    {
+        "id": 42,
+        "season": 2,
+        "episode": 16,
+        "name": "Read it and Weep",
+        "writer": "Cindy Morrow",
+        "focus": "Rainbow Dash",
+        "dev": "" 
+    },
+    {
+        "id": 43,
+        "season": 2,
+        "episode": 17,
+        "name": "Hearts and Hooves Day",
+        "writer": "Meghan McCarthy",
+        "focus": ["Cutie Mark Crusaders","Apple Bloom","Sweetie Belle","Scootaloo"],
+        "dev": "" 
+    },
+    {
+        "id": 44,
+        "season": 2,
+        "episode": 18,
+        "name": "A Friend in Deed",
+        "writer": "Amy Keating Rogers",
+        "focus": "Pinkie Pie",
+        "dev": "" 
+    },
+    {
+        "id": 45,
+        "season": 2,
+        "episode": 19,
+        "name": "Putting Your Hoof Down",
+        "writer": ["Charlotte Fullerton", "Merriwether Williams"],
+        "focus": "Fluttershy",
+        "dev": "" 
+    },
+    {
+        "id": 46,
+        "season": 2,
+        "episode": 20,
+        "name": "It's About Time",
+        "writer": "M. A. Larson",
+        "focus": "Twilight Sparkle",
+        "dev": "" 
+    },
+    {
+        "id": 47,
+        "season": 2,
+        "episode": 21,
+        "name": "Dragon Quest",
+        "writer": "Merriwether Williams",
+        "focus": "Spike",
+        "dev": "" 
+    },
+    {
+        "id": 48,
+        "season": 2,
+        "episode": 22,
+        "name": "Hurricane Fluttershy",
+        "writer": "Cindy Morrow",
+        "focus": "Fluttershy",
+        "dev": "" 
+    },
+    {
+        "id": 49,
+        "season": 2,
+        "episode": 23,
+        "name": "Ponyville Confidential",
+        "writer": "M. A. Larson",
+        "focus": ["Cutie Mark Crusaders","Apple Bloom","Sweetie Belle","Scootaloo"],
+        "dev": "" 
+    },
+    {
+        "id": 50,
+        "season": 2,
+        "episode": 24,
+        "name": "MMMystery on the Friendship Express",
+        "writer": "Amy Keating Rogers",
+        "focus": ["Pinkie Pie","Twilight Sparkle"],
+        "dev": "" 
+    },
+    {
+        "id": 51,
+        "season": 2,
+        "episode": 25,
+        "name": "A Canterlot Wedding",
+        "writer": "Meghan McCarthy",
+        "focus": ["Twilight Sparkle","Mane 6"],
+        "dev": "" 
+    },
+    {
+        "id": 53,
+        "season": 3,
+        "episode": 1,
+        "name": "The Crystal Empire",
+        "writer": "Meghan McCarthy",
+        "focus": ["Twilight Sparkle","Mane 6"],
+        "dev": "" 
+    },
+    {
+        "id": 55,
+        "season": 3,
+        "episode": 3,
+        "name": "Too Many Pinkie Pies",
+        "writer": "Dave Polsky",
+        "focus": "Pinkie Pie",
+        "dev": "" 
+    },
+    {
+        "id": 56,
+        "season": 3,
+        "episode": 4,
+        "name": "One Bad Apple",
+        "writer": "Cindy Morrow",
+        "focus": ["Cutie Mark Crusaders","Apple Bloom","Sweetie Belle","Scootaloo"],
+        "dev": "" 
+    },
+    {
+        "id": 57,
+        "season": 3,
+        "episode": 5,
+        "name": "Magic Duel",
+        "writer": "M. A. Larson",
+        "focus": "Twilight Sparkle",
+        "dev": "" 
+    },
+    {
+        "id": 58,
+        "season": 3,
+        "episode": 6,
+        "name": "Sleepless Night in Ponyville",
+        "writer": "Corey Powell",
+        "focus": "Scootaloo",
+        "dev": "" 
+    },
+    {
+        "id": 59,
+        "season": 3,
+        "episode": 7,
+        "name": "Wonderbolts Academy",
+        "writer": "Merriwether Williams",
+        "focus": "Rainbow Dash",
+        "dev": "" 
+    },
+    {
+        "id": 60,
+        "season": 3,
+        "episode": 8,
+        "name": "Just for Sidekicks",
+        "writer": "Corey Powell",
+        "focus": "Spike",
+        "dev": "" 
+    },
+    {
+        "id": 61,
+        "season": 3,
+        "episode": 9,
+        "name": "Apple Family Reunion",
+        "writer": "Cindy Morrow",
+        "focus": "Applejack",
+        "dev": "" 
+    },
+    {
+        "id": 62,
+        "season": 3,
+        "episode": 10,
+        "name": "Spike at Your Service",
+        "writer": ["Merriwether Williams", "Dave Polsky"],
+        "focus": "Spike",
+        "dev": "" 
+    },
+    {
+        "id": 63,
+        "season": 3,
+        "episode": 11,
+        "name": "Keep Calm and Flutter On",
+        "writer": "Dave Polsky",
+        "focus": "Fluttershy",
+        "dev": "" 
+    },
+    {
+        "id": 64,
+        "season": 3,
+        "episode": 12,
+        "name": "Games Ponies Play",
+        "writer": "Dave Polsky",
+        "focus": "Mane 6",
+        "dev": "" 
+    },
+    {
+        "id": 65,
+        "season": 3,
+        "episode": 13,
+        "name": "Magical Mystery Cure",
+        "writer": "M. A. Larson",
+        "focus": ["Twilight Sparkle","Mane 6"],
+        "dev": "" 
+    },
+    {
+        "id": 66,
+        "season": 4,
+        "episode": 1,
+        "name": "Princess Twilight Sparkle",
+        "writer": "Meghan McCarthy",
+        "focus": ["Twilight Sparkle","Mane 6"],
+        "dev": "" 
+    },
+    {
+        "id": 68,
+        "season": 4,
+        "episode": 3,
+        "name": "Castle Mane-ia",
+        "writer": "Josh Haber",
+        "focus": "Mane 6",
+        "dev": "" 
+    },
+    {
+        "id": 69,
+        "season": 4,
+        "episode": 4,
+        "name": "Daring Don't",
+        "writer": "Dave Polsky",
+        "focus": "Rainbow Dash",
+        "dev": "" 
+    },
+    {
+        "id": 70,
+        "season": 4,
+        "episode": 5,
+        "name": "Flight to the Finish",
+        "writer": "Ed Valentine",
+        "focus": ["Cutie Mark Crusaders","Scootaloo"],
+        "dev": "" 
+    },
+    {
+        "id": 71,
+        "season": 4,
+        "episode": 6,
+        "name": "Power Ponies",
+        "writer": ["Meghan McCarthy", "Charlotte Fullerton", "Betsy McGowen"],
+        "focus": ["Spike","Mane 6"],
+        "dev": "" 
+    },
+    {
+        "id": 72,
+        "season": 4,
+        "episode": 7,
+        "name": "Bats!",
+        "writer": "Merriwether Williams",
+        "focus": ["Mane 6","Fluttershy"],
+        "dev": "" 
+    },
+    {
+        "id": 73,
+        "season": 4,
+        "episode": 8,
+        "name": "Rarity takes Manehattan",
+        "writer": "Dave Polsky",
+        "focus": "Rarity",
+        "dev": "" 
+    },
+    {
+        "id": 74,
+        "season": 4,
+        "episode": 9,
+        "name": "Pinkie Apple Pie",
+        "writer": "Natasha Levinger",
+        "focus": "Pinkie Pie",
+        "dev": "" 
+    },
+    {
+        "id": 75,
+        "season": 4,
+        "episode": 10,
+        "name": "Rainbow Falls",
+        "writer": "Corey Powell",
+        "focus": "Rainbow Dash",
+        "dev": "" 
+    },
+    {
+        "id": 76,
+        "season": 4,
+        "episode": 11,
+        "name": "Pinkie Pride",
+        "writer": "Amy Keating Rogers",
+        "focus": "Pinkie Pie",
+        "dev": "" 
+    },
+    {
+        "id": 77,
+        "season": 4,
+        "episode": 12,
+        "name": "Three's a Crowd",
+        "writer": ["Ed Valentine", "Meghan McCarthy"],
+        "focus": "Twilight Sparkle",
+        "dev": "" 
+    },
+    {
+        "id": 78,
+        "season": 4,
+        "episode": 13,
+        "name": "Simple Ways",
+        "writer": "Josh Haber",
+        "focus": ["Applejack","Rarity"],
+        "dev": "" 
+    },
+    {
+        "id": 79,
+        "season": 4,
+        "episode": 14,
+        "name": "Filli Vanilli",
+        "writer": "Amy Keating Rogers",
+        "focus": "Fluttershy",
+        "dev": "" 
+    },
+    {
+        "id": 80,
+        "season": 4,
+        "episode": 15,
+        "name": "Twilight Time",
+        "writer": "Dave Polsky",
+        "focus": "Cutie Mark Crusaders",
+        "dev": "" 
+    },
+    {
+        "id": 81,
+        "season": 4,
+        "episode": 16,
+        "name": "It Ain't Easy Being Breezies",
+        "writer": "Natasha Levinger",
+        "focus": "Fluttershy",
+        "dev": "" 
+    },
+    {
+        "id": 82,
+        "season": 4,
+        "episode": 17,
+        "name": "Somepony to Watch Over Me",
+        "writer": "Scott Sonneborn",
+        "focus": "Apple Bloom",
+        "dev": "" 
+    },
+    {
+        "id": 83,
+        "season": 4,
+        "episode": 18,
+        "name": "Trade Ya",
+        "writer": "Scott Sonneborn",
+        "focus": "Mane 6",
+        "dev": "" 
+    },
+    {
+        "id": 84,
+        "season": 4,
+        "episode": 19,
+        "name": "Maud Pie",
+        "writer": "Noelle Benvenuti",
+        "focus": "Mane 6",
+        "dev": "" 
+    },
+    {
+        "id": 85,
+        "season": 4,
+        "episode": 20,
+        "name": "For Whom the Sweetie Belle Toils",
+        "writer": "Dave Polsky",
+        "focus": "Sweetie Belle",
+        "dev": "" 
+    },
+    {
+        "id": 86,
+        "season": 4,
+        "episode": 21,
+        "name": "Leap of Faith",
+        "writer": "Josh Haber",
+        "focus": "Applejack",
+        "dev": "" 
+    },
+    {
+        "id": 87,
+        "season": 4,
+        "episode": 22,
+        "name": "Testing, Testing, 1, 2, 3",
+        "writer": "Amy Keating Rogers",
+        "focus": "Rainbow Dash",
+        "dev": "" 
+    },
+    {
+        "id": 88,
+        "season": 4,
+        "episode": 23,
+        "name": "Inspiration Manifestation",
+        "writer": ["Corey Powell","Meghan McCarthy"],
+        "focus": "Spike",
+        "dev": "" 
+    },
+    {
+        "id": 89,
+        "season": 4,
+        "episode": 24,
+        "name": "Equestria Games",
+        "writer": "Dave Polsky",
+        "focus": "Spike",
+        "dev": "" 
+    },
+    {
+        "id": 90,
+        "season": 4,
+        "episode": 25,
+        "name": "Twilight's Kingdom",
+        "writer": "Meghan McCarthy",
+        "focus": "Twilight Sparkle",
+        "dev": "" 
+    },
+    {
+        "id": 92,
+        "season": 5,
+        "episode": 1,
+        "name": "The Cutie Map",
+        "writer": ["M. A. Larson", "Scott Sonneborn"],
+        "focus": ["Mane 6","Twilight Sparkle","Rarity","Pinkie Pie","Rainbow Dash","Applejack","Fluttershy"],
+        "dev": "" 
+    },
+    {
+        "id": 94,
+        "season": 5,
+        "episode": 3,
+        "name": "Castle Sweet Castle",
+        "writer": ["Joanna Lewis", "Kristine Songco"],
+        "focus": ["Mane 6","Twilight Sparkle"],
+        "dev": "" 
+    },
+    {
+        "id": 95,
+        "season": 5,
+        "episode": 4,
+        "name": "Bloom & Gloom",
+        "writer": "Josh Haber",
+        "focus": "Apple Bloom",
+        "dev": "" 
+    },
+    {
+        "id": 96,
+        "season": 5,
+        "episode": 5,
+        "name": "Tanks for all the Memories",
+        "writer": "Cindy Morrow",
+        "focus": "Rainbow Dash",
+        "dev": "" 
+    },
+    {
+        "id": 97,
+        "season": 5,
+        "episode": 6,
+        "name": "Appleoosa's Most Wanted",
+        "writer": "Dave Polsky",
+        "focus": ["Cutie Mark Crusaders","Apple Bloom","Sweetie Belle","Scootaloo"],
+        "dev": "" 
+    },
+    {
+        "id": 98,
+        "season": 5,
+        "episode": 7,
+        "name": "Make New Friends but Keep Discord",
+        "writer": "Natasha Levinger",
+        "focus": "Discord",
+        "dev": "" 
+    },
+    {
+        "id": 99,
+        "season": 5,
+        "episode": 8,
+        "name": "The Lost Treasure of Griffonstone",
+        "writer": "Amy Keating Rogers",
+        "focus": ["Rainbow Dash","Pinkie Pie"],
+        "dev": "" 
+    },
+    {
+        "id": 100,
+        "season": 5,
+        "episode": 9,
+        "name": "Slice of Life",
+        "writer": "M. A. Larson",
+        "focus": "Background Ponies",
+        "dev": "" 
+    },
+    {
+        "id": 101,
+        "season": 5,
+        "episode": 10,
+        "name": "Princess Spike",
+        "writer": "Neal Dusedau",
+        "focus": "Spike",
+        "dev": "" 
+    },
+    {
+        "id": 102,
+        "season": 5,
+        "episode": 11,
+        "name": "Party Pooped",
+        "writer": "Nick Confalone",
+        "focus": "Pinkie Pie",
+        "dev": "" 
+    },
+    {
+        "id": 103,
+        "season": 5,
+        "episode": 12,
+        "name": "Amending Fences",
+        "writer": "M. A. Larson",
+        "focus": "Twilight Sparkle",
+        "dev": "" 
+    },
+    {
+        "id": 104,
+        "season": 5,
+        "episode": 13,
+        "name": "Do Princesses Dream of Magic Sheep",
+        "writer": "Scott Sonneborn",
+        "focus": "Princess Luna",
+        "dev": "" 
+    },
+    {
+        "id": 105,
+        "season": 5,
+        "episode": 14,
+        "name": "Canterlot Boutique",
+        "writer": "Amy Keating Rogers",
+        "focus": "Rarity",
+        "dev": "" 
+    },
+    {
+        "id": 106,
+        "season": 5,
+        "episode": 15,
+        "name": "Rarity Investigates!",
+        "writer": ["Joanna Lewis", "Kristine Songco"],
+        "focus": ["Rarity","Rainbow Dash"],
+        "dev": "" 
+    },
+    {
+        "id": 107,
+        "season": 5,
+        "episode": 16,
+        "name": "Made in Manehattan",
+        "writer": "Noelle Benvenuti",
+        "focus": ["Rarity","Applejack"],
+        "dev": "" 
+    },
+    {
+        "id": 108,
+        "season": 5,
+        "episode": 17,
+        "name": "Brotherhooves Social",
+        "writer": "Dave Polsky",
+        "focus": ["Big McIntosh","Apple Bloom"],
+        "dev": "" 
+    },
+    {
+        "id": 109,
+        "season": 5,
+        "episode": 18,
+        "name": "Cusaders of the Lost Mark",
+        "writer": "Amy Keating Rogers",
+        "focus": ["Cutie Mark Crusaders","Diamond Tiara"],
+        "dev": "" 
+    },
+    {
+        "id": 110,
+        "season": 5,
+        "episode": 19,
+        "name": "The One Where Pinkie Knows",
+        "writer": "Gillian Berrow",
+        "focus": "Pinkie Pie",
+        "dev": "" 
+    },
+    {
+        "id": 111,
+        "season": 5,
+        "episode": 20,
+        "name": "Hearthbreakers",
+        "writer": "Nick Confalone",
+        "focus": ["Applejack","Pinkie Pie"],
+        "dev": "" 
+    },
+    {
+        "id": 112,
+        "season": 5,
+        "episode": 21,
+        "name": "Scare Master",
+        "writer": "Natasha Levinger",
+        "focus": "Fluttershy",
+        "dev": "" 
+    },
+    {
+        "id": 113,
+        "season": 5,
+        "episode": 22,
+        "name": "But What about Discord?",
+        "writer": "Neal Dusedau",
+        "focus": "Twilight Sparkle",
+        "dev": "" 
+    },
+    {
+        "id": 114,
+        "season": 5,
+        "episode": 23,
+        "name": "The Hooffields and McColts",
+        "writer": ["Joanna Lewis", "Kristine Songco"],
+        "focus": ["Fluttershy","Twilight Sparkle"],
+        "dev": "" 
+    },
+    {
+        "id": 115,
+        "season": 5,
+        "episode": 24,
+        "name": "The Mane Attraction",
+        "writer": "Amy Keating Rogers",
+        "focus": "Applejack",
+        "dev": "" 
+    },
+    {
+        "id": 116,
+        "season": 5,
+        "episode": 25,
+        "name": "The Cutie Re-mark",
+        "writer": "Josh Haber",
+        "focus": "Twilight Sparkle",
+        "dev": "" 
+    },
+    {
+        "id": 118,
+        "season": 6,
+        "episode": 1,
+        "name": "The Crystalling",
+        "writer": "Josh Haber",
+        "focus": "Starlight Glimmer",
+        "dev": "" 
+    },
+    {
+        "id": 120,
+		"season": 6,
+        "episode": 3,
+        "name": "The Gift of the Maud Pie",
+        "writer": ["Josh Haber", "Dave Polsky"],
+        "focus": "Pinkie Pie",
+        "dev": "" 
+    },
+    {
+        "id": 120,
+		"season": 6,
+        "episode": 4,
+        "name": "On Your Marks",
+        "writer": ["Josh Haber","Dave Polsky"],
+        "focus": "Apple Bloom",
+        "dev": "" 
+    },
+    {
+        "id": 122,
+        "season": 6,
+		"episode": 5,
+        "name": "Gauntlet of Fire",
+        "writer": ["Joanna Lewis", "Kristine Songco"],
+        "focus": "Spike",
+        "dev": "" 
+    },
+    {
+        "id": 123,
+		"season": 6,
+        "episode": 6,
+        "name": "No Second Prances",
+        "writer": "Nick Confalone",
+        "focus": "Starlight Glimmer",
+        "dev": "" 
+    },
+    {  
+        "id":124,
+        "season": 6,
+        "episode": 7,
+        "name": "Newbie Dash",
+        "writer":["Dave Polsky", "Dave Rapp"],
+		"focus": "Rainbow Dash",
+        "dev": "" 
+    },
+    {
+        "id": 125,
+        "season": 6,
+        "episode": 8,
+        "name": "A Hearth's Warming Tale",
+        "writer": "Michael Vogel",
+        "focus": ["Starlight Glimmer","Mane 6"],
+        "dev": "" 
+    },
+    {
+        "id": 126,
+        "season": 6,
+        "episode": 9,
+        "name": "The Saddle Row Review",
+        "writer": "Nick Confalone",
+        "focus": ["Mane 6","Rarity"],
+        "dev": "" 
+    },
+    {
+        "id": 127,
+        "season": 6,
+        "episode": 10,
+        "name": "Applejack's \"Day\" Off",
+        "writer": ["Michael Fox","Wil Fox"],
+        "focus": ["Rarity","Applejack"],
+        "dev": "" 
+    },
+    {
+        "id": 128,
+        "season": 6,
+        "episode": 11,
+        "name": "Flutter Brutter",
+        "writer": "Dave Rapp",
+        "focus": "Fluttershy"
+    },
+    {
+        "id": 129,
+        "season": 6,
+        "episode": 12,
+        "name": "Spice up Your Life",
+        "writer": "Michael Vogel",
+        "focus": ["Pinkie Pie","Rarity"],
+        "dev": "" 
+    },
+    {
+        "id": 130,
+        "season": 6,
+        "episode": 13,
+        "name": "Stranger than Fanfiction",
+        "writer": ["Josh Haber", "Michael Vogel"],
+        "focus": "Rainbow Dash",
+        "dev": "" 
+    },
+    {
+        "id": 131,
+        "season": 6,
+        "episode": 14,
+        "name": "The Cart Before the Ponies",
+        "writer": "Ed Valentine",
+        "focus": ["Cutie Mark Crusaders","Apple Bloom","Sweetie Belle","Scootaloo","Rarity","Applejack","Rainbow Dash"],
+        "dev": "" 
+    },
+    {
+        "id": 132,
+        "season": 6,
+        "episode": 15,
+        "name": "28 Pranks Later",
+        "writer": "F. M. De Marco",
+        "focus": "Rainbow Dash",
+        "dev": "" 
+    },
+    {
+        "id": 133,
+        "season": 6,
+        "episode": 16,
+        "name": "The Times They are A Changeling",
+        "writer": ["K. Burke", "C. Wyatt"],
+        "focus": "Spike",
+        "dev": "" 
+    },
+    {
+        "id": 134,
+        "season": 6,
+        "episode": 17,
+        "name": "Dungeons and Discords",
+        "writer": "Nick Confalone",
+        "focus": "Discord",
+        "dev": "" 
+    },
+    {
+        "id": 135,
+        "season": 6,
+        "episode": 18,
+        "name": "Buckball Season",
+        "writer": "Jennifer Skelly",
+        "focus": ["Applejack","Rainbow Dash","Fluttershy","Pinkie Pie"],
+        "dev": "" 
+    },
+    {
+        "id": 136,
+        "season": 6,
+        "episode": 19,
+        "name": "The Fault in Our Cutie Marks",
+        "writer": "Ed Valentine",
+        "focus": ["Cutie Mark Crusaders","Apple Bloom","Sweetie Belle","Scootaloo"],
+        "dev": "" 
+    },
+    {
+        "id": 137,
+        "season": 6,
+        "episode": 20,
+        "name": "Viva Las Pegasus",
+        "writer": ["K. Burke" , "C. Wyatt"],
+        "focus": ["Fluttershy","Applejack"],
+        "dev": "" 
+    },
+    {
+        "id": 138,
+        "season": 6,
+        "episode": 21,
+        "name": "Every Little Thing She Does",
+        "writer": "Michael Vogel",
+        "focus": "Starlight Glimmer",
+        "dev": "" 
+    },
+    {
+        "id": 139,
+        "season": 6,
+        "episode": 22,
+        "name": "P.P.O.V (Pony Point of View)",
+        "writer": ["Michael Fox", "Wil Fox"],
+        "focus": "Twilight Sparkle",
+        "dev": "" 
+    },
+    {
+        "id": 140,
+        "season": 6,
+        "episode": 23,
+        "name": "Where the Apple Lies",
+        "writer": "Dave Rapp",
+        "focus": "Applejack",
+        "dev": "" 
+    },
+    {
+        "id": 141,
+        "season": 6,
+        "episode": 24,
+        "name": "Top Bolt",
+        "writer": ["Josh Haber", "Michael Vogel"],
+        "focus": ["Twilight Sparkle","Rainbow Dash"],
+        "dev": "" 
+    },
+    {
+        "id": 142,
+        "season": 6,
+        "episode": 25,
+        "name": "To Where and Back Again",
+        "writer": ["Josh Haber", "Michael Vogel"],
+        "focus": "Starlight Glimmer",
+        "dev": "" 
+    },
+    {
+        "id": 144,
+        "season": 7,
+        "episode": 1,
+        "name": "Celestial Advice",
+        "writer": ["Joanna Lewis","Kristine Songco"],
+        "focus": "Twilight Sparkle",
+        "dev": "" 
+    },
+    {
+        "id": 145,
+        "season": 7,
+        "episode": 2,
+        "name": "All Bottled Up",
+        "writer": ["Joanna Lewis","Kristine Songco"],
+        "focus": "Starlight Glimmer",
+        "dev": "" 
+    },
+    {
+        "id": 146 ,
+        "season": 7,
+        "episode": 3,
+        "name": "A Flurry of Emotions",
+        "writer": ["Sammie Crawley","Whitney Wetta"],
+        "focus": "Twilight Sparkle",
+        "dev": "" 
+    },
+    {
+        "id": 147,
+        "season": 7,
+        "episode": 4,
+        "name": "Rock Solid Friendship",
+        "writer": "Nick Confalone",
+        "focus": "Starlight Glimmer",
+        "dev": "" 
+    },
+    {
+        "id": 148,
+        "season": 7,
+        "episode": 5,
+        "name": "Fluttershy Leans In",
+        "writer": "Gillian Berrow",
+        "focus": "Fluttershy",
+        "dev": "" 
+    },
+    {
+        "id": 149,
+        "season": 7,
+        "episode": 6,
+        "name": "Forever Filly",
+        "writer": ["Michael Fox","Wil Fox"],
+        "focus": ["Rarity","Sweetie Belle"],
+        "dev": "" 
+    },
+    {
+        "id": 150,
+        "season": 7,
+        "episode": 7,
+        "name": "Parental Glideance",
+        "writer": "Josh Hamilton",
+        "focus": "Scootaloo",
+        "dev": "" 
+    },
+    {
+        "id": 151,
+        "season": 7,
+        "episode": 8,
+        "name": "Hard to Say Anything",
+        "writer": "Becky Wangberg",
+        "focus": ["Cutie Mark Crusaders","Big McIntosh"],
+        "dev": "" 
+    },
+    {
+        "id": 152,
+        "season": 7,
+        "episode": 9,
+        "name":  "Honest Apple",
+        "writer": "Kevin Lappin",
+        "focus": ["Rarity","Applejack"],
+        "dev": "" 
+    },
+    {
+        "id": 153,
+        "season": 7,
+        "episode": 10,
+        "name": "A Royal Problem",
+        "writer": ["Joanna Lewis","Kristine Songco"],
+        "focus": ["Princess Celestia","Princess Luna","Starlight Glimmer"],
+        "dev": "" 
+    },
+    {
+        "id": 154,
+        "season": 7,
+        "episode": 11,
+        "name": "Not Asking for Touble",
+        "writer": "May Chan",
+        "focus": "Pinkie Pie",
+        "dev": "" 
+    }
+]
