@@ -7,10 +7,27 @@
 				font: 36pt "Arial"; 
 				border: solid black; 
 				display:inline-block;
-				text-align: center;}
-			.specialChar {font-size: 26pt;}
+				text-align: center;
+				padding: 0px;
+				margin: 0px;
+				word-break: 0px;
+				font-size: 0pt;
+				}
+			.board img{
+				display: inline-block; width: 50px;
+				position: absolute;
+				top: 0px;
+				left: 0px;
+				}
+
+			.board .piece{z-index: 1}
+			.board .square{
+				display: inline-block;
+				width: 50px;
+				height: 50px;
+				position: relative;}
 			.board span{cursor: pointer; user-select: none;}
-			.highlight{color: rgb(255,0,255);}
+			.board .highlight{z-index: 2;}
 		</style>
 	</head>
 	<body>
@@ -23,7 +40,6 @@
 			var s = location.search;
 			s = s.substring(1)
 			base64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvxwyz0123456789+/"
-
 			var chessChars = " ♙♘♗♖♕♔♟♞♝♜♛♚";
 
 			if(s.substring(0,6) == 'chess=')
@@ -46,49 +62,73 @@
 				var bdiv = document.createElement('div');
 				bdiv.className = 'board';
 
+				var HTML = "";
 				for(var i=0; i< 8; i++)
 				{
+					HTML += "<div>"
 					for (var j=0; j<8; j++)
 					{
+						HTML += "<div class='square'>"
 						if(board[i*8+j])
 						{
-							bdiv.innerHTML += "<span class='specialChar'>" + chessChars[board[i*8+j]] + "</span>";
+							HTML += "<img class='piece' src='chess/" + board[i*8+j] + ".png'>";
 						}
-						else
-						{
-							bdiv.innerHTML += "<span>" + "░█"[(i+j)%2] + "</span>";
-						}
+
+						HTML += "<img src='chess/" + "wb"[(i+j)%2] + ".png'>";
+						
+
+						HTML += "</div>"
 					}
-					bdiv.innerHTML += "<br>"
+					HTML += "</div>"
 				}
 
+				bdiv.innerHTML = HTML;
 				document.body.appendChild(bdiv); 
 
 				var txt = document.createElement('p');
 				txt.innerHTML = "Make your move, and then send the new URL to your opponent.";
 				document.body.appendChild(txt);
 
-				var spans = bdiv.getElementsByTagName('span')
-				for(var i=0; i< spans.length; i++)
+
+				var squares = bdiv.getElementsByClassName('square')
+				for(var i=0; i < squares.length; i++)
 				{
+					squares[i].setAttribute('square',i);
 					if(highlights.indexOf(i) != -1)
-						spans[i].classList.add('highlight');
-					spans[i].setAttribute('square',i);
-					spans[i].onclick = function()
 					{
+						var h = document.createElement('img')
+						h.src = "chess/o.png";
+						h.className = 'highlight';
+						h.onclick = this.onclick;
+						squares[i].appendChild(h);
+					}
+				}
+
+				var imgs = bdiv.getElementsByTagName('img')
+
+
+				for(var i=0; i< imgs.length; i++)
+				{
+					imgs[i].onclick = function()
+					{
+						var square = this.parentNode;
 						var highlighted = document.getElementsByClassName('highlight');
 
 						if(highlighted.length > 1)
 						{
 							while(highlighted.length)
 							{
-								highlighted[0].classList.remove('highlight');
+								highlighted[0].parentNode.removeChild(highlighted[0]);
 							}
 						}
 
-						if(highlighted.length == 0 && this.classList.contains('specialChar'))
+						if(highlighted.length == 0 && square.getElementsByClassName('piece').length)
 						{
-							this.classList.add('highlight');
+							var h = document.createElement('img')
+							h.src = "chess/o.png";
+							h.className = 'highlight';
+							h.onclick = this.onclick;
+							square.appendChild(h);
 						}
 						else if(highlighted.length == 0)
 						{
@@ -96,8 +136,16 @@
 						}
 						else if(highlighted[0] != this)
 						{
-							var attackpos = this.getAttribute('square')
-							var pos = highlighted[0].getAttribute('square');
+							var attackpos = square.getAttribute('square')
+							var pos = highlighted[0].parentNode.getAttribute('square');
+
+							if(board[attackpos] != 0 && (Math.floor((board[attackpos]-1)/6) == Math.floor((board[pos]-1)/6)))
+							{
+								highlighted[0].parentNode.removeChild(highlighted[0]);
+								this.click();
+								return;
+							}
+
 							board[attackpos] = board[pos];
 							board[pos] = 0;
 
@@ -108,11 +156,11 @@
 								board[attackpos] = 11;
 
 							var s = "?chess=";
-							board = changeBase(board,13,64);
-							while(board.length < 40)
-								board.push(0);
-							for(var i=0; i< board.length; i++)
-								s += base64[board[i]];
+							var state = changeBase(board,13,64);
+							while(state.length < 40)
+								state.push(0);
+							for(var i=0; i< state.length; i++)
+								s += base64[state[i]];
 							
 							s+= base64[attackpos];
 							s+= base64[pos];
@@ -121,7 +169,7 @@
 						}
 						else
 						{
-							highlighted[0].classList.remove('highlight');
+							highlighted[0].parentNode.removeChild(highlighted[0]);
 						}
 					}
 				}
