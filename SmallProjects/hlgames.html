@@ -2,6 +2,12 @@
 <html>
 	<head>
 		<meta charset='UTF-8'>
+		<!-- Additional games to consider adding 
+			Connect 4
+			Othello
+			Hangman
+		
+		-->
 		<style>
 			.board { 
 				font: 36pt "Arial"; 
@@ -28,12 +34,34 @@
 				position: relative;}
 			.board span{cursor: pointer; user-select: none;}
 			.board .highlight{z-index: 2;}
+
+			#c4board .cell {
+				width: 50px;
+				height: 50px;
+				border: solid 3px black;
+			}
+			#c4board .cell .t1, #c4board .cell .t2
+			{
+				width: 100%; height: 100%; border-radius: 25px;
+			}
+			#c4board .cell .t1 { background-color: red;}
+			#c4board .cell .t2 { background-color: black;}
+
+			#c4board {
+				border: solid 5px black;
+				border-collapse: collapse;
+			}
+			#c4board .cell .last {
+				border: solid 10px goldenrod;
+				width: 60%;
+				}
 		</style>
 	</head>
 	<body>
 
 		<div>
 			<a href='?chess=6Mhc2rYA6J4asijSs7eBfpdiRutavfDP9Sysq8RC'>New Chess Game</a>
+			<a href='?c4='>New Connect 4 Game</a>
 		</div>
 
 		<script>
@@ -175,6 +203,68 @@
 				}
 				
 			}
+			else if(s.substring(0,3) == "c4=")
+			{
+				var board = document.createElement('table');
+				board.id = 'c4board';
+
+				document.body.appendChild(board);
+
+				var gameState = toInt64(s.substring(3));
+				if(gameState.length > 0)
+					gameState = changeBase(gameState,64,8);
+
+				var boardState = [[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]];
+				for(var i=0; i< gameState.length; i++)
+				{
+					var col = gameState[i];
+					if(col == 0)
+						continue;
+					col--;
+					var row = 5;
+					while(boardState[col][row] != 0 && row >= 0)
+						row--;
+					if(row >=0)
+						boardState[col][row] = (i%2)+1 + (i == gameState.length-1?10:0);
+					
+				}
+
+				
+
+				for(var i=0; i < 6; i++)
+				{
+					var row = document.createElement("tr");
+
+					for(var j=0; j<7; j++)
+					{
+						var cell = document.createElement('td');
+						cell.className = 'cell';
+						if(boardState[j][i] != 0)
+						{
+							var chip = document.createElement('div');
+							chip.className = "t" + boardState[j][i]%10;
+							if( boardState[j][i]>10)
+								chip.className += " last";
+							cell.appendChild(chip);
+						}
+						cell.setAttribute('col',j+1);
+
+						cell.onclick = function()
+						{
+							gameState.push(Number(this.getAttribute('col')));
+							gameState = changeBase(gameState,8,64);
+							var s = "?c4=";
+							for(i in gameState)
+								s += base64[gameState[i]];
+
+							window.location = s;
+						}
+
+						row.appendChild(cell);
+					}
+					board.appendChild(row);
+				}
+			}
 
 			function toInt64(s)
 			{
@@ -253,222 +343,222 @@
 			}
 
 			function add(a,b)
+			{
+				if(a.base != b.base)
+					throw new Error("a and b have different bases");
+				if(a.base < 2)
+					throw new Error("base < 2");
+
+				while(a.val[a.val.length-1] == 0)
+					a.val.pop();
+				while(b.val[b.val.length-1] == 0)
+					b.val.pop();
+
+				var carry = 0;
+
+				if(b.val.length > a.val.length)
 				{
-					if(a.base != b.base)
-						throw new Error("a and b have different bases");
-					if(a.base < 2)
-						throw new Error("base < 2");
+					var c = a;
+					a = b;
+					b = c;
+				}
+				
+				var c = {};
+				c.base = a.base;
+				c.val = [];
 
-					while(a.val[a.val.length-1] == 0)
-						a.val.pop();
-					while(b.val[b.val.length-1] == 0)
-						b.val.pop();
+				var carry = 0;
+				for(var i =0; i < a.val.length; i++)
+				{
+					var ai = a.val[i];
+					var bi = (b.val[i] != undefined ? b.val[i] : 0);
 
-					var carry = 0;
+					c.val[i] = ai+bi+carry;
 
-					if(b.val.length > a.val.length)
-					{
-						var c = a;
-						a = b;
-						b = c;
-					}
-					
-					var c = {};
-					c.base = a.base;
-					c.val = [];
+					var rem = c.val[i]%c.base;
+					carry = (c.val[i] - rem)/c.base;
+					c.val[i] = rem;
+				}
 
-					var carry = 0;
-					for(var i =0; i < a.val.length; i++)
-					{
-						var ai = a.val[i];
-						var bi = (b.val[i] != undefined ? b.val[i] : 0);
+				if(carry)
+					c.val[a.val.length] = carry;
 
-						c.val[i] = ai+bi+carry;
+				return c;
+			}
 
-						var rem = c.val[i]%c.base;
-						carry = (c.val[i] - rem)/c.base;
-						c.val[i] = rem;
-					}
+			function mult(a,b)
+			{
+				
+				if(a.base != b.base)
+					throw new Error("a and b have different bases");
+				if(a.base < 2)
+					throw new Error("base < 2");
 
-					if(carry)
-						c.val[a.val.length] = carry;
+				//remove end zeros to make life simpler. 
+				while(a.val.length > 1 && a.val[a.val.length-1] == 0)
+					a.val.pop();
+				while(b.val.length > 1 && b.val[b.val.length-1] == 0)
+					b.val.pop();
+
+				//console.log(a.val.slice());
+				//console.log(b.val.slice());
+
+				if(b.val.length > a.val.length)
+				{
+					var c = a;
+					a = b;
+					b = c;
+				}
+				
+				if(a.val.length == 1 && b.val.length == 1)
+				{
+					var c = {base: a.base, val: []}
+					c.val[0] = a.val[0] * b.val[0];
+
+					var rem = c.val[0]%c.base;
+					var next = (c.val[0] - rem)/c.base;
+					c.val[0] = rem;
+
+					if(next > 0)
+						c.val[1] = next;
 
 					return c;
 				}
-
-				function mult(a,b)
+				if(b.val.length == 1)
 				{
-					
-					if(a.base != b.base)
-						throw new Error("a and b have different bases");
-					if(a.base < 2)
-						throw new Error("base < 2");
-
-					//remove end zeros to make life simpler. 
-					while(a.val.length > 1 && a.val[a.val.length-1] == 0)
-						a.val.pop();
-					while(b.val.length > 1 && b.val[b.val.length-1] == 0)
-						b.val.pop();
-
-					//console.log(a.val.slice());
-					//console.log(b.val.slice());
-
-					if(b.val.length > a.val.length)
-					{
-						var c = a;
-						a = b;
-						b = c;
-					}
-					
-					if(a.val.length == 1 && b.val.length == 1)
-					{
-						var c = {base: a.base, val: []}
-						c.val[0] = a.val[0] * b.val[0];
-
-						var rem = c.val[0]%c.base;
-						var next = (c.val[0] - rem)/c.base;
-						c.val[0] = rem;
-
-						if(next > 0)
-							c.val[1] = next;
-
-						return c;
-					}
-					if(b.val.length == 1)
-					{
-						var k = split(a);
-						var a1 = k[0];
-						var n = k[1];
-						var a2 = k[2];
-
-						return add(pad(mult(a1,b),n), mult(a2,b));
-					}
-
-					var k = split2(a,b);
-					var a1 = k[1];
+					var k = split(a);
+					var a1 = k[0];
+					var n = k[1];
 					var a2 = k[2];
-					var b1 = k[3];
-					var b2 = k[4];
 
-					
-					var a1b1 = mult(a1,b1);
-					var a2b2 = mult(a2,b2);
-					var comb = mult(add(a1,a2),add(b1,b2));
-
-					//console.log(pad(sub(comb,add(a1b1,a2b2)), k[0]));
-					
-
-					//console.log(a2b2);
-
-					var result =  add(
-						add(pad(a1b1,2*k[0]),a2b2),
-						pad(sub(comb,add(a1b1,a2b2)), k[0])
-					);
-
-					while(result[result.length-1] == 0)
-						result.pop();
-					return result;
+					return add(pad(mult(a1,b),n), mult(a2,b));
 				}
 
-				// a > b >= 0 
-				function sub(a,b)
+				var k = split2(a,b);
+				var a1 = k[1];
+				var a2 = k[2];
+				var b1 = k[3];
+				var b2 = k[4];
+
+				
+				var a1b1 = mult(a1,b1);
+				var a2b2 = mult(a2,b2);
+				var comb = mult(add(a1,a2),add(b1,b2));
+
+				//console.log(pad(sub(comb,add(a1b1,a2b2)), k[0]));
+				
+
+				//console.log(a2b2);
+
+				var result =  add(
+					add(pad(a1b1,2*k[0]),a2b2),
+					pad(sub(comb,add(a1b1,a2b2)), k[0])
+				);
+
+				while(result[result.length-1] == 0)
+					result.pop();
+				return result;
+			}
+
+			// a > b >= 0 
+			function sub(a,b)
+			{
+				if(a.base != b.base)
+					throw new Error("a and b have different bases");
+				if(a.base < 2)
+					throw new Error("base < 2");
+
+				var carry = 0;
+
+				var c = {};
+				c.base = a.base;
+				c.val = [];
+
+				for(var i =0; i < a.val.length; i++)
 				{
-					if(a.base != b.base)
-						throw new Error("a and b have different bases");
-					if(a.base < 2)
-						throw new Error("base < 2");
+					var ai = a.val[i];
+					var bi = (b.val[i] != undefined ? b.val[i] : 0);
 
-					var carry = 0;
+					c.val[i] = ai - bi - carry;
 
-					var c = {};
-					c.base = a.base;
-					c.val = [];
-
-					for(var i =0; i < a.val.length; i++)
+					if(c.val[i] < 0)
 					{
-						var ai = a.val[i];
-						var bi = (b.val[i] != undefined ? b.val[i] : 0);
-
-						c.val[i] = ai - bi - carry;
-
-						if(c.val[i] < 0)
-						{
-							carry = 1;
-							c.val[i] += c.base;
-						}
-						else
-						{
-							carry = 0;
-						}
-					}
-
-					while(c.val[c.val.length -1] == 0)
-						c.val.pop();
-
-					return c;
-				}
-
-				function pad(a,n)
-				{
-					var x = {base: a.base, val:a.val.slice()};
-					while(n > 0)
-					{
-						x.val.unshift(0);
-						n--;
-					}
-					return x;
-				}
-
-				function split(a)
-				{
-					var n = Math.floor(a.val.length/2);
-
-					var x = {base: a.base, val: a.val.slice(n)};
-					var y = {base: a.base, val: a.val.slice(0,n)};
-					return [x, n, y];
-				}
-
-				function split2(a,b)
-				{
-					var len = a.val.length;
-					if(b.val.length > len)
-						len = b.val.len;
-
-					var k = [];
-
-					k[0] = Math.floor(len/2);
-
-					if(a.val.length > k[0])
-					{
-						k[1] = {base: a.base, val: a.val.slice(k[0])};
-						k[2] = {base: a.base, val: a.val.slice(0,k[0])};
+						carry = 1;
+						c.val[i] += c.base;
 					}
 					else
 					{
-						k[1] = {base: a.base, val:[0]}
-						k[2] = a;
+						carry = 0;
 					}
-
-					if(b.val.length > k[0])
-					{
-						k[3] = {base: b.base, val: b.val.slice(k[0])};
-						k[4] = {base: b.base, val: b.val.slice(0,k[0])};
-					}
-					else
-					{
-						k[3] = {base: b.base, val:[0]}
-						k[4] = b;
-					}
-
-					if(!k[1].val.length || !k[2].val.length ||!k[3].val.length ||!k[4].val.length )
-					{
-						console.log(a);
-						console.log(b);
-						throw new Error("Bad split");
-					}
-
-					return k;
 				}
+
+				while(c.val[c.val.length -1] == 0)
+					c.val.pop();
+
+				return c;
+			}
+
+			function pad(a,n)
+			{
+				var x = {base: a.base, val:a.val.slice()};
+				while(n > 0)
+				{
+					x.val.unshift(0);
+					n--;
+				}
+				return x;
+			}
+
+			function split(a)
+			{
+				var n = Math.floor(a.val.length/2);
+
+				var x = {base: a.base, val: a.val.slice(n)};
+				var y = {base: a.base, val: a.val.slice(0,n)};
+				return [x, n, y];
+			}
+
+			function split2(a,b)
+			{
+				var len = a.val.length;
+				if(b.val.length > len)
+					len = b.val.len;
+
+				var k = [];
+
+				k[0] = Math.floor(len/2);
+
+				if(a.val.length > k[0])
+				{
+					k[1] = {base: a.base, val: a.val.slice(k[0])};
+					k[2] = {base: a.base, val: a.val.slice(0,k[0])};
+				}
+				else
+				{
+					k[1] = {base: a.base, val:[0]}
+					k[2] = a;
+				}
+
+				if(b.val.length > k[0])
+				{
+					k[3] = {base: b.base, val: b.val.slice(k[0])};
+					k[4] = {base: b.base, val: b.val.slice(0,k[0])};
+				}
+				else
+				{
+					k[3] = {base: b.base, val:[0]}
+					k[4] = b;
+				}
+
+				if(!k[1].val.length || !k[2].val.length ||!k[3].val.length ||!k[4].val.length )
+				{
+					console.log(a);
+					console.log(b);
+					throw new Error("Bad split");
+				}
+
+				return k;
+			}
 
 		</script>
 	</body>
