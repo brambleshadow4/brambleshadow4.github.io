@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<style>
+			.expression{
+				font-size: 20pt;
+			}
+			.evaluation{
+				font-size: 20pt;
+				text-align: right;
+				color: blue;
+			}
+
+			.row{
+				vertical-align: middle;
+				display: inline-block;
+			}
+			.text{
+				display: inline-block;
+				/*vertical-align: middle;*/
+				}
+			.frac{
+				padding-left: 5px;
+				padding-right: 5px;
+				font-size: .8em;
+				text-align: center;
+				display: inline-block;
+				vertical-align: middle;
+			}
+			.frac > .row:first-child{
+				border-bottom: solid black .1em;
+			}
+			.frac > .row{display: block;}
+
+			.pow{	
+				/*display: inline-block;
+				font-size: .75em;
+				vertical-align: super;*/
+				
+				display: inline-block;
+				font-size: .75em;
+				position: relative;
+				bottom: .75em;
+				margin-top: .8em;
+			}
+
+			.sqrt > span{margin-left: 20px; border-top: 1.5px solid black;}
+			.sqrt {display: inline-block; position: relative;}
+			/*.sqrt > img {max-height: 100%;}*/
+
+			.var.s0{
+				color: red;
+				/*background-color: #ff9999;*/
+			}
+			.var.s1{
+				color: green;
+				/*background-color: #99ff99;*/
+			}
+			.var.s2{
+				color: blue;
+				/*background-color: #9999ff;*/
+			}
+			.var{
+				font-style: italic;
+			}
+			.fun{font-family: monospace;}
+
+			#exp_focus::after{
+				content: "░";
+				color: blue;
+			}
+
+			div.sqrtSym
+			{
+				background-image: url(sqrt.png);
+				background-size: 100% 100%;
+				/*background-color: blue;*/
+				position: absolute;
+				top: 0px;
+				bottom: 0px;
+				width: 20px;
+				display: inline-block;
+			}
+
+			div code {font-size: 15pt; border: dotted 1px black;}
+			.hov>div
+			{
+				display: none;
+				position: fixed;
+				background-color: rgb(200,200,200);
+				padding: 15px;
+
+				overflow-y: scroll;
+
+				top: 20px;
+				right: 20px;
+				bottom: 20px;
+				z-index: 10;
+			}
+
+			.hov >span
+			{
+				position: fixed;
+				top: 20px;
+				right: 20px;
+			}
+			.hov>div h4
+			{
+				text-align: left;
+				margin: 5px 0px;
+			}
+
+			.hov div div
+			{
+				position: relative;
+				margin-bottom: 1em;
+			}
+
+			.hov{
+				text-align: right;
+				font-size: 20pt;
+				
+			}
+			
+			.hov:hover div{display: block;}
+			.hov:hover { display: block;}
+
+		</style>
+	</head>
+	<body>
+		<div id='main'>
+			<div class='expression'>
+				<span class='row'>
+					<span id='exp_focus' class='text'>
+				</span>
+			</div>
+		</div>
+		<!-- 
+			expression
+			evaluation
+
+			text
+			row
+			frac
+			exp
+		-->
+		<script>
+			var textMode = false;
+			var localVars = {};
+
+			function endTextMode(div)
+			{
+				textMode = false;
+				var span = DOM('.expression:l.var:l');
+
+				if(!span)
+					return;
+				var greek = ["alpha","beta","gamma","delta","epsilon","zeta","eta","theta","iota","kappa","lambda","mu","nu","xi","omicron","pi","rho","sigma","tau","upsilon","phi","chi","psi","omega"];
+				var greekSym = "αβγδεζηθικλμνξοπρστυφχψω";
+
+				if(greek.indexOf(span.innerHTML) >=0)
+					span.innerHTML = greekSym[greek.indexOf(span.innerHTML)];
+				if(span.innerHTML == "e" || span.innerHTML == "π")
+				{
+					span.className = "var";
+				}
+
+				if(span.innerHTML == "sqrt")
+				{
+					//var g = document.getElementById('sqrt.svg').cloneNode(true);
+					var g = document.createElement('div');
+					g.className = 'sqrtSym'
+
+					var sqrt = document.createElement('span');
+					sqrt.className = 'sqrt';
+					var newRow = document.createElement('span');
+					newRow.className = 'row';
+					var newText = document.createElement('span');
+					newText.className='text';
+					
+					sqrt.appendChild(g);
+					sqrt.appendChild(newRow);
+					newRow.appendChild(newText);
+
+					span.parentNode.parentNode.appendChild(sqrt);
+					span.parentNode.removeChild(span);
+
+					var n = document.createElement('span');
+					n.className='text';
+					sqrt.parentNode.appendChild(n);
+
+					textSpanIndex++;
+				}
+			}
+
+			window.onkeydown = function(e)
+			{
+				var div = DOM('.expression:l.text')[textSpanIndex];
+
+				if(e.key == ";")
+				{
+					if(textMode)
+						endTextMode(div);
+					else if(DOM('.expression:l.text').length > textSpanIndex+1)
+					{
+						textSpanIndex++;
+						div = DOM('.expression:l.text')[textSpanIndex];
+					}
+				}
+
+				if(e.keyCode == 8)
+				{
+					console.log(div.innerHTML);
+					if(div.innerHTML == "")
+					{
+						var p = div.parentNode;
+						if(p.children.length > 1)
+						{
+							textSpanIndex--;
+						}
+						else if(p.parentNode && p.parentNode.className == "frac")
+						{
+							if(p == p.parentNode.children[0])
+							{
+								var frac = p.parentNode;
+								frac.parentNode.removeChild(frac.nextSibling);
+								frac.parentNode.removeChild(frac);			
+							}
+							textSpanIndex--;
+						}
+						else if(p.className == "pow")
+						{
+							p.parentNode.removeChild(p.nextSibling)
+							p.parentNode.removeChild(p);
+							textSpanIndex--;
+						}
+						
+					}
+					var s = div.innerHTML.trim();
+
+					if(s[s.length-1] == ">")
+					{
+						textMode = true;
+						div = div.children[div.children.length-1];
+						s = div.innerHTML.trim();
+
+						
+						div.innerHTML = s.substring(0,s.length-1).trim();
+						
+						if(div.innerHTML.length == 0)
+						{
+							div.parentNode.removeChild(div);
+							textMode = false;
+						}
+						return;
+							
+					}
+					else
+						div.innerHTML = s.substring(0,s.length-1).trim();
+				}
+
+				if(e.keyCode == 13)
+				{
+					//compute evaluation
+					endTextMode(div);
+					var k = parseExpSpan(DOM('.expression:l'));
+					
+					var assignment = /{([a-zA-Z0-9α-ω]+)}=(.+)/.exec(k);
+					if(assignment)
+					{
+						k = assignment[2];
+					}
+
+					try{
+						k = evaluate(k);
+						if(assignment)
+							localVars[assignment[1]] = k;
+						localVars['ans'] = k;
+					}
+					catch(e)
+					{
+						k = e;
+					}
+					
+					var div = document.createElement('div');
+					div.className = "evaluation";
+					div.innerHTML = k;
+					document.body.appendChild(div);
+
+					var div2 = document.createElement('div');
+					div2.className = "expression";
+
+					div2.innerHTML = "<span class='row'><span class='text'></span></span>";
+					document.body.appendChild(div2);
+					textSpanIndex = 0;
+
+					div = DOM('.expression:l.text')[textSpanIndex];
+				}
+			
+				if(/[A-Za-z]/.exec(e.key) && e.key.length == 1)
+				{
+					if(!textMode)
+					{
+						textMode = true;
+						var style = "s" + (DOM(".expression:l.var").length %3);
+						div.innerHTML += "<span class='var " + style + "'></span>";
+					}
+				}
+				else if (textMode && !/[1-90]/.exec(e.key))
+				{
+					endTextMode(div);
+				}
+					
+
+				if("0123456789.+-/?*^()=".indexOf(e.key) == -1 && !textMode){}
+				else if(e.key == "+")
+				{
+					div.innerHTML += " + ";
+				}
+				else if(e.key == "*")
+				{
+					div.innerHTML += " × ";
+				}
+				else if(e.key == "-")
+				{
+					var k = div.innerHTML.trim();
+					if("+−-*×/^(".indexOf(k[k.length-1]) == -1 
+						&& (k.length > 0 || div.parentNode.children.length > 1))
+						div.innerHTML += " − ";
+					else
+						div.innerHTML += "-";
+				}
+				else if (e.key == "/")
+				{
+					var s = div.innerHTML;
+					if(s[s.length-1] != "/")
+						div.innerHTML += e.key;
+					else
+					{
+						div.innerHTML = s.substring(0,s.length-1);
+
+						var p = div.parentNode;
+						p.innerHTML += "<span class='frac'><span class='row'><span class='text'></span></span><span class='row'><span class='text'></span></span></span><span class='text'></span>";
+						textSpanIndex++;
+						
+						div = DOM(p,'.frac:l.text:0');
+					}
+
+				}
+				else if(e.key == "^")
+				{
+					var p = div.parentNode;
+					p.innerHTML += "<span class='pow'><span class='text'></span></span><span class='text'></span>";
+					textSpanIndex++;
+					div = DOM(p,'.pow:l.text:0');
+				}
+				else if (textMode)
+				{
+					DOM(div,'span:l').innerHTML += e.key;
+				}
+				else if(e.key == "=")
+				{
+					div.innerHTML += " = ";
+				}
+				else
+				{
+					div.innerHTML += e.key;
+				}
+				
+			
+				document.body.scrollTop = document.body.scrollHeight;
+
+				if(DOM('#exp_focus'))
+					DOM('#exp_focus').id = "";
+				DOM('.expression:l.text')[textSpanIndex].id = 'exp_focus';
+			}
+
+			var textSpanIndex = 0;
+
+			function parseExpSpan(span)
+			{
+				if(span.className == 'text')
+				{
+					var dup = span.cloneNode(true);
+
+					var varSpans = DOM(dup,".var");
+					while(varSpans.length)
+						varSpans[0].outerHTML = "{" + varSpans[0].innerHTML + "}";
+
+					var s = dup.innerHTML.replace(/×/g,"*");
+					s = s.replace(/−/g,"-");
+					s = s.replace(/\s/g,"");
+					return s;
+				}
+				if(span.className == 'frac')
+				{
+					return "((" + parseExpSpan(span.children[0]) + ")/(" + parseExpSpan(span.children[1]) + "))";
+				}
+				if(span.className == 'row' || span.className == "expression" || span.className =='pow')
+				{
+					var s = "";
+					for(var i=0; i<span.children.length; i++)
+						s += parseExpSpan(span.children[i]);
+
+					if(span.className == "pow")
+						return "^(" +s + ")";
+					return s;
+				}
+				if(span.className == 'sqrt')
+				{
+					return "((" + parseExpSpan(span.children[1]) + ")^.5)";
+				}
+				
+			}
+
+			function evaluate(s)
+			{
+				console.log(s);
+				var parLevel = 0;
+
+				var i = s.length-1;
+
+				while(i >= 0)
+				{
+					if(s[i] == "(")
+						parLevel--;
+					if(s[i] == ")")
+						parLevel++;
+
+					if(!parLevel && (s[i] == "+" || s[i] == "-"))
+					{
+						if(s[i] == "-" && "-+/*^".indexOf(s[i-1]) == -1)
+							return evaluate(s.substring(0,i)) - evaluate(s.substring(i+1));
+						else if(s[i] == "+")
+							return evaluate(s.substring(0,i)) + evaluate(s.substring(i+1));
+						
+					}
+					i--;
+				}
+
+				parLevel = 0;
+				i = s.length-1;
+				while(i >= 0)
+				{
+					if(s[i] == "(")
+						parLevel--;
+					if(s[i] == ")")
+						parLevel++;
+
+					if(!parLevel && (s[i] == "*" || s[i] == "/"))
+					{
+						if(s[i] == "*")
+							return evaluate(s.substring(0,i)) * evaluate(s.substring(i+1));
+						return evaluate(s.substring(0,i)) / evaluate(s.substring(i+1));
+					}
+
+					if(!parLevel && (s[i] == "(" || s[i] == "{"))
+					{
+						//check preceding text; might be a function
+						if(i > 0 && "^/*".indexOf(s[i-1]) == -1)
+						{
+							return evaluate(s.substring(0,i)) * evaluate(s.substring(i));
+						}
+					}
+
+					if((parLevel ==1 && s[i] == ")") || (parLevel == 0 && s[i] == "}"))
+					{
+						
+						if(i != s.length-1 && s[i+1] != "^")
+						{
+							console.log('mult');
+							return evaluate(s.substring(0,i+1)) * evaluate(s.substring(i+1));
+						}
+					}
+
+					i--;
+				}
+
+				parLevel = 0;
+				i = s.length-1;
+				while(i >= 0)
+				{
+					if(s[i] == "(")
+						parLevel--;
+					if(s[i] == ")")
+						parLevel++;
+
+					if(!parLevel && s[i] == "^")
+					{
+						return Math.pow(evaluate(s.substring(0,i)),evaluate(s.substring(i+1)));
+					}
+					i--;
+				}
+
+				if(s[0] == "(" && s[s.length-1] == ")")
+					return evaluate(s.substring(1,s.length-1));
+
+				if(s[0] == "{" && s[s.length-1] == "}")
+				{
+					var vName = s.substring(1,s.length-1)
+
+					if(vName == 'rand')
+						return Math.random();
+					if(vName == "π")
+						return Math.PI;
+					if(vName == "e")
+						return Math.E;
+					if(localVars[vName] == undefined)
+						throw new Error(vName + " is not defined");
+
+					return localVars[vName];
+				}
+
+				return Number(s.replace(/\s/g,""));
+			}
+
+
+			function DOM(root,query)
+			{
+				if(query == undefined)
+				{
+					query = root;
+					root = document;
+				}
+
+				var k = 1;
+				while(k < query.length && " .#".indexOf(query[k]) == -1)
+					k++;
+				
+				var rem = query.substring(k)
+				query = query.substring(0,k);
+
+				var collection;
+				if(query[0] ==  "#")
+				{
+					collection = root.getElementById(query.substring(1));
+				}
+				else
+				{
+					var index = "none";
+					if(query.indexOf(':') != -1)
+					{
+						query = query.split(":")
+						index = query[1]
+						query = query[0]
+					}
+					
+					if(query[0] == ".")
+						collection = root.getElementsByClassName(query.substring(1));
+					else if(query[0] == " ")
+						collection = root.getElementsByTagName(query.substring(1));
+					else
+						collection = root.getElementsByTagName(query);
+					
+					if(index != "none")
+					{
+						if(index == "l")
+							collection = collection[collection.length -1]
+						else
+							collection = collection[Number(index)]
+					}
+				}
+
+				if(rem == "")
+					return collection;
+				
+				return DOM(collection,rem);
+				
+			}
+		</script>
+
+		<div class='hov'>
+			<span>Need help?</span>
+			<div>
+				<h4>Expressions</h4>
+				<div>Type in an expression, and then press Enter</div>
+				<div> type <code>2+3</code> to get <span class="text" >2 + 3</span></div>
+				<div> type <code>-5-2</code> to get <span class="text">-5 − 2</span></div>
+				<div>type <code>3*2(1+2)</code> to get <span class="text">3 × 2(1 + 2)</span></div>
+				<div>type <code>5/3</code> to get <span class="text" id="">5/3</span> </div>
+				<div>type <code>//5;3;</code> to get 
+					<span class="frac"><span class="row"><span class="text" id="">5</span></span><span class="row"><span class="text" id="">3</span></span></span></div>
+				<div>type <code>2^3+4;-1</code> to get <span class="row"><span class="text" id="">2</span><span class="pow"><span class="text" id="">3 + 4 </span></span><span class="text" id="">− 1</span></span> </code></div>
+				
+
+				<h4>Constants + Variables</h4>
+
+				<div> type <code>pi;</code> to get <span class="var">π</span></div>
+				<div> type <code>e;</code> to get <span class="var">e</span></div>
+				
+				<div> type <code>x=10</code> and press enter to create a variable x<br> with value 10. You can then use x<br> in expressions like 5x</div>
+
+				<div> <code>xyz</code> types variable 'xyz'<br>  <code>x;y;z</code> types var'x' var'y' var'z'<br>Use the semicolon to <br>immediately end the variable's name</div>
+					
+				<div>You can also assign greek leters as varaibles<br> try <code>theta = 3</code></div>
+
+				<div>You can use the result calculated in <br> the pervoius step by typing <code>ans</code></div>
+
+
+
+
+
+				<div style='font-size: 12pt; text-align: center;'>Move you mouse out of this box to close it</div>
+			</div>
+		</div>
+
+
+	</body>
+</html>
