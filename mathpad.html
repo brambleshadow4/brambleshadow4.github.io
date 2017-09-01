@@ -45,7 +45,7 @@
 			}
 
 			.sqrt > span{margin-left: 20px; border-top: 1.5px solid black;}
-			.sqrt {display: inline-block; position: relative;}
+			.sqrt, .hov .div .div .sqrt {display: inline-block; position: relative;}
 			/*.sqrt > img {max-height: 100%;}*/
 
 			.var.s0{
@@ -70,7 +70,7 @@
 				color: blue;
 			}
 
-			div.sqrtSym
+			div.sqrtSym, .hov div.sqrtSym
 			{
 				background-image: url(sqrt.png);
 				background-size: 100% 100%;
@@ -80,6 +80,7 @@
 				bottom: 0px;
 				width: 20px;
 				display: inline-block;
+				margin-bottom: 0px;
 			}
 
 			div code {font-size: 15pt; border: dotted 1px black;}
@@ -581,6 +582,8 @@
 				<div>type <code>//5;3;</code> to get 
 					<span class="frac"><span class="row"><span class="text" id="">5</span></span><span class="row"><span class="text" id="">3</span></span></span></div>
 				<div>type <code>2^3+4;-1</code> to get <span class="row"><span class="text" id="">2</span><span class="pow"><span class="text" id="">3 + 4 </span></span><span class="text" id="">− 1</span></span> </code></div>
+
+				<div>type <code>sqrt;2;</code> to get <span class='row'><span class="sqrt"><div class="sqrtSym"></div><span class="row"><span class="text" id="">2</span></span></span></span></div>
 				
 
 				<h4>Constants + Variables</h4>
